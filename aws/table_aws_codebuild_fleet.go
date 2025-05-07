@@ -21,7 +21,7 @@ func tableAwsCodeBuildFleet(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("arn"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidInputException", "ResourceNotFoundException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
 			Hydrate: getCodeBuildFleet,
 			Tags:    map[string]string{"service": "codebuild", "action": "BatchGetFleets"},
@@ -29,6 +29,14 @@ func tableAwsCodeBuildFleet(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listCodeBuildFleets,
 			Tags:    map[string]string{"service": "codebuild", "action": "ListFleets"},
+			// According to the supported endpoints listed here: https://docs.aws.amazon.com/general/latest/gr/codebuild.html,
+			// AWS CodeBuild is available in all regions as mentioned in the above doc. However, the specific resource type "fleet" is not supported in every region.
+			// If you attempt to perform the ListFleets operation in a region where fleet support is unavailable,
+			// the API returns an InvalidInputException with the message:
+			// "An error occurred (InvalidInputException) when calling the ListFleets operation: Unknown operation ListFleets"
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidInputException"}),
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(AWS_CODEBUILD_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -36,6 +44,7 @@ func tableAwsCodeBuildFleet(_ context.Context) *plugin.Table {
 				Name:        "name",
 				Description: "The name of the compute fleet.",
 				Type:        proto.ColumnType_STRING,
+				Hydrate:     getCodeBuildFleet,
 			},
 			{
 				Name:        "arn",
@@ -46,83 +55,99 @@ func tableAwsCodeBuildFleet(_ context.Context) *plugin.Table {
 				Name:        "base_capacity",
 				Description: "The base capacity of the compute fleet.",
 				Type:        proto.ColumnType_INT,
+				Hydrate:     getCodeBuildFleet,
 			},
 			{
 				Name:        "created",
 				Description: "When the compute fleet was created, expressed in Unix time format.",
 				Type:        proto.ColumnType_TIMESTAMP,
+				Hydrate:     getCodeBuildFleet,
 			},
 			{
 				Name:        "last_modified",
 				Description: "When the compute fleet's settings were last modified, expressed in Unix time format.",
 				Type:        proto.ColumnType_TIMESTAMP,
+				Hydrate:     getCodeBuildFleet,
 			},
 			{
 				Name:        "status",
 				Description: "The current status of the compute fleet.",
 				Type:        proto.ColumnType_STRING,
+				Hydrate:     getCodeBuildFleet,
 			},
 			{
 				Name:        "status_reason",
 				Description: "The reason for the current status of the compute fleet.",
 				Type:        proto.ColumnType_STRING,
+				Hydrate:     getCodeBuildFleet,
 			},
 			{
 				Name:        "compute_type",
 				Description: "The compute type of the compute fleet.",
 				Type:        proto.ColumnType_STRING,
+				Hydrate:     getCodeBuildFleet,
 			},
 			{
 				Name:        "compute_fleet_type",
 				Description: "The type of compute fleet.",
 				Type:        proto.ColumnType_STRING,
+				Hydrate:     getCodeBuildFleet,
 			},
 			{
 				Name:        "vpc_config",
 				Description: "Information about the VPC configuration that AWS CodeBuild uses to access resources in a VPC.",
 				Type:        proto.ColumnType_JSON,
+				Hydrate:     getCodeBuildFleet,
 			},
 			{
 				Name:        "environment_type",
 				Description: "The environment type of the compute fleet.",
 				Type:        proto.ColumnType_STRING,
+				Hydrate:     getCodeBuildFleet,
 			},
 			{
 				Name:        "current_capacity",
 				Description: "The current capacity of the compute fleet.",
 				Type:        proto.ColumnType_INT,
+				Hydrate:     getCodeBuildFleet,
 			},
 			{
 				Name:        "desired_capacity",
 				Description: "The desired capacity of the compute fleet.",
 				Type:        proto.ColumnType_INT,
+				Hydrate:     getCodeBuildFleet,
 			},
 			{
 				Name:        "max_capacity",
 				Description: "The maximum capacity of the compute fleet.",
 				Type:        proto.ColumnType_INT,
+				Hydrate:     getCodeBuildFleet,
 			},
 			{
 				Name:        "min_capacity",
 				Description: "The minimum capacity of the compute fleet.",
 				Type:        proto.ColumnType_INT,
+				Hydrate:     getCodeBuildFleet,
 			},
 			{
 				Name:        "fleet_service_role",
 				Description: "The service role ARN for the compute fleet.",
 				Type:        proto.ColumnType_STRING,
+				Hydrate:     getCodeBuildFleet,
 			},
 			{
 				Name:        "tags_src",
 				Description: "A list of tag key and value pairs associated with this compute fleet.",
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("Tags"),
+				Hydrate:     getCodeBuildFleet,
 			},
 			{
 				Name:        "tags",
 				Description: "A map of tags key and value pairs associated with this compute fleet.",
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.From(codeBuildFleetTurbotTags),
+				Hydrate:     getCodeBuildFleet,
 			},
 
 			// Standard columns
@@ -150,6 +175,11 @@ func listCodeBuildFleets(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_codebuild_fleet.listCodeBuildFleets", "connection_error", err)
 		return nil, err
+	}
+
+	// Unsupported region check
+	if svc == nil {
+		return nil, nil
 	}
 
 	// Limiting the results
@@ -183,7 +213,7 @@ func listCodeBuildFleets(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 		}
 
 		for _, fleet := range output.Fleets {
-			d.StreamListItem(ctx, fleet)
+			d.StreamListItem(ctx, types.Fleet{Arn: &fleet})
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
 			if d.RowsRemaining(ctx) == 0 {
@@ -216,6 +246,10 @@ func getCodeBuildFleet(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_codebuild_fleet.getCodeBuildFleet", "connection_error", err)
 		return nil, err
+	}
+
+	if svc == nil {
+		return nil, nil
 	}
 
 	// Build the params
