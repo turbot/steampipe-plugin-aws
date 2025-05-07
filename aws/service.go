@@ -119,6 +119,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/route53resolver"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3control"
+	"github.com/aws/aws-sdk-go-v2/service/s3tables"
 	"github.com/aws/aws-sdk-go-v2/service/sagemaker"
 	"github.com/aws/aws-sdk-go-v2/service/scheduler"
 	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
@@ -1411,6 +1412,23 @@ func S3Client(ctx context.Context, d *plugin.QueryData, region string) (*s3.Clie
 	}
 
 	return svc, nil
+}
+
+
+// S3TablesClient returns the service client for AWS S3 Tables service.
+func S3TablesClient(ctx context.Context, d *plugin.QueryData, region string) (*s3tables.Client, error) {
+	cfg, err := getClientForRegion(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+
+	if cfg == nil {
+		return nil, nil
+	}
+	// Configure a new AWS session using the updated config with service-specific endpoint options
+	conn := s3tables.NewFromConfig(*cfg)
+
+	return conn, nil
 }
 
 func S3ControlClient(ctx context.Context, d *plugin.QueryData, region string) (*s3control.Client, error) {
