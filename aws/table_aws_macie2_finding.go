@@ -33,7 +33,7 @@ func tableAwsMacie2Finding(_ context.Context) *plugin.Table {
 			Hydrate: listMacie2Findings,
 			Tags:    map[string]string{"service": "macie2", "action": "ListFindings"},
 			KeyColumns: []*plugin.KeyColumn{
-				{Name: "finding_type", Require: plugin.Optional, Operators: []string{"=", "<>"}},
+				{Name: "type", Require: plugin.Optional, Operators: []string{"=", "<>"}},
 				{Name: "severity", Require: plugin.Optional, Operators: []string{"=", "<>"}},
 				{Name: "status", Require: plugin.Optional, Operators: []string{"=", "<>"}},
 			},
@@ -46,86 +46,116 @@ func tableAwsMacie2Finding(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "finding_arn",
-				Description: "The Amazon Resource Name (ARN) of the finding.",
-				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("FindingArn"),
-			},
-			{
-				Name:        "finding_type",
+				Name:        "type",
 				Description: "The type of finding.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("Type"),
+				Hydrate:     getMacie2Finding,
 			},
 			{
 				Name:        "severity",
 				Description: "The severity level of the finding.",
 				Type:        proto.ColumnType_JSON,
+				Hydrate:     getMacie2Finding,
 			},
 			{
 				Name:        "status",
 				Description: "The status of the finding.",
 				Type:        proto.ColumnType_STRING,
+				Hydrate:     getMacie2Finding,
 			},
 			{
 				Name:        "created_at",
 				Description: "The date and time, in UTC and extended ISO 8601 format, when the finding was created.",
 				Type:        proto.ColumnType_TIMESTAMP,
+				Hydrate:     getMacie2Finding,
 			},
 			{
 				Name:        "updated_at",
 				Description: "The date and time, in UTC and extended ISO 8601 format, when the finding was last updated.",
 				Type:        proto.ColumnType_TIMESTAMP,
+				Hydrate:     getMacie2Finding,
+				Transform:   transform.FromField("UpdatedAt").Transform(transform.NullIfZeroValue),
 			},
 			{
 				Name:        "description",
 				Description: "A description of the finding.",
 				Type:        proto.ColumnType_STRING,
+				Hydrate:     getMacie2Finding,
 			},
 			{
 				Name:        "category",
 				Description: "The category of the finding.",
 				Type:        proto.ColumnType_STRING,
+				Hydrate:     getMacie2Finding,
 			},
 			{
 				Name:        "count",
 				Description: "The total number of occurrences of the finding.",
 				Type:        proto.ColumnType_INT,
+				Hydrate:     getMacie2Finding,
 			},
 			{
 				Name:        "resources_affected",
 				Description: "The resources that the finding applies to.",
 				Type:        proto.ColumnType_JSON,
+				Hydrate:     getMacie2Finding,
 			},
 			{
 				Name:        "sample",
 				Description: "A sample of the data that triggered the finding.",
 				Type:        proto.ColumnType_JSON,
+				Hydrate:     getMacie2Finding,
 			},
 			{
 				Name:        "classification_details",
 				Description: "The details of the classification that produced the finding.",
 				Type:        proto.ColumnType_JSON,
+				Hydrate:     getMacie2Finding,
+			},
+			{
+				Name:        "policy_details",
+				Description: "The details of a policy finding. This value is null for a sensitive data finding.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getMacie2Finding,
 			},
 			{
 				Name:        "remediation",
 				Description: "Information about the remediation steps for the finding.",
 				Type:        proto.ColumnType_JSON,
+				Hydrate:     getMacie2Finding,
 			},
 			{
 				Name:        "archived",
 				Description: "Specifies whether the finding is archived.",
 				Type:        proto.ColumnType_BOOL,
+				Hydrate:     getMacie2Finding,
 			},
 			{
 				Name:        "source_region",
 				Description: "The AWS Region where the finding was generated.",
 				Type:        proto.ColumnType_STRING,
+				Hydrate:     getMacie2Finding,
 			},
 			{
 				Name:        "source_account_id",
 				Description: "The AWS account ID for the account that owns the finding.",
 				Type:        proto.ColumnType_STRING,
+				Hydrate:     getMacie2Finding,
+				Transform:   transform.FromField("AccountId"),
+			},
+			{
+				Name:        "source_partition",
+				Description: "The Amazon Web Services partition that Amazon Macie created the finding in.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getMacie2Finding,
+				Transform:   transform.FromField("Partition"),
+			},
+			{
+				Name:        "source_region",
+				Description: "The Amazon Web Services Region that Amazon Macie created the finding in.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getMacie2Finding,
+				Transform:   transform.FromField("Region"),
 			},
 
 			// Steampipe standard columns
@@ -133,12 +163,7 @@ func tableAwsMacie2Finding(_ context.Context) *plugin.Table {
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
-			},
-			{
-				Name:        "akas",
-				Description: resourceInterfaceDescription("akas"),
-				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("FindingArn").Transform(transform.EnsureStringArray),
+				Hydrate:     getMacie2Finding,
 			},
 		}),
 	}
@@ -168,11 +193,7 @@ func listMacie2Findings(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
 		if limit < maxItems {
-			if limit < 1 {
-				maxItems = int32(1)
-			} else {
-				maxItems = int32(limit)
-			}
+			maxItems = int32(limit)
 		}
 	}
 
@@ -205,16 +226,7 @@ func listMacie2Findings(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		}
 
 		for _, findingId := range output.FindingIds {
-			// Get finding details
-			finding, err := getMacie2Finding(ctx, d, &plugin.HydrateData{
-				Item: types.Finding{Id: &findingId},
-			})
-			if err != nil {
-				return nil, err
-			}
-			if finding != nil {
-				d.StreamListItem(ctx, finding)
-			}
+			d.StreamListItem(ctx, types.Finding{Id: &findingId})
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
 			if d.RowsRemaining(ctx) == 0 {
