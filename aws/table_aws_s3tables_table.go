@@ -13,40 +13,14 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
-// TableInfo is a structure to hold S3tables data along with its bucket information
-type TableInfo struct {
-	// Common fields for both GetTable and ListTables responses
-	Name          *string
-	TableARN      *string
-	TableBucketId *string
-	NamespaceId   *string
-	Namespace     []string
-	CreatedAt     *time.Time
-	ModifiedAt    *time.Time
-	Type          types.TableType
-
-	// Fields only available in GetTable API response
-	CreatedBy         *string
-	ModifiedBy        *string
-	OwnerAccountId    *string
-	Format            *string
-	WarehouseLocation *string
-	MetadataLocation  *string
-	VersionToken      *string
-	ManagedByService  *string
-
-	// Parent info
-	TableBucketArn  string
-}
-
 func tableAwsS3tablesTable(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_s3tables_table",
 		Description: "AWS S3Tables Table",
 		Get: &plugin.GetConfig{
-			KeyColumns: plugin.AllColumns([]string{"name", "namespace_name", "table_bucket_arn"}),
+			KeyColumns: plugin.AllColumns([]string{"name", "namespace", "table_bucket_arn"}),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NotFoundException", "AccessDeniedException", "UnauthorizedException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NotFoundException"}),
 			},
 			Hydrate: getS3tablesTable,
 			Tags:    map[string]string{"service": "s3tables", "action": "GetTable"},
@@ -54,12 +28,9 @@ func tableAwsS3tablesTable(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			ParentHydrate: listS3tablesTableBuckets,
 			Hydrate:       listS3tablesTables,
-			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"UnauthorizedException"}),
-			},
 			Tags: map[string]string{"service": "s3tables", "action": "ListTables"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(AWS_S3_SERVICE_ID),
+		GetMatrixItemFunc: S3TablesRegionsMatrix,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -71,13 +42,6 @@ func tableAwsS3tablesTable(_ context.Context) *plugin.Table {
 				Description: "The Amazon Resource Name (ARN) of the table.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("TableARN"),
-			},
-			{
-				Name:        "namespace_name",
-				Description: "The name of the namespace.",
-				Type:        proto.ColumnType_STRING,
-				Hydrate:     extractNamespaceNameFromStringArray,
-				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "created_at",
@@ -104,12 +68,15 @@ func tableAwsS3tablesTable(_ context.Context) *plugin.Table {
 			{
 				Name:        "namespace",
 				Description: "The namespace associated with the table.",
-				Type:        proto.ColumnType_JSON,
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     extractNamespaceNameFromStringArray,
+				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "namespace_id",
 				Description: "The unique identifier for the namespace that contains this table.",
 				Type:        proto.ColumnType_STRING,
+				Hydrate:     getS3tablesTable,
 			},
 			{
 				Name:        "table_bucket_id",
@@ -178,6 +145,32 @@ func tableAwsS3tablesTable(_ context.Context) *plugin.Table {
 			},
 		}),
 	}
+}
+
+// TableInfo is a structure to hold S3tables data along with its bucket information
+type TableInfo struct {
+	// Common fields for both GetTable and ListTables responses
+	Name          *string
+	TableARN      *string
+	TableBucketId *string
+	NamespaceId   *string
+	Namespace     []string
+	CreatedAt     *time.Time
+	ModifiedAt    *time.Time
+	Type          types.TableType
+
+	// Fields only available in GetTable API response
+	CreatedBy         *string
+	ModifiedBy        *string
+	OwnerAccountId    *string
+	Format            *string
+	WarehouseLocation *string
+	MetadataLocation  *string
+	VersionToken      *string
+	ManagedByService  *string
+
+	// Parent info
+	TableBucketArn  string
 }
 
 //// LIST FUNCTION
@@ -272,7 +265,7 @@ func getS3tablesTable(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	} else {
 		// When called directly from Get, use query parameters
 		name = d.EqualsQualString("name")
-		namespace = d.EqualsQualString("namespace_name")
+		namespace = d.EqualsQualString("namespace")
 		bucketARN = d.EqualsQualString("table_bucket_arn")
 
 		// Initialize a new TableInfo for direct Get calls
@@ -333,9 +326,6 @@ func getS3tablesTable(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 }
 
 func extractNamespaceNameFromStringArray(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	if d.EqualsQualString("namespace_name") != "" {
-		return d.EqualsQualString("namespace_name"), nil
-	}
 	info := h.Item.(*TableInfo)
 	if len(info.Namespace) > 0 {
 		return info.Namespace[0], nil

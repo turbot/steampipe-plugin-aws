@@ -102,6 +102,33 @@ func CloudWatchRegionsMatrix(ctx context.Context, d *plugin.QueryData) []map[str
 	return SupportedRegionMatrixWithExclusions(cloudwatchv1.EndpointsID, []string{})(ctx, d)
 }
 
+func S3TablesRegionsMatrix(ctx context.Context, d *plugin.QueryData) []map[string]interface{} {
+
+	commonColumnData, err := getCommonColumns(ctx, d, nil)
+	if err != nil {
+		plugin.Logger(ctx).Error("S3TablesRegionsMatrix", "connection_name", d.Connection.Name, "unable to get partition name", err)
+		panic(err)
+	}
+	partitionName := commonColumnData.(*awsCommonColumnData).Partition
+
+	// Get AWS partition based on the partition name
+	// Get supported service along with the endpoints for the partition
+	partition, err := getPartitionValueByPartitionName(partitionName)
+	if err != nil {
+		panic(fmt.Errorf("S3TablesRegionsMatrix: failed to get the endpoint details for the partition '%s', %v", partitionName, err))
+	}
+
+	s3SupportedRegions := partition.Services[AWS_S3_SERVICE_ID].Endpoints
+	var unsupportedRegionsForS3Tables []string
+	for region, ed := range s3SupportedRegions {
+		if !slices.Contains(ed.SignatureVersions, "s3v4") {
+			unsupportedRegionsForS3Tables = append(unsupportedRegionsForS3Tables, region)
+		}
+	}
+
+	return SupportedRegionMatrixWithExclusions(AWS_S3_SERVICE_ID, unsupportedRegionsForS3Tables)(ctx, d)
+}
+
 // Return a matrix of regions supported by serviceID, which will then be
 // queried for the table in parallel. This result factors in things like
 // regions that are opted-in, regions for the service and even the `regions`

@@ -25,12 +25,9 @@ func tableAwsS3tablesTableBucket(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listS3tablesTableBuckets,
-			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"UnauthorizedException"}),
-			},
 			Tags: map[string]string{"service": "s3tables", "action": "ListTableBuckets"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(AWS_S3_SERVICE_ID),
+		GetMatrixItemFunc: S3TablesRegionsMatrix,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

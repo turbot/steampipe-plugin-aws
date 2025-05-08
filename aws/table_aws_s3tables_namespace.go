@@ -24,9 +24,9 @@ func tableAwsS3tablesNamespace(_ context.Context) *plugin.Table {
 		Name:        "aws_s3tables_namespace",
 		Description: "AWS S3Tables Namespace",
 		Get: &plugin.GetConfig{
-			KeyColumns: plugin.AllColumns([]string{"namespace_name", "table_bucket_arn"}),
+			KeyColumns: plugin.AllColumns([]string{"namespace", "table_bucket_arn"}),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NotFoundException", "UnauthorizedException", "AccessDeniedException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NotFoundException"}),
 			},
 			Hydrate: getS3tablesNamespaceById,
 			Tags:    map[string]string{"service": "s3tables", "action": "ListNamespaces"},
@@ -34,15 +34,12 @@ func tableAwsS3tablesNamespace(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			ParentHydrate: listS3tablesTableBuckets,
 			Hydrate:       listS3tablesNamespaces,
-			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"UnauthorizedException"}),
-			},
 			KeyColumns: plugin.KeyColumnSlice{
 				{Name: "table_bucket_arn", Require: plugin.Optional},
 			},
 			Tags: map[string]string{"service": "s3tables", "action": "ListNamespaces"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(AWS_S3_SERVICE_ID),
+		GetMatrixItemFunc: S3TablesRegionsMatrix,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "namespace_id",
@@ -51,17 +48,11 @@ func tableAwsS3tablesNamespace(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Namespace.NamespaceId"),
 			},
 			{
-				Name:        "namespace_name",
-				Description: "The name of the namespace.",
-				Type:        proto.ColumnType_STRING,
-				Hydrate:     namespaceToTitle,
-				Transform:   transform.FromValue(),
-			},
-			{
 				Name:        "namespace",
 				Description: "The name of the namespace.",
-				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Namespace.Namespace"),
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getFirstIndexNamespaceValue,
+				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "created_at",
@@ -98,7 +89,7 @@ func tableAwsS3tablesNamespace(_ context.Context) *plugin.Table {
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     namespaceToTitle,
+				Hydrate:     getFirstIndexNamespaceValue,
 				Transform:   transform.FromValue(),
 			},
 			{
@@ -183,7 +174,7 @@ func listS3tablesNamespaces(ctx context.Context, d *plugin.QueryData, h *plugin.
 //// HYDRATE FUNCTIONS
 
 func getS3tablesNamespaceById(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	namespace := d.EqualsQualString("namespace_name")
+	namespace := d.EqualsQualString("namespace")
 	tableBucketArn := d.EqualsQualString("table_bucket_arn")
 
 	// Create service
@@ -226,10 +217,7 @@ func getS3tablesNamespaceById(ctx context.Context, d *plugin.QueryData, _ *plugi
 	return nil, nil
 }
 
-func namespaceToTitle(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	if d.EqualsQualString("namespace_name") != "" {
-		return d.EqualsQualString("namespace_name"), nil
-	}
+func getFirstIndexNamespaceValue(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	info := h.Item.(*NamespaceInfo)
 	if len(info.Namespace.Namespace) > 0 {
 		return info.Namespace.Namespace[0], nil
