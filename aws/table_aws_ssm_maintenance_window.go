@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 	"slices"
+	"strconv"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -441,8 +442,8 @@ func buildSSMMaintenanceWindowFilter(quals plugin.KeyColumnQualMap) []types.Main
 				Key: aws.String(filterName),
 			}
 			if slices.Contains(columnBool, columnName) {
-				value := getQualsValueByColumn(quals, columnName, "boolean").(string)
-				filter.Values = []string{cases.Title(language.English, cases.NoLower).String(value)}
+				value := getQualsValueByColumn(quals, columnName, "boolean").(bool)
+				filter.Values = []string{cases.Title(language.English, cases.NoLower).String(strconv.FormatBool(value))}
 			} else {
 				value := getQualsValueByColumn(quals, columnName, "string")
 				val, ok := value.(string)

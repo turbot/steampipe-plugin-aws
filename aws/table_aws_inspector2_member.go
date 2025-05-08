@@ -54,7 +54,7 @@ func tableAwsInspector2Member(_ context.Context) *plugin.Table {
 			{
 				Name:        "only_associated",
 				Description: "Specifies whether to list only currently associated members if True or to list all members within the organization if False.",
-				Type:        proto.ColumnType_STRING,
+				Type:        proto.ColumnType_BOOL,
 				Transform:   transform.FromQual("only_associated"),
 			},
 			{
@@ -109,11 +109,7 @@ func listInspector2Member(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 
 	if d.EqualsQuals["only_associated"] != nil {
 		onlyAssociated := getQualsValueByColumn(d.Quals, "only_associated", "boolean")
-		if onlyAssociated.(string) == "true" {
-			input.OnlyAssociated = aws.Bool(true)
-		} else {
-			input.OnlyAssociated = aws.Bool(false)
-		}
+		input.OnlyAssociated = aws.Bool(onlyAssociated.(bool))
 	}
 
 	paginator := inspector2.NewListMembersPaginator(svc, input, func(o *inspector2.ListMembersPaginatorOptions) {
