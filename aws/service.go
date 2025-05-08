@@ -114,6 +114,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/redshiftserverless"
 	"github.com/aws/aws-sdk-go-v2/service/resourceexplorer2"
 	"github.com/aws/aws-sdk-go-v2/service/resourcegroupstaggingapi"
+	"github.com/aws/aws-sdk-go-v2/service/rolesanywhere"
 	"github.com/aws/aws-sdk-go-v2/service/route53"
 	"github.com/aws/aws-sdk-go-v2/service/route53domains"
 	"github.com/aws/aws-sdk-go-v2/service/route53resolver"
@@ -1354,6 +1355,14 @@ func ResourceGroupsTaggingClient(ctx context.Context, d *plugin.QueryData) (*res
 		return nil, err
 	}
 	return resourcegroupstaggingapi.NewFromConfig(*cfg), nil
+}
+
+func RolesAnywhereClient(ctx context.Context, d *plugin.QueryData) (*rolesanywhere.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return rolesanywhere.NewFromConfig(*cfg), nil
 }
 
 func Route53Client(ctx context.Context, d *plugin.QueryData) (*route53.Client, error) {
