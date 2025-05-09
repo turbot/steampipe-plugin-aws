@@ -103,28 +103,24 @@ func tableAwsWafv2WebAcl(_ context.Context) *plugin.Table {
 				Description: "The custom response bodies that AWS WAF returns to web requests when they are blocked.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsWafv2WebAcl,
-				Transform:   transform.FromField("CustomResponseBodies"),
 			},
 			{
 				Name:        "label_namespace",
 				Description: "The label namespace prefix for this web ACL.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getAwsWafv2WebAcl,
-				Transform:   transform.FromField("LabelNamespace"),
 			},
 			{
 				Name:        "retrofitted_by_firewall_manager",
 				Description: "Indicates whether this web ACL has been retrofitted by AWS Firewall Manager.",
 				Type:        proto.ColumnType_BOOL,
 				Hydrate:     getAwsWafv2WebAcl,
-				Transform:   transform.FromField("RetrofittedByFirewallManager"),
 			},
 			{
 				Name:        "token_domains",
 				Description: "List of domains that are allowed to use tokens for the challenge action.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsWafv2WebAcl,
-				Transform:   transform.FromField("TokenDomains"),
 			},
 			{
 				Name:        "associated_resources",
