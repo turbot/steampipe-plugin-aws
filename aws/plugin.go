@@ -165,6 +165,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_cognito_identity_pool":                                    tableAwsCognitoIdentityPool(ctx),
 			"aws_cognito_identity_provider":                                tableAwsCognitoIdentityProvider(ctx),
 			"aws_cognito_user_pool":                                        tableAwsCognitoUserPool(ctx),
+			"aws_cognito_user_group":                                       tableAwsCognitoUserGroup(ctx),
 			"aws_config_aggregate_authorization":                           tableAwsConfigAggregateAuthorization(ctx),
 			"aws_config_configuration_recorder":                            tableAwsConfigConfigurationRecorder(ctx),
 			"aws_config_conformance_pack":                                  tableAwsConfigConformancePack(ctx),
