@@ -6,15 +6,30 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/query_cache"
 )
 
-func tableAwsCostForecastMonthly(_ context.Context) *plugin.Table {
+func tableAwsCostForecastMonthly(ctx context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_cost_forecast_monthly",
 		Description: "AWS Cost Explorer - Cost Forecast (Monthly)",
 		List: &plugin.ListConfig{
 			Hydrate: listCostForecastMonthly,
 			Tags:    map[string]string{"service": "ce", "action": "GetCostForecast"},
+			KeyColumns: plugin.KeyColumnSlice{
+				{
+					Name:       "period_start",
+					Require:    plugin.Optional,
+					Operators:  []string{">", ">=", "=", "<", "<="},
+					CacheMatch: query_cache.CacheMatchExact,
+				},
+				{
+					Name:       "period_end",
+					Require:    plugin.Optional,
+					Operators:  []string{">", ">=", "=", "<", "<="},
+					CacheMatch: query_cache.CacheMatchExact,
+				},
+			},
 		},
 		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
@@ -34,8 +49,7 @@ func tableAwsCostForecastMonthly(_ context.Context) *plugin.Table {
 				Description: "Average forecasted value",
 				Type:        proto.ColumnType_DOUBLE,
 			},
-		},
-		),
+		}),
 	}
 }
 
@@ -50,7 +64,7 @@ func listCostForecastMonthly(ctx context.Context, d *plugin.QueryData, _ *plugin
 		return nil, err
 	}
 
-	params := buildCostForecastInput(d.EqualsQuals, "MONTHLY")
+	params := buildCostForecastInput(d, "MONTHLY")
 
 	output, err := svc.GetCostForecast(ctx, params)
 	if err != nil {
