@@ -17,11 +17,12 @@ The `aws_s3tables_namespace` table provides information about namespaces in Amaz
 ## Examples
 
 ### Basic info
+
 Retrieves fundamental information about all S3 Tables namespaces in your AWS account, including their names, IDs, creation dates, and owner account IDs.
 
 ```sql+postgresql
 select
-  namespace_name,
+  namespace,
   namespace_id,
   created_at,
   owner_account_id,
@@ -32,7 +33,7 @@ from
 
 ```sql+sqlite
 select
-  namespace_name,
+  namespace,
   namespace_id,
   created_at,
   owner_account_id,
@@ -42,11 +43,12 @@ from
 ```
 
 ### Find recently created namespaces
+
 Identify namespaces that have been created recently, which may indicate new data organization initiatives or projects.
 
 ```sql+postgresql
 select
-  namespace_name,
+  namespace,
   namespace_id,
   created_at,
   table_bucket_arn
@@ -60,7 +62,7 @@ order by
 
 ```sql+sqlite
 select
-  namespace_name,
+  namespace,
   namespace_id,
   created_at,
   table_bucket_arn
@@ -73,67 +75,70 @@ order by
 ```
 
 ### Count tables in each namespace
+
 Analyze the distribution of tables across namespaces to understand your data organization.
 
 ```sql+postgresql
 select
-  n.namespace_name,
+  n.namespace,
   count(t.name) as table_count
 from
   aws_s3tables_namespace n
 left join
-  aws_s3tables_table t on t.namespace_name = n.namespace_name
+  aws_s3tables_table t on t.namespace_id = n.namespace_id
 group by
-  n.namespace_name
+  n.namespace
 order by
   table_count desc;
 ```
 
 ```sql+sqlite
 select
-  n.namespace_name,
+  n.namespace,
   count(t.name) as table_count
 from
   aws_s3tables_namespace n
 left join
-  aws_s3tables_table t on t.namespace_name = n.namespace_name
+  aws_s3tables_table t on t.namespace_id = n.namespace_id
 group by
-  n.namespace_name
+  n.namespace
 order by
   table_count desc;
 ```
 
 ### Get namespaces and their associated table buckets
+
 Examine the relationships between namespaces and table buckets to understand your S3 Tables resource organization.
 
 ```sql+postgresql
 select
-  n.namespace_name,
+  n.namespace,
   n.namespace_id,
   n.table_bucket_arn
 from
   aws_s3tables_namespace n
 order by
-  namespace_name;
+  namespace;
 ```
 
 ```sql+sqlite
 select
-  n.namespace_name,
+  n.namespace,
   n.namespace_id,
   n.table_bucket_arn
 from
   aws_s3tables_namespace n
 order by
-  namespace_name;
+  namespace;
 ```
 
 ### Find namespaces in a specific table bucket
+
 Identify all namespaces within a specific table bucket to understand the namespace organization.
 
 ```sql+postgresql
 select
-  namespace_name,
+  namespace,
   namespace_id,
   created_at,
   owner_account_id,
@@ -146,7 +151,7 @@ where
 
 ```sql+sqlite
 select
-  namespace_name,
+  namespace,
   namespace_id,
   created_at,
   owner_account_id,
@@ -155,4 +160,42 @@ from
   aws_s3tables_namespace
 where
   table_bucket_arn = 'arn:aws:s3tables:us-east-1:123456789012:tablebucket/my-table-bucket';
+```
+
+### Join namespaces with table buckets and tables for a complete hierarchy
+
+Provides a comprehensive view of your S3 Tables organization, showing the relationships between table buckets, namespaces, and tables.
+
+```sql+postgresql
+select
+  b.name as bucket_name,
+  n.namespace as namespace_name,
+  t.name as table_name,
+  t.type as table_type,
+  t.format as table_format,
+  n.created_at as namespace_created_at,
+  t.created_at as table_created_at
+from
+  aws_s3tables_namespace n
+  join aws_s3tables_table_bucket b on n.table_bucket_id = b.table_bucket_id
+  left join aws_s3tables_table t on n.namespace_id = t.namespace_id
+order by
+  b.name, n.namespace, t.name;
+```
+
+```sql+sqlite
+select
+  b.name as bucket_name,
+  n.namespace as namespace_name,
+  t.name as table_name,
+  t.type as table_type,
+  t.format as table_format,
+  n.created_at as namespace_created_at,
+  t.created_at as table_created_at
+from
+  aws_s3tables_namespace n
+  join aws_s3tables_table_bucket b on n.table_bucket_id = b.table_bucket_id
+  left join aws_s3tables_table t on n.namespace_id = t.namespace_id
+order by
+  b.name, n.namespace, t.name;
 ```

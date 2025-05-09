@@ -26,7 +26,7 @@ Retrieves fundamental information about all S3 Tables tables in your AWS account
 select
   name,
   arn,
-  namespace_name,
+  namespace,
   created_at,
   table_bucket_arn
 from
@@ -37,7 +37,7 @@ from
 select
   name,
   arn,
-  namespace_name,
+  namespace,
   created_at,
   table_bucket_arn
 from
@@ -55,7 +55,7 @@ select
   created_by,
   modified_at,
   modified_by,
-  namespace_name
+  namespace
 from
   aws_s3tables_table
 order by
@@ -69,7 +69,7 @@ select
   created_by,
   modified_at,
   modified_by,
-  namespace_name
+  namespace
 from
   aws_s3tables_table
 order by
@@ -83,10 +83,10 @@ Get all tables within a specific table bucket to understand their relationships 
 ```sql+postgresql
 select
   name,
-  namespace_name,
+  namespace,
   format,
   created_at,
-  namespace
+  type
 from
   aws_s3tables_table
 where
@@ -96,10 +96,10 @@ where
 ```sql+sqlite
 select
   name,
-  namespace_name,
+  namespace,
   format,
   created_at,
-  namespace
+  type
 from
   aws_s3tables_table
 where
@@ -147,7 +147,7 @@ Examine the details of tables including their format and metadata location to be
 ```sql+postgresql
 select
   name,
-  namespace_name,
+  namespace,
   format,
   metadata_location,
   warehouse_location,
@@ -159,7 +159,7 @@ from
 ```sql+sqlite
 select
   name,
-  namespace_name,
+  namespace,
   format,
   metadata_location,
   warehouse_location,
@@ -181,7 +181,7 @@ select
 from
   aws_s3tables_table
 where
-  namespace_name = 'my-namespace';
+  namespace = 'my-namespace';
 ```
 
 ```sql+sqlite
@@ -193,5 +193,43 @@ select
 from
   aws_s3tables_table
 where
-  namespace_name = 'my-namespace';
+  namespace = 'my-namespace';
+```
+
+### Get namespace info for the tables
+
+Get a complete view of tables with their associated namespaces and table buckets to understand the full hierarchy.
+
+```sql+postgresql
+select
+  t.name as table_name,
+  t.format as table_format,
+  t.type as table_type,
+  n.namespace as namespace_name,
+  b.name as bucket_name,
+  t.created_at,
+  t.modified_at
+from
+  aws_s3tables_table t
+  join aws_s3tables_namespace n on t.namespace_id = n.namespace_id
+  join aws_s3tables_table_bucket b on n.table_bucket_id = b.table_bucket_id
+order by
+  b.name, n.namespace, t.name;
+```
+
+```sql+sqlite
+select
+  t.name as table_name,
+  t.format as table_format,
+  t.type as table_type,
+  n.namespace as namespace_name,
+  b.name as bucket_name,
+  t.created_at,
+  t.modified_at
+from
+  aws_s3tables_table t
+  join aws_s3tables_namespace n on t.namespace_id = n.namespace_id
+  join aws_s3tables_table_bucket b on n.table_bucket_id = b.table_bucket_id
+order by
+  b.name, n.namespace, t.name;
 ```

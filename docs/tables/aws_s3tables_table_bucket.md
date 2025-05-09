@@ -17,6 +17,7 @@ The `aws_s3tables_table_bucket` table provides information about S3 Tables table
 ## Examples
 
 ### Basic info
+
 Retrieves fundamental information about all S3 Tables table buckets in your AWS account, including their names, ARNs, creation dates, and owner account IDs. This provides a quick overview of all table buckets you have access to.
 
 ```sql+postgresql
@@ -40,6 +41,7 @@ from
 ```
 
 ### Get details for a specific table bucket
+
 Show detailed information about a specific table bucket by name. This is useful when you need to examine the properties of a particular table bucket.
 
 ```sql+postgresql
@@ -69,6 +71,7 @@ where
 ```
 
 ### Count table buckets by region
+
 Aggregates and counts table buckets by AWS region, ordering the results by count in descending order. This helps you understand the distribution of your table buckets across different regions.
 
 ```sql+postgresql
@@ -96,6 +99,7 @@ order by
 ```
 
 ### Find table buckets created in the last 30 days
+
 Identifies table buckets that were created within the last 30 days, ordered by creation date. This is helpful for tracking recent bucket creations and monitoring new resources.
 
 ```sql+postgresql
@@ -127,6 +131,7 @@ order by
 ```
 
 ### List table buckets belonging to a specific account
+
 Table buckets to show only those owned by a specific AWS account. This is useful for multi-account environments where you need to identify resources associated with a particular account.
 
 ```sql+postgresql
@@ -151,4 +156,40 @@ from
   aws_s3tables_table_bucket
 where
   owner_account_id = '123456789012';
+```
+
+### Join with tables and namespaces to view complete hierarchy
+
+Shows the hierarchical relationship between table buckets, namespaces, and tables, providing a complete view of your S3 Tables resources.
+
+```sql+postgresql
+select
+  b.name as bucket_name,
+  n.namespace as namespace_name,
+  t.name as table_name,
+  t.type as table_type,
+  t.format as table_format,
+  t.created_at as table_created_at
+from
+  aws_s3tables_table_bucket b
+  left join aws_s3tables_namespace n on b.table_bucket_id = n.table_bucket_id
+  left join aws_s3tables_table t on n.namespace_id = t.namespace_id
+order by
+  b.name, n.namespace, t.name;
+```
+
+```sql+sqlite
+select
+  b.name as bucket_name,
+  n.namespace as namespace_name,
+  t.name as table_name,
+  t.type as table_type,
+  t.format as table_format,
+  t.created_at as table_created_at
+from
+  aws_s3tables_table_bucket b
+  left join aws_s3tables_namespace n on b.table_bucket_id = n.table_bucket_id
+  left join aws_s3tables_table t on n.namespace_id = t.namespace_id
+order by
+  b.name, n.namespace, t.name;
 ```
