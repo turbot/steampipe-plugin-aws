@@ -25,7 +25,7 @@ func tableAwsConfigAggregateAuthorization(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "config", "action": "ListTagsForResource"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(AWS_COGNITO_IDENTITY_SERVICE_ID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_CONFIG_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "arn",

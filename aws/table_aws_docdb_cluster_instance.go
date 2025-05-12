@@ -37,7 +37,7 @@ func tableAwsDocDBClusterInstance(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "docdb", "action": "ListTagsForResource"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(AWS_RDS_SERVICE_ID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_DOCDB_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "db_instance_identifier",

@@ -218,7 +218,7 @@ func getWafRuleGroupActivatedRules(ctx context.Context, d *plugin.QueryData, h *
 
 // ListTagsForResource.NextMarker return empty string in API call
 // due to which pagination will not work properly
-// https://github.com/aws/aws-sdk-go-v2/issues/3513
+// https://github.com/aws/aws-sdk-go/issues/3513
 func listTagsForWafRuleGroup(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	data := classicRuleGroupData(h.Item, ctx, d, h)
 
