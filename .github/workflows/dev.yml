@@ -31,6 +31,9 @@ jobs:
       - name: Login to Amazon ECR
         uses: aws-actions/amazon-ecr-login@v2
 
+      - name: Set kubecontext for EKS
+        run: aws eks update-kubeconfig --region us-west-2 --name catio-cluster
+
       - name: Build and push steampipe image
         uses: docker/build-push-action@v6
         with:
@@ -39,3 +42,6 @@ jobs:
           platforms: linux/amd64
           push: true
           tags: ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.us-west-2.amazonaws.com/steampipe:latest
+
+      - name: Helm Restart
+        run: helm rollout restart deployment extractor-steampipe -n catio-data-extraction
