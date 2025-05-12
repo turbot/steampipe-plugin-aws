@@ -14,8 +14,6 @@ RUN go mod download
 # Copy the rest of the source code
 COPY . .
 
-ENV CGO_ENABLED=0
-
 # Build the Steampipe plugin binary
 RUN go build -tags "netgo" -o aws.plugin *.go
 
