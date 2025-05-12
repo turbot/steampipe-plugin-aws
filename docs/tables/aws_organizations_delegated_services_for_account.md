@@ -19,7 +19,7 @@ The `aws_organizations_delegated_administrator` table in Steampipe lets you quer
 ## Examples
 
 ### Basic info
-Retrieve basic information about all delegated services
+Retrieve basic information about all delegated services.
 
 ```sql+postgres
 select
