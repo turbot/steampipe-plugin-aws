@@ -43,5 +43,5 @@ jobs:
           push: true
           tags: ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.us-west-2.amazonaws.com/steampipe:latest
 
-      - name: Helm Restart
-        run: helm rollout restart deployment extractor-steampipe -n catio-data-extraction
+      - name: Restart the extractor-steampipe deployment
+        run: kubectl rollout restart deployment extractor-steampipe -n catio-data-extraction

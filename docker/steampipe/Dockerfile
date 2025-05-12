@@ -5,8 +5,16 @@ FROM golang:1.23 AS plugin-builder
 
 WORKDIR /workspace
 
-# Copy the local plugin files to the workspace
+# Copy only go.mod and go.sum first for better layer caching
+COPY go.mod go.sum ./
+
+# Download dependencies
+RUN go mod download
+
+# Copy the rest of the source code
 COPY . .
+
+ENV CGO_ENABLED=0
 
 # Build the Steampipe plugin binary
 RUN go build -tags "netgo" -o aws.plugin *.go
