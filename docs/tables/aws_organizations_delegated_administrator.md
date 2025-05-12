@@ -29,7 +29,8 @@ select
   joined_method,
   joined_timestamp,
   name,
-  status
+  status,
+  delegation_enabled_date
 from
   aws_organizations_delegated_administrator;
 ```
@@ -42,7 +43,8 @@ select
   joined_method,
   joined_timestamp,
   name,
-  status
+  status,
+  delegation_enabled_date
 from
   aws_organizations_delegated_administrator;
 ```
@@ -58,7 +60,8 @@ select
   email,
   joined_method,
   joined_timestamp,
-  status
+  status,
+  delegation_enabled_date
 from
   aws_organizations_delegated_administrator
 where
@@ -73,7 +76,8 @@ select
   email,
   joined_method,
   joined_timestamp,
-  status
+  status,
+  delegation_enabled_date
 from
   aws_organizations_delegated_administrator
 where
