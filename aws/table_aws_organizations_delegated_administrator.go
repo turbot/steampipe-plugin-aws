@@ -60,6 +60,7 @@ func tableAwsOrganizationsDelegatedAdministrator(_ context.Context) *plugin.Tabl
 				Description: "The date when the delegation was enabled.",
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
+
 			// Standard columns for all tables
 			{
 				Name:        "title",
