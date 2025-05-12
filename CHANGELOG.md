@@ -1,3 +1,21 @@
+## v1.13.0 [2025-05-12]
+
+_What's new?_
+
+- New tables added  
+  - [aws_rolesanywhere_profile](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_rolesanywhere_profile) ([#2475](https://github.com/turbot/steampipe-plugin-aws/pull/2475)) (Thanks [@2XXE-SRA](https://github.com/2XXE-SRA) for the contribution!)
+  - [aws_rolesanywhere_trust_anchor](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_rolesanywhere_trust_anchor) ([#2475](https://github.com/turbot/steampipe-plugin-aws/pull/2475)) (Thanks [@2XXE-SRA](https://github.com/2XXE-SRA) for the contribution!)
+
+_Enhancements_
+
+- Added `custom_response_bodies`, `label_namespace`, `retrofitted_by_firewall_manager` and `token_domains` columns to `aws_wafv2_web_acl` table. ([#2482](https://github.com/turbot/steampipe-plugin-aws/pull/2482))
+- Added `tags_src` column to the `aws_transfer_server` table. ([#2484](https://github.com/turbot/steampipe-plugin-aws/pull/2484))
+
+_Bug fixes_
+
+- Fixed handling of boolean key qualifier values to ensure accurate filtering in queries with boolean conditions like `select * from aws_ebs_volume where not encrypted`. ([#2490](https://github.com/turbot/steampipe-plugin-aws/pull/2490))
+- Fixed the `tags` column of `aws_transfer_server` table to correctly return data instead of an error. ([#2484](https://github.com/turbot/steampipe-plugin-aws/pull/2484))
+
 ## v1.12.0 [2025-04-26]
 
 _Enhancements_
