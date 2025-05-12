@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_servicecatalog_provisioned_product - Query AWS Service Catalog Provisioned Product using SQL"
 description: "Allows users to query AWS Service Catalog Provisioned Product data including product details, owner, type, and associated metadata."
+folder: "Service Catalog"
 ---
 
 # Table: aws_servicecatalog_provisioned_product - Query AWS Service Catalog Provisioned Product using SQL

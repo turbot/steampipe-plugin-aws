@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_wellarchitected_lens_review - Query AWS Well-Architected Tool Lens Reviews using SQL"
 description: "Allows users to query AWS Well-Architected Tool Lens Reviews to obtain detailed information about each review, including its associated workload, lens, and milestone information."
+folder: "Well-Architected"
 ---
 
 # Table: aws_wellarchitected_lens_review - Query AWS Well-Architected Tool Lens Reviews using SQL

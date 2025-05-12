@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_elasticache_redis_metric_get_type_cmds_hourly - Query AWS ElastiCache Redis Metrics using SQL"
 description: "Allows users to query ElastiCache Redis Metrics on an hourly basis. This includes information on GET type commands executed in the selected ElastiCache Redis cluster during the last hour."
+folder: "ElastiCache"
 ---
 
 # Table: aws_elasticache_redis_metric_get_type_cmds_hourly - Query AWS ElastiCache Redis Metrics using SQL

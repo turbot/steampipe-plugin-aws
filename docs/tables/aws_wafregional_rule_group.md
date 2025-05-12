@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_wafregional_rule_group - Query AWS WAF Regional Rule Groups using SQL"
 description: "Allows users to query AWS WAF Regional Rule Groups to gather information about each rule group's metadata, associated rules, and other relevant details."
+folder: "Region"
 ---
 
 # Table: aws_wafregional_rule_group - Query AWS WAF Regional Rule Groups using SQL

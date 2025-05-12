@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_ec2_network_interface - Query AWS EC2 Network Interfaces using SQL"
 description: "Allows users to query AWS EC2 Network Interfaces and provides comprehensive details about each interface, including its associated instances, security groups, and subnet information."
+folder: "EC2"
 ---
 
 # Table: aws_ec2_network_interface - Query AWS EC2 Network Interfaces using SQL

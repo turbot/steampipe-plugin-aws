@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_ssm_inventory_entry - Query AWS Systems Manager Inventory Entry using SQL"
 description: "Allows users to query AWS Systems Manager Inventory Entry to fetch information about the inventory entries of managed instances. The table provides details such as instance ID, type name, schema version, capture time, and inventory data."
+folder: "Systems Manager (SSM)"
 ---
 
 # Table: aws_ssm_inventory_entry - Query AWS Systems Manager Inventory Entry using SQL
@@ -51,7 +52,7 @@ select
 from
   aws_ssm_inventory_entry
 where
-  capture_time >= time() - interval '30 day';
+  capture_time >= now() - interval '30 day';
 ```
 
 ```sql+sqlite

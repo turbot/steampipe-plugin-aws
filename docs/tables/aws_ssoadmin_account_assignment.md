@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_ssoadmin_account_assignment - Query AWS SSO Admin Account Assignment using SQL"
 description: "Allows users to query AWS SSO Admin Account Assignments. This table provides information about each AWS SSO admin account assignment within an AWS account."
+folder: "SSO"
 ---
 
 # Table: aws_ssoadmin_account_assignment - Query AWS SSO Admin Account Assignment using SQL

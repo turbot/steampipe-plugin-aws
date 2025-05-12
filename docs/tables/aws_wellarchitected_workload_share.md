@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_wellarchitected_workload_share - Query AWS Well-Architected Workload Share using SQL"
 description: "Allows users to query AWS Well-Architected Workload Share, providing information about shared workloads within AWS Well-Architected Tool."
+folder: "Well-Architected"
 ---
 
 # Table: aws_wellarchitected_workload_share - Query AWS Well-Architected Workload Share using SQL

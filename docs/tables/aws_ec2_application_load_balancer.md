@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_ec2_application_load_balancer - Query AWS EC2 Application Load Balancer using SQL"
 description: "Allows users to query AWS EC2 Application Load Balancer, providing detailed information about each load balancer within an AWS account. This includes its current state, availability zones, security groups, and other important attributes."
+folder: "EC2"
 ---
 
 # Table: aws_ec2_application_load_balancer - Query AWS EC2 Application Load Balancer using SQL

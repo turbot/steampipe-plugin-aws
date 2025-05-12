@@ -45,6 +45,13 @@ func tableAwsHealthEvent(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Region"),
 			},
 			{
+				Name:        "description",
+				Description: "The description of the event.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getHealthEventDescription,
+				Transform:   transform.FromValue(),
+			},
+			{
 				Name:        "availability_zone",
 				Description: "The Amazon Web Services Availability Zone of the event.",
 				Type:        proto.ColumnType_STRING,
@@ -162,6 +169,29 @@ func listHealthEvents(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	}
 
 	return nil, err
+}
+
+func getHealthEventDescription(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	event := h.Item.(types.Event)
+
+	// Create Session
+	svc, err := HealthClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_health_event.getHealthEventDescription", "client error", err)
+		return nil, err
+	}
+
+	eventDetails, err := svc.DescribeEventDetails(ctx, &health.DescribeEventDetailsInput{EventArns: []string{*event.Arn}})
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_health_event.getHealthEventDescription", "api error", err)
+		return nil, err
+	}
+
+	if len(eventDetails.SuccessfulSet) == 1 {
+		return eventDetails.SuccessfulSet[0].EventDescription.LatestDescription, nil
+	}
+
+	return nil, nil
 }
 
 // / UTILITY FUNCTION

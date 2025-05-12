@@ -26,8 +26,16 @@ func tableAwsS3Object(_ context.Context) *plugin.Table {
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "bucket_name", Require: plugin.Required, CacheMatch: query_cache.CacheMatchExact},
 				{Name: "prefix", Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
+
+				// If you encrypt an object by using server-side encryption with customer-provided
+				// encryption keys (SSE-C) when you store the object in Amazon S3, then when you
+				// GET the object, you must use the following query parameter:
+				{Name: "sse_customer_algorithm", Require: plugin.Optional},
+				{Name: "sse_customer_key", Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
+				{Name: "sse_customer_key_md5", Require: plugin.Optional},
 			},
 		},
+
 		HydrateConfig: []plugin.HydrateConfig{
 			{
 				Func: getBucketRegionForObjects,
@@ -288,6 +296,13 @@ func tableAwsS3Object(_ context.Context) *plugin.Table {
 				Hydrate:     headS3Object,
 			},
 			{
+				Name:        "sse_customer_key",
+				Description: "Specifies the customer-provided encryption key for Amazon S3 to use in encrypting data. This value is used to store the object and then it is discarded; Amazon S3 does not store the encryption key. The key must be appropriate for use with the algorithm specified in the x-amz-server-side-encryption-customer-algorithm header.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromQual("sse_customer_key"),
+				Hydrate:     headS3Object,
+			},
+			{
 				Name:        "sse_customer_key_md5",
 				Description: "If server-side encryption with a customer-provided encryption key was requested, the response will include this header to provide round-trip message integrity verification of the customer-provided encryption key.",
 				Type:        proto.ColumnType_STRING,
@@ -469,6 +484,9 @@ func listS3Objects(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 
 func getS3Object(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	bucketName := d.EqualsQuals["bucket_name"].GetStringValue()
+	sseCusAlgorithm := d.EqualsQuals["sse_customer_algorithm"].GetStringValue()
+	sseCusKeyMd5 := d.EqualsQuals["sse_customer_key_md5"].GetStringValue()
+	sseCusKey := d.EqualsQuals["sse_customer_key"].GetStringValue()
 	bucketRegion := ""
 
 	// Bucket location will be nil if getBucketLocationForObjects returned an error but
@@ -497,6 +515,18 @@ func getS3Object(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData
 		Key:    key,
 	}
 
+	// If you encrypt an object by using server-side encryption with customer-provided
+	// encryption keys (SSE-C) when you store the object in Amazon S3.
+	if sseCusAlgorithm != "" {
+		params.SSECustomerAlgorithm = &sseCusAlgorithm
+	}
+	if sseCusKey != "" {
+		params.SSECustomerKey = &sseCusKey
+	}
+	if sseCusKeyMd5 != "" {
+		params.SSECustomerKeyMD5 = &sseCusKeyMd5
+	}
+
 	object, err := svc.GetObject(ctx, params)
 	if err != nil {
 		// if the key is unavailable in the provided bucket
@@ -512,6 +542,9 @@ func getS3Object(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData
 
 func headS3Object(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	bucketName := d.EqualsQuals["bucket_name"].GetStringValue()
+	sseCusAlgorithm := d.EqualsQuals["sse_customer_algorithm"].GetStringValue()
+	sseCusKeyMd5 := d.EqualsQuals["sse_customer_key_md5"].GetStringValue()
+	sseCusKey := d.EqualsQuals["sse_customer_key"].GetStringValue()
 	bucketRegion := ""
 
 	// Bucket location will be nil if getBucketLocationForObjects returned an error but
@@ -540,6 +573,18 @@ func headS3Object(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 		Key:    key,
 	}
 
+	// If you encrypt an object by using server-side encryption with customer-provided
+	// encryption keys (SSE-C) when you store the object in Amazon S3.
+	if sseCusAlgorithm != "" {
+		params.SSECustomerAlgorithm = &sseCusAlgorithm
+	}
+	if sseCusKey != "" {
+		params.SSECustomerKey = &sseCusKey
+	}
+	if sseCusKeyMd5 != "" {
+		params.SSECustomerKeyMD5 = &sseCusKeyMd5
+	}
+
 	object, err := svc.HeadObject(ctx, params)
 	if err != nil {
 		// if the key is unavailable in the provided bucket
@@ -555,6 +600,9 @@ func headS3Object(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 
 func getS3ObjectAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	bucketName := d.EqualsQuals["bucket_name"].GetStringValue()
+	sseCusAlgorithm := d.EqualsQuals["sse_customer_algorithm"].GetStringValue()
+	sseCusKeyMd5 := d.EqualsQuals["sse_customer_key_md5"].GetStringValue()
+	sseCusKey := d.EqualsQuals["sse_customer_key"].GetStringValue()
 	bucketRegion := ""
 
 	// Bucket location will be nil if getBucketLocationForObjects returned an error but
@@ -582,6 +630,18 @@ func getS3ObjectAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.H
 		Bucket:           aws.String(bucketName),
 		Key:              key,
 		ObjectAttributes: []types.ObjectAttributes{types.ObjectAttributesChecksum, types.ObjectAttributesObjectParts},
+	}
+
+	// If you encrypt an object by using server-side encryption with customer-provided
+	// encryption keys (SSE-C) when you store the object in Amazon S3.
+	if sseCusAlgorithm != "" {
+		params.SSECustomerAlgorithm = &sseCusAlgorithm
+	}
+	if sseCusKey != "" {
+		params.SSECustomerKey = &sseCusKey
+	}
+	if sseCusKeyMd5 != "" {
+		params.SSECustomerKeyMD5 = &sseCusKeyMd5
 	}
 
 	objectAttributes, err := svc.GetObjectAttributes(ctx, params)

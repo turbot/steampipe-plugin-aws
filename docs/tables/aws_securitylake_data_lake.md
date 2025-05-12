@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_securitylake_data_lake - Query AWS Lake Formation Data Lakes using SQL"
 description: "Allows users to query AWS Lake Formation Data Lakes for information such as the Data Lake name, creation time, last modified time, and more."
+folder: "Security Lake"
 ---
 
 # Table: aws_securitylake_data_lake - Query AWS Lake Formation Data Lakes using SQL
@@ -18,7 +19,7 @@ Determine the areas in which your AWS Security Lake data is being replicated and
 
 ```sql+postgres
 select
-  encryption_key,
+  kms_key_id,
   replication_role_arn,
   s3_bucket_arn,
   status
@@ -28,7 +29,7 @@ from
 
 ```sql+sqlite
 select
-  encryption_key,
+  kms_key_id,
   replication_role_arn,
   s3_bucket_arn,
   status
@@ -74,7 +75,6 @@ Determine the status of your data lake's security settings, including encryption
 
 ```sql+postgres
 select
-  l.encryption_key,
   l.replication_role_arn,
   l.s3_bucket_arn,
   l.status,
@@ -87,7 +87,6 @@ from
 
 ```sql+sqlite
 select
-  l.encryption_key,
   l.replication_role_arn,
   l.s3_bucket_arn,
   l.status,
@@ -103,7 +102,7 @@ Determine the areas in which data lakes are yet to complete their configuration 
 
 ```sql+postgres
 select
-  encryption_key,
+  kms_key_id,
   replication_role_arn,
   s3_bucket_arn,
   status
@@ -115,7 +114,7 @@ where
 
 ```sql+sqlite
 select
-  encryption_key,
+  kms_key_id,
   replication_role_arn,
   s3_bucket_arn,
   status

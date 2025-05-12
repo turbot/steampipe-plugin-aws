@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_s3_access_point - Query AWS S3 Access Point using SQL"
 description: "Allows users to query AWS S3 Access Point details such as name, bucket, network origin, policy status, creation time, and more."
+folder: "S3"
 ---
 
 # Table: aws_s3_access_point - Query AWS S3 Access Point using SQL

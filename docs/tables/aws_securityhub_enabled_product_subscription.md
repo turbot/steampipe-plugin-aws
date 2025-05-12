@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_securityhub_enabled_product_subscription - Query AWS Security Hub Enabled Product Subscriptions using SQL"
 description: "Allows users to query details of enabled product subscriptions in AWS Security Hub, providing insights into their activation, integration types, and company information."
+folder: "Security Hub"
 ---
 
 # Table: aws_securityhub_enabled_product_subscription - Query AWS Security Hub Enabled Product Subscriptions using SQL

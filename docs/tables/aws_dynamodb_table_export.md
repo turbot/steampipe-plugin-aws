@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_dynamodb_table_export - Query AWS DynamoDB Table Export using SQL"
 description: "Allows users to query AWS DynamoDB Table Exports, providing detailed information on the exports of DynamoDB tables including the export time, status, and the exported data format."
+folder: "DynamoDB"
 ---
 
 # Table: aws_dynamodb_table_export - Query AWS DynamoDB Table Export using SQL

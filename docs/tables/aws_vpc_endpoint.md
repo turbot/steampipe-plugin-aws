@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_vpc_endpoint - Query AWS VPC Endpoints using SQL"
 description: "Allows users to query AWS VPC Endpoints and retrieve information about each endpoint's configuration, type, status, and related resources such as network interfaces, DNS entries, and security groups."
+folder: "VPC"
 ---
 
 # Table: aws_vpc_endpoint - Query AWS VPC Endpoints using SQL

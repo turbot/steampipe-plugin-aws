@@ -2,8 +2,6 @@ package aws
 
 import (
 	"context"
-	"log"
-	"strconv"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/mgn"
@@ -193,10 +191,7 @@ func buildMGNApplicationFilter(quals plugin.KeyColumnQualMap) *types.ListApplica
 				}
 			case "is_archived":
 				value := getQualsValueByColumn(quals, columnName, "boolean")
-				boolValue, err := strconv.ParseBool(value.(string))
-				if err != nil {
-					log.Fatal(err)
-				}
+				boolValue := value.(bool)
 				filter.IsArchived = aws.Bool(boolValue)
 			}
 		}

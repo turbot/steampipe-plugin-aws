@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_guardduty_member - Query AWS GuardDuty Member using SQL"
 description: "Allows users to query AWS GuardDuty Member data, including member account details, detector ID, invitation status, and relationship status."
+folder: "GuardDuty"
 ---
 
 # Table: aws_guardduty_member - Query AWS GuardDuty Member using SQL

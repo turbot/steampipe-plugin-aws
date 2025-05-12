@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_accessanalyzer_finding - Query AWS Access Analyzer Findings using SQL"
 description: "Allows users to query Access Analyzer findings in AWS IAM to retrieve detailed information about potential security risks."
+folder: "Access Analyzer"
 ---
 
 # Table: aws_accessanalyzer_finding - Query AWS Access Analyzer Findings using SQL

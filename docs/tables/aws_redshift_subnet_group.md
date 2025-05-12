@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_redshift_subnet_group - Query AWS Redshift Subnet Groups using SQL"
 description: "Allows users to query AWS Redshift Subnet Groups and get detailed information about each subnet group, including its name, description, VPC ID, subnet IDs, and status."
+folder: "Redshift"
 ---
 
 # Table: aws_redshift_subnet_group - Query AWS Redshift Subnet Groups using SQL

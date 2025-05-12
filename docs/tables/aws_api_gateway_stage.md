@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_api_gateway_stage - Query AWS API Gateway Stages using SQL"
 description: "Allows users to query AWS API Gateway Stages for information related to deployment, API, and stage details."
+folder: "API Gateway"
 ---
 
 # Table: aws_api_gateway_stage - Query AWS API Gateway Stages using SQL

@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_cloudwatch_log_event - Query AWS CloudWatch Log Events using SQL"
 description: "Allows users to query AWS CloudWatch Log Events to retrieve information about log events from a specified log group. Users can utilize this table to monitor and troubleshoot systems and applications using their existing log data."
+folder: "CloudWatch"
 ---
 
 # Table: aws_cloudwatch_log_event - Query AWS CloudWatch Log Events using SQL

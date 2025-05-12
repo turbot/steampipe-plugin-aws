@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 	"errors"
+	"slices"
 	"strings"
 	"time"
 
@@ -11,7 +12,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/kms/types"
 	"github.com/aws/smithy-go"
 
-	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -144,7 +144,7 @@ func listKmsKeyRotations(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 			ignoreCodes := GetConfig(d.Connection).IgnoreErrorCodes
 			var ae smithy.APIError
 			if errors.As(err, &ae) {
-				if helpers.StringSliceContains(ignoreCodes, ae.ErrorCode()) {
+				if slices.Contains(ignoreCodes, ae.ErrorCode()) {
 					return nil, nil
 				}
 			}

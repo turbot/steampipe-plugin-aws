@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_backup_protected_resource - Query AWS Backup Protected Resources using SQL"
 description: "Allows users to query AWS Backup Protected Resources to retrieve detailed information about the resources that are backed up by AWS Backup service."
+folder: "Backup"
 ---
 
 # Table: aws_backup_protected_resource - Query AWS Backup Protected Resources using SQL

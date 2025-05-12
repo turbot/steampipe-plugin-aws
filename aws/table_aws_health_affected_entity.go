@@ -20,9 +20,6 @@ func tableAwsHealthAffectedEntity(_ context.Context) *plugin.Table {
 			ParentHydrate: listHealthEvents,
 			Hydrate:       listHealthAffectedEntities,
 			Tags:          map[string]string{"service": "health", "action": "DescribeAffectedEntities"},
-			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"SubscriptionRequiredException"}),
-			},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "arn", Require: plugin.Optional},
 				{Name: "event_arn", Require: plugin.Optional},

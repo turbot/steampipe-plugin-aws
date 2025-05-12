@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_cloudfront_response_headers_policy - Query AWS CloudFront Response Headers Policy using SQL"
 description: "Allows users to query AWS CloudFront Response Headers Policies, providing information about the policy configurations that determine the headers CloudFront includes in HTTP responses."
+folder: "CloudFront"
 ---
 
 # Table: aws_cloudfront_response_headers_policy - Query AWS CloudFront Response Headers Policy using SQL

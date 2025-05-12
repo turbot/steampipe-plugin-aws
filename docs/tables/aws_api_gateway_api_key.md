@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_api_gateway_api_key - Query AWS API Gateway API Keys using SQL"
 description: "Allows users to query API Keys in AWS API Gateway. The `aws_api_gateway_api_key` table in Steampipe provides information about API Keys within AWS API Gateway. This table allows DevOps engineers to query API Key-specific details, including its ID, value, enabled status, and associated metadata. Users can utilize this table to gather insights on API Keys, such as keys that are enabled, keys associated with specific stages, and more. The schema outlines the various attributes of the API Key, including the key ID, creation date, enabled status, and associated tags."
+folder: "API Gateway"
 ---
 
 # Table: aws_api_gateway_api_key - Query AWS API Gateway API Keys using SQL

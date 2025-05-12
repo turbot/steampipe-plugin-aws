@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_ec2_instance_metric_cpu_utilization_hourly - Query AWS EC2 Instance Metrics using SQL"
 description: "Allows users to query AWS EC2 Instance CPU Utilization metrics on an hourly basis."
+folder: "EC2"
 ---
 
 # Table: aws_ec2_instance_metric_cpu_utilization_hourly - Query AWS EC2 Instance Metrics using SQL

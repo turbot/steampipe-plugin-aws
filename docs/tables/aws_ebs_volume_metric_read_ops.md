@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_ebs_volume_metric_read_ops - Query AWS EBS Volume using SQL"
 description: "Allows users to query AWS EBS Volume read operations metrics."
+folder: "EBS"
 ---
 
 # Table: aws_ebs_volume_metric_read_ops - Query AWS EBS Volume using SQL

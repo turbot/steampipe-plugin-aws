@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"slices"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ssoadmin"
@@ -89,6 +90,20 @@ func tableAwsSsoAdminPermissionSet(_ context.Context) *plugin.Table {
 				Hydrate:   getSsoAdminPermissionSetTags,
 				Transform: transform.FromValue(),
 			},
+			{
+				Name:        "inline_policy",
+				Description: "The policy document embedded inline for the permission set.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getSsoAdminPermissionSetInlinePolicy,
+				Transform:   transform.FromValue().Transform(transform.UnmarshalYAML),
+			},
+			{
+				Name:        "inline_policy_std",
+				Description: "Inline policy in canonical form for the permission set.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getSsoAdminPermissionSetInlinePolicy,
+				Transform:   transform.FromValue().Transform(unescape).Transform(policyToCanonical),
+			},
 
 			// Standard columns for all tables
 			{
@@ -140,7 +155,7 @@ func listSsoAdminPermissionSets(ctx context.Context, d *plugin.QueryData, h *plu
 				return nil, nil
 			}
 		} else if len(getListValues(equalQuals["instance_arn"].GetListValue())) > 0 {
-			if !helpers.StringSliceContains(aws.ToStringSlice(getListValues(equalQuals["instance_arn"].GetListValue())), instanceArn) {
+			if !slices.Contains(aws.ToStringSlice(getListValues(equalQuals["instance_arn"].GetListValue())), instanceArn) {
 				return nil, nil
 			}
 		}
@@ -250,6 +265,37 @@ func getSsoAdminPermissionSetTags(ctx context.Context, d *plugin.QueryData, h *p
 		plugin.Logger(ctx).Error("aws_ssoadmin_permission_set.getSsoAdminPermissionSetTags", "api_error", err)
 	}
 	return tags, err
+}
+
+func getSsoAdminPermissionSetInlinePolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	// Create session
+	svc, err := SSOAdminClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_ssoadmin_permission_set.getSsoAdminPermissionSetInlinePolicy", "connection_error", err)
+
+		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
+
+	permissionSet := h.Item.(*PermissionSetItem)
+	permissionSetArn := *permissionSet.PermissionSetArn
+	instanceArn := *permissionSet.InstanceArn
+
+	params := &ssoadmin.GetInlinePolicyForPermissionSetInput{
+		InstanceArn:      aws.String(instanceArn),
+		PermissionSetArn: aws.String(permissionSetArn),
+	}
+
+	resp, err := svc.GetInlinePolicyForPermissionSet(ctx, params)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_ssoadmin_permission_set.getSsoAdminPermissionSetInlinePolicy", "api_error", err)
+		return nil, err
+	}
+
+	return resp.InlinePolicy, nil
 }
 
 func getSsoAdminResourceTags(ctx context.Context, d *plugin.QueryData, instanceArn, resourceArn string) (interface{}, error) {

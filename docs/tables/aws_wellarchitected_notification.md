@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_wellarchitected_notification - Query AWS Well-Architected Tool Notifications using SQL"
 description: "Allows users to query AWS Well-Architected Tool Notifications for detailed information about each notification."
+folder: "Well-Architected"
 ---
 
 # Table: aws_wellarchitected_notification - Query AWS Well-Architected Tool Notifications using SQL

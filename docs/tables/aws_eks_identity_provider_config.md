@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_eks_identity_provider_config - Query Amazon EKS Identity Provider Configurations using SQL"
 description: "Allows users to query Amazon EKS Identity Provider Configurations for detailed information about the identity provider configurations for Amazon EKS clusters."
+folder: "Config"
 ---
 
 # Table: aws_eks_identity_provider_config - Query Amazon EKS Identity Provider Configurations using SQL

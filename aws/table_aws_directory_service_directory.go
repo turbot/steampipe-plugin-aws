@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"slices"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/directoryservice"
@@ -397,7 +398,7 @@ func getDirectoryServiceSnapshotLimit(ctx context.Context, d *plugin.QueryData, 
 	// This operation is not supported for for Shared MicrosoftAD and ADConnector directories
 	// Error: aws: operation error Directory Service: GetSnapshotLimits, https response error StatusCode: 400, ClientException: Snapshot limits can be fetched only for VPC or Microsoft AD directories.
 	supportedDirectoryType := []string{"SimpleAD", "MicrosoftAD"}
-	if !helpers.StringSliceContains(supportedDirectoryType, string(directory.Type)) {
+	if !slices.Contains(supportedDirectoryType, string(directory.Type)) {
 		return nil, nil
 	}
 

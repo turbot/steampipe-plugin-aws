@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_redshift_cluster_metric_cpu_utilization_daily - Query AWS Redshift Cluster Metrics using SQL"
 description: "Allows users to query AWS Redshift Cluster CPU Utilization Metrics on a daily basis."
+folder: "Redshift"
 ---
 
 # Table: aws_redshift_cluster_metric_cpu_utilization_daily - Query AWS Redshift Cluster Metrics using SQL

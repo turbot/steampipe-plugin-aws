@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_opensearch_domain - Query AWS OpenSearch Service Domains using SQL"
 description: "Allows users to query AWS OpenSearch Service Domains for detailed information on their configuration, status, and associated resources."
+folder: "OpenSearch"
 ---
 
 # Table: aws_opensearch_domain - Query AWS OpenSearch Service Domains using SQL

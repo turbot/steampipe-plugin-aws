@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_cost_usage - Query AWS Cost Explorer Service Cost and Usage using SQL"
 description: "Allows users to query Cost and Usage data from AWS Cost Explorer Service to monitor, track, and manage AWS costs and usage over time."
+folder: "Cost Explorer"
 ---
 
 # Table: aws_cost_usage - Query AWS Cost Explorer Service Cost and Usage using SQL

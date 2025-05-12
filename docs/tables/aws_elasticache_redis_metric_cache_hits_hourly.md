@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_elasticache_redis_metric_cache_hits_hourly - Query Amazon ElastiCache Redis Cache Hits using SQL"
 description: "Allows users to query Amazon ElastiCache Redis Cache Hits on an hourly basis."
+folder: "ElastiCache"
 ---
 
 # Table: aws_elasticache_redis_metric_cache_hits_hourly - Query Amazon ElastiCache Redis Cache Hits using SQL

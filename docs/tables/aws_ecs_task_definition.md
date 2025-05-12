@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_ecs_task_definition - Query AWS ECS Task Definitions using SQL"
 description: "Allows users to query AWS ECS Task Definitions to gain insights into the configuration of running tasks in an ECS service. The table provides details such as task definition ARN, family, network mode, revision, status, and more."
+folder: "ECS"
 ---
 
 # Table: aws_ecs_task_definition - Query AWS ECS Task Definitions using SQL

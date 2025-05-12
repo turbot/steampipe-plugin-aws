@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_iot_thing - Query AWS Internet of Things using SQL"
 description: "Allows users to query AWS Internet of Things to retrieve detailed information about the the virtual model of a physical device with in an AWS account."
+folder: "IoT Core"
 ---
 
 # Table: aws_iot_thing - Query AWS IoT Things using SQL

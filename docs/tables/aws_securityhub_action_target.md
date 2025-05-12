@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_securityhub_action_target - Query AWS Security Hub Action Targets using SQL"
 description: "Allows users to query AWS Security Hub Action Targets, providing detailed information about each action target within AWS Security Hub, including its ARN, name, and description."
+folder: "Security Hub"
 ---
 
 # Table: aws_securityhub_action_target - Query AWS Security Hub Action Targets using SQL

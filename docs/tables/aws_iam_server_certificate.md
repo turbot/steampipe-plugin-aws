@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_iam_server_certificate - Query AWS IAM Server Certificates using SQL"
 description: "Allows users to query AWS IAM Server Certificates"
+folder: "IAM"
 ---
 
 # Table: aws_iam_server_certificate - Query AWS IAM Server Certificates using SQL

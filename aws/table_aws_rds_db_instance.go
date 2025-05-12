@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"slices"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/rds"
@@ -398,7 +399,7 @@ func tableAwsRDSDBInstance(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "pending_maintenance_actions",
-				Description: "A list that provides details about the pending maintenance actions for the resource.",
+				Description: "[Deprecated] This column has been deprecated and will be removed in a future release. Please use the aws_rds_pending_maintenance_action table instead.",
 				Hydrate:     getRDSDBInstancePendingMaintenanceAction,
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromValue(),
@@ -598,7 +599,7 @@ func getRDSDBInstancePendingMaintenanceAction(ctx context.Context, d *plugin.Que
 }
 
 func getRDSDBInstanceCertificate(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	caCertificateIdentifier := *h.Item.(types.DBInstance).CACertificateIdentifier
+	instance := h.Item.(types.DBInstance)
 
 	// Create service
 	svc, err := RDSClient(ctx, d)
@@ -608,7 +609,7 @@ func getRDSDBInstanceCertificate(ctx context.Context, d *plugin.QueryData, h *pl
 	}
 
 	params := &rds.DescribeCertificatesInput{
-		CertificateIdentifier: aws.String(caCertificateIdentifier),
+		CertificateIdentifier: instance.CACertificateIdentifier,
 	}
 
 	op, err := svc.DescribeCertificates(ctx, params)
@@ -643,7 +644,7 @@ func getRDSDBInstanceProcessorFeatures(ctx context.Context, d *plugin.QueryData,
 
 	// https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DescribeOrderableDBInstanceOptions.html
 	// Return nil if unsupported engine type
-	if !helpers.StringSliceContains([]string{"aurora-mysql", "aurora-postgresql", "custom-oracle-ee", "db2-ae", "db2-se", "mariadb", "mysql", "oracle-ee", "oracle-ee-cdb", "oracle-se2", "oracle-se2-cdb", "postgres", "sqlserver-ee", "sqlserver-se", "sqlserver-ex", "sqlserver-web"}, *dbInstance.Engine) {
+	if !slices.Contains([]string{"aurora-mysql", "aurora-postgresql", "custom-oracle-ee", "db2-ae", "db2-se", "mariadb", "mysql", "oracle-ee", "oracle-ee-cdb", "oracle-se2", "oracle-se2-cdb", "postgres", "sqlserver-ee", "sqlserver-se", "sqlserver-ex", "sqlserver-web"}, *dbInstance.Engine) {
 		return nil, nil
 	}
 

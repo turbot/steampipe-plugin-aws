@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_athena_query_execution - Query AWS Athena Query Executions using SQL"
 description: "Allows users to query AWS Athena Query Executions to retrieve detailed information about each individual query execution."
+folder: "Athena"
 ---
 
 # Table: aws_athena_query_execution - Query AWS Athena Query Executions using SQL

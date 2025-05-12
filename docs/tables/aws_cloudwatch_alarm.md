@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_cloudwatch_alarm - Query AWS CloudWatch Alarms using SQL"
 description: "Allows users to query AWS CloudWatch Alarms, providing detailed information about each alarm, including its configuration, state, and associated actions."
+folder: "CloudWatch"
 ---
 
 # Table: aws_cloudwatch_alarm - Query AWS CloudWatch Alarms using SQL

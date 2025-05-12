@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_vpc_security_group - Query AWS VPC Security Groups using SQL"
 description: "Allows users to query AWS VPC Security Groups and retrieve data such as group ID, name, description, owner ID, and associated VPC ID. This table can be used to gain insights on security group configurations, policies, and related metadata."
+folder: "VPC"
 ---
 
 # Table: aws_vpc_security_group - Query AWS VPC Security Groups using SQL

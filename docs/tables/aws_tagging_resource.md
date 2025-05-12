@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_tagging_resource - Query AWS Resource Tagging API using SQL"
 description: "Allows users to query AWS Resource Tagging API to get details about resources and their associated tags."
+folder: "Resource Tagging"
 ---
 
 # Table: aws_tagging_resource - Query AWS Resource Tagging API using SQL

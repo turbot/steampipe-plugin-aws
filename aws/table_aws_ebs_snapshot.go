@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
@@ -338,13 +339,19 @@ func buildEbsSnapshotFilter(ctx context.Context, d *plugin.QueryData, h *plugin.
 
 	filterQuals := map[string]string{
 		"description": "description",
-		"encrypted":   "encrypted",
 		"owner_alias": "owner-alias",
 		"snapshot_id": "snapshot-id",
 		"state":       "status",
 		"progress":    "progress",
 		"volume_id":   "volume-id",
 		"volume_size": "volume-size",
+	}
+
+	if equalQuals["encrypted"] != nil {
+		filters = append(filters, types.Filter{
+			Name:   aws.String("encrypted"),
+			Values: []string{fmt.Sprint(equalQuals["encrypted"].GetBoolValue())},
+		})
 	}
 
 	for columnName, filterName := range filterQuals {

@@ -64,6 +64,8 @@ import (
 	"context"
 	"fmt"
 	"path"
+	"regexp"
+	"slices"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -144,7 +146,7 @@ func SupportedRegionMatrixWithExclusions(serviceID string, excludeRegions []stri
 		}
 		// Find all regions in both the query regions and the service regions
 		for _, region := range queryRegions {
-			if helpers.StringSliceContains(serviceRegions, region) {
+			if slices.Contains(serviceRegions, region) {
 				obj := map[string]interface{}{matrixKeyRegion: region}
 				matrix = append(matrix, obj)
 			}
@@ -320,22 +322,15 @@ func listRegionsForServiceUncached(ctx context.Context, d *plugin.QueryData, h *
 	}
 	partitionName = commonColumnData.(*awsCommonColumnData).Partition
 
+	// Get AWS partition based on the partition name
 	// Get supported service along with the endpoints for the partition
 	partition, err = getPartitionValueByPartitionName(partitionName)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get the endpoint details for the partition '%s', %v", partitionName, err)
 	}
 
-	if partition == nil {
-		err := fmt.Errorf("listRegionsForServiceUncached:: '%s' is an invalid partition", partitionName)
-		plugin.Logger(ctx).Error("listRegionsForServiceUncached", "connection_name", d.Connection.Name, "invalid_partition_error", err)
-		return nil, err
-	}
-
 	var regionsForService []string
 
-	// Get the list of the service regions based on the service ID.  Ultimately,
-	// this is using data from
 	// https://raw.githubusercontent.com/aws/aws-sdk-go-v2/master/codegen/smithy-aws-go-codegen/src/main/resources/software/amazon/smithy/aws/go/codegen/endpoints.json
 	services := partition.Services
 	serviceInfo, ok := services[serviceID]
@@ -345,9 +340,9 @@ func listRegionsForServiceUncached(ctx context.Context, d *plugin.QueryData, h *
 		return nil, err
 	}
 
-	// regions := serviceInfo.
 	for rs := range serviceInfo.Endpoints {
-		if partition.RegionRegex.Match([]byte(rs)) {
+		re := regexp.MustCompile(partition.RegionRegex)
+		if re.Match([]byte(rs)) {
 			regionsForService = append(regionsForService, rs)
 		}
 	}
@@ -379,15 +374,15 @@ func listRegionsUncached(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 
 	// If the client region is not AWS commercial (our default) then update
 	// the full region list from a best guess based on the client region.
-	allRegionsForClientPartition := awsCommercialRegions()
+	allRegionsForClientPartition := getRegionByPartition("aws")
 	if strings.HasPrefix(clientRegion, "us-gov") {
-		allRegionsForClientPartition = awsUsGovRegions()
+		allRegionsForClientPartition = getRegionByPartition("aws-us-gov")
 	} else if strings.HasPrefix(clientRegion, "cn") {
-		allRegionsForClientPartition = awsChinaRegions()
+		allRegionsForClientPartition = getRegionByPartition("aws-cn")
 	} else if strings.HasPrefix(clientRegion, "us-isob") {
-		allRegionsForClientPartition = awsUsIsobRegions()
+		allRegionsForClientPartition = getRegionByPartition("aws-iso-b")
 	} else if strings.HasPrefix(clientRegion, "us-iso") {
-		allRegionsForClientPartition = awsUsIsoRegions()
+		allRegionsForClientPartition = getRegionByPartition("aws-iso")
 	}
 
 	// We try to get the accurate region list via an API call below, but as a
@@ -672,6 +667,23 @@ func getDefaultRegionFromConfig(ctx context.Context, d *plugin.QueryData, _ *plu
 	return region, nil
 }
 
+func getRegionByPartition(partition string) []string {
+	regionsByPartition := []string{}
+
+	partitionInfo, err := getPartitionValueByPartitionName(partition)
+	if err != nil {
+		panic("failed to get the partition info with given partition '" + partition + "': " + err.Error())
+	}
+
+	if partitionInfo != nil {
+		for region := range partitionInfo.Regions {
+			regionsByPartition = append(regionsByPartition, region)
+		}
+	}
+
+	return regionsByPartition
+}
+
 // Given a region (including wildcards), guess at the best last resort region
 // based on the partition. Examples:
 //
@@ -725,64 +737,5 @@ func awsCommercialRegionPrefixes() []string {
 		"me",
 		"sa",
 		"us",
-	}
-}
-
-func awsCommercialRegions() []string {
-	return []string{
-		"af-south-1",
-		"ap-east-1",
-		"ap-northeast-1",
-		"ap-northeast-2",
-		"ap-northeast-3",
-		"ap-south-1",
-		"ap-south-2",
-		"ap-southeast-1",
-		"ap-southeast-2",
-		"ap-southeast-3",
-		"ap-southeast-4",
-		"ca-central-1",
-		"eu-central-1",
-		"eu-central-2",
-		"eu-north-1",
-		"eu-south-1",
-		"eu-south-2",
-		"eu-west-1",
-		"eu-west-2",
-		"eu-west-3",
-		"me-central-1",
-		"me-south-1",
-		"sa-east-1",
-		"us-east-1",
-		"us-east-2",
-		"us-west-1",
-		"us-west-2",
-	}
-}
-
-func awsUsGovRegions() []string {
-	return []string{
-		"us-gov-east-1",
-		"us-gov-west-1",
-	}
-}
-
-func awsChinaRegions() []string {
-	return []string{
-		"cn-north-1",
-		"cn-northwest-1",
-	}
-}
-
-func awsUsIsoRegions() []string {
-	return []string{
-		"us-iso-east-1",
-		"us-iso-west-1",
-	}
-}
-
-func awsUsIsobRegions() []string {
-	return []string{
-		"us-isob-east-1",
 	}
 }

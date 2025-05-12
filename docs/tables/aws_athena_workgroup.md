@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_athena_workgroup - Query AWS Athena Workgroup using SQL"
 description: "Allows users to query AWS Athena Workgroup details such as workgroup name, state, description, creation time, and more."
+folder: "Athena"
 ---
 
 # Table: aws_athena_workgroup - Query AWS Athena Workgroup using SQL

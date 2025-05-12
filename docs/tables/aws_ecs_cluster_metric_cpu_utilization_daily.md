@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_ecs_cluster_metric_cpu_utilization_daily - Query AWS ECS Cluster Metrics using SQL"
 description: "Allows users to query AWS Elastic Container Service (ECS) Cluster Metrics, specifically CPU utilization on a daily basis."
+folder: "ECS"
 ---
 
 # Table: aws_ecs_cluster_metric_cpu_utilization_daily - Query AWS ECS Cluster Metrics using SQL

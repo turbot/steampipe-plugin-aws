@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_kinesisanalyticsv2_application - Query AWS Kinesis Analytics Applications using SQL"
 description: "Allows users to query AWS Kinesis Analytics Applications to retrieve detailed information about each application, including the name, ARN, description, status, runtime environment, and more."
+folder: "Kinesis"
 ---
 
 # Table: aws_kinesisanalyticsv2_application - Query AWS Kinesis Analytics Applications using SQL

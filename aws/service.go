@@ -9,6 +9,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"slices"
 	"strconv"
 	"time"
 
@@ -106,12 +107,14 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/pinpoint"
 	"github.com/aws/aws-sdk-go-v2/service/pipes"
 	"github.com/aws/aws-sdk-go-v2/service/pricing"
+	"github.com/aws/aws-sdk-go-v2/service/quicksight"
 	"github.com/aws/aws-sdk-go-v2/service/ram"
 	"github.com/aws/aws-sdk-go-v2/service/rds"
 	"github.com/aws/aws-sdk-go-v2/service/redshift"
 	"github.com/aws/aws-sdk-go-v2/service/redshiftserverless"
 	"github.com/aws/aws-sdk-go-v2/service/resourceexplorer2"
 	"github.com/aws/aws-sdk-go-v2/service/resourcegroupstaggingapi"
+	"github.com/aws/aws-sdk-go-v2/service/rolesanywhere"
 	"github.com/aws/aws-sdk-go-v2/service/route53"
 	"github.com/aws/aws-sdk-go-v2/service/route53domains"
 	"github.com/aws/aws-sdk-go-v2/service/route53resolver"
@@ -517,7 +520,6 @@ func CostOptimizationHubClient(ctx context.Context, d *plugin.QueryData) (*costo
 	return costoptimizationhub.NewFromConfig(*cfg), nil
 }
 
-
 func DatabaseMigrationClient(ctx context.Context, d *plugin.QueryData) (*databasemigrationservice.Client, error) {
 	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
@@ -795,10 +797,37 @@ func GuardDutyClient(ctx context.Context, d *plugin.QueryData) (*guardduty.Clien
 }
 
 func HealthClient(ctx context.Context, d *plugin.QueryData) (*health.Client, error) {
-	cfg, err := getClientForQueryRegion(ctx, d)
+	// Get Health API supported regions
+	healthAPISupportedRegions, err := listRegionsForService(ctx, d, healthEndpoint.EndpointsID)
 	if err != nil {
 		return nil, err
 	}
+
+	// Get the client region for AWS API calls
+	// Typically this should be the region closest to the user
+	clientRegion, err := getDefaultRegion(ctx, d, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	// Health API is a global API that supports only us-east-1 and us-east-2 regions
+	// in `aws` partition and us-gov-west-1 in `aws-gov` partition.
+	// If a preferred region is set using default_region, or in the AWS config files,
+	// and the API supports that region, use that as the endpoint.
+	// As of April 12, 2025, AWS Health API only works in AWS Commercial Cloud and GovCloud.
+	queryRegion := clientRegion
+	if !slices.Contains(healthAPISupportedRegions, queryRegion) {
+		queryRegion, err = getLastResortRegion(ctx, d, nil)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	cfg, err := getClient(ctx, d, queryRegion)
+	if err != nil {
+		return nil, err
+	}
+
 	return health.NewFromConfig(*cfg), nil
 }
 
@@ -1106,7 +1135,7 @@ func PricingClient(ctx context.Context, d *plugin.QueryData) (*pricing.Client, e
 	// and the API supports that region, use that as the endpoint.
 	// As of Dec 13, 2022, AWS Pricing API only works in AWS Commercial Cloud.
 	queryRegion := clientRegion
-	if !helpers.StringSliceContains(pricingAPISupportedRegions, queryRegion) {
+	if !slices.Contains(pricingAPISupportedRegions, queryRegion) {
 		queryRegion, err = getLastResortRegion(ctx, d, nil)
 		if err != nil {
 			return nil, err
@@ -1119,6 +1148,15 @@ func PricingClient(ctx context.Context, d *plugin.QueryData) (*pricing.Client, e
 	}
 
 	return pricing.NewFromConfig(*cfg), nil
+}
+
+// QuickSightClient returns the client for the Amazon QuickSight service
+func QuickSightClient(ctx context.Context, d *plugin.QueryData) (*quicksight.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return quicksight.NewFromConfig(*cfg), nil
 }
 
 func RAMClient(ctx context.Context, d *plugin.QueryData) (*ram.Client, error) {
@@ -1231,7 +1269,7 @@ func ResourceExplorerClient(ctx context.Context, d *plugin.QueryData, region str
 
 	// Verify the requested region is supported, otherwise return nil which
 	// will mean zero results are returned for the query.
-	if !helpers.StringSliceContains(resourceExplorerRegions, region) {
+	if !slices.Contains(resourceExplorerRegions, region) {
 		return nil, nil
 	}
 
@@ -1249,6 +1287,14 @@ func ResourceGroupsTaggingClient(ctx context.Context, d *plugin.QueryData) (*res
 		return nil, err
 	}
 	return resourcegroupstaggingapi.NewFromConfig(*cfg), nil
+}
+
+func RolesAnywhereClient(ctx context.Context, d *plugin.QueryData) (*rolesanywhere.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return rolesanywhere.NewFromConfig(*cfg), nil
 }
 
 func Route53Client(ctx context.Context, d *plugin.QueryData) (*route53.Client, error) {
@@ -1667,7 +1713,7 @@ func getClientForQuerySupportedRegionWithExclusions(ctx context.Context, d *plug
 	// Remove the excluded regions from the valid list
 	validRegions = helpers.RemoveFromStringSlice(validRegions, excludeRegions...)
 
-	if !helpers.StringSliceContains(validRegions, region) {
+	if !slices.Contains(validRegions, region) {
 		// We choose to ignore unsupported regions rather than returning an error
 		// for them - it's a better user experience. So, return a nil session rather
 		// than an error. The caller must handle this case.

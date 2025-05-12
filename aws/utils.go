@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"os"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -15,7 +16,6 @@ import (
 	"unicode/utf8"
 
 	sagemakerTypes "github.com/aws/aws-sdk-go-v2/service/sagemaker/types"
-	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -121,7 +121,7 @@ func base64DecodedData(ctx context.Context, d *transform.TransformData) (interfa
 	// https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instancedata-add-user-data.html
 	if err != nil {
 		return nil, nil
-	} 
+	}
 	// Check for valid UTF-8
 	if !utf8.Valid(data) {
 		return types.SafeString(d.Value), nil
@@ -165,9 +165,9 @@ func getQualsValueByColumn(equalQuals plugin.KeyColumnQualMap, columnName string
 		if dataType == "boolean" {
 			switch q.Operator {
 			case "<>":
-				value = "false"
+				value = !q.Value.GetBoolValue()
 			case "=":
-				value = "true"
+				value = q.Value.GetBoolValue()
 			}
 		}
 		if dataType == "int64" {
@@ -259,7 +259,7 @@ func isSuppportedRDSEngine(engine string) bool {
 		"sqlserver-web",
 	}
 
-	return helpers.StringSliceContains(supportedEngines, engine)
+	return slices.Contains(supportedEngines, engine)
 }
 
 // Helper function for integer based environment variables.

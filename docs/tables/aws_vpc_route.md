@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_vpc_route - Query AWS VPC Routes using SQL"
 description: "Allows users to query AWS VPC Routes to retrieve detailed information about each route in a route table within a VPC."
+folder: "VPC"
 ---
 
 # Table: aws_vpc_route - Query AWS VPC Routes using SQL

@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_guardduty_ipset - Query AWS GuardDuty IPSet using SQL"
 description: "Allows users to query AWS GuardDuty IPSet to retrieve information about the IPSet, such as the detector ID, IPSet ID, name, format, location, and status."
+folder: "GuardDuty"
 ---
 
 # Table: aws_guardduty_ipset - Query AWS GuardDuty IPSet using SQL

@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"slices"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/docdb"
@@ -290,7 +291,7 @@ func listDocDBClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 
 		for _, cluster := range output.DBClusters {
 			// The DescribeDBClusters API returns non-DocDB clusters as well, but we only want DocDB clusters here.
-			if helpers.StringSliceContains([]string{"docdb"}, *cluster.Engine) {
+			if slices.Contains([]string{"docdb"}, *cluster.Engine) {
 				d.StreamListItem(ctx, cluster)
 			}
 

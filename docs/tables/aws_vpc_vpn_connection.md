@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_vpc_vpn_connection - Query AWS VPC VPN Connection using SQL"
 description: "Allows users to query VPN connections in an AWS VPC."
+folder: "VPC"
 ---
 
 # Table: aws_vpc_vpn_connection - Query AWS VPC VPN Connection using SQL

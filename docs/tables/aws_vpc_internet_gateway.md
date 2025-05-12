@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_vpc_internet_gateway - Query AWS VPC Internet Gateway using SQL"
 description: "Allows users to query AWS VPC Internet Gateway data. This table can be used to gain insights into the Internet Gateways attached to your VPCs, including their state, attached VPCs, and associated tags."
+folder: "VPC"
 ---
 
 # Table: aws_vpc_internet_gateway - Query AWS VPC Internet Gateway using SQL

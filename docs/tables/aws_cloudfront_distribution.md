@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_cloudfront_distribution - Query AWS CloudFront Distributions using SQL"
 description: "Allows users to query AWS CloudFront Distributions to gain insights into their configuration, status, and associated metadata."
+folder: "CloudFront"
 ---
 
 # Table: aws_cloudfront_distribution - Query AWS CloudFront Distributions using SQL

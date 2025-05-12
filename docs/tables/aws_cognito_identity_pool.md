@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_cognito_identity_pool - Query AWS Cognito Identity Pools using SQL"
 description: "Allows users to query AWS Cognito Identity Pools and retrieve detailed information about each identity pool, including its configuration and associated roles."
+folder: "Cognito"
 ---
 
 # Table: aws_cognito_identity_pool - Query AWS Cognito Identity Pools using SQL

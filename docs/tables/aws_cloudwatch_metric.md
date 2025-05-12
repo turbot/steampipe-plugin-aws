@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_cloudwatch_metric - Query AWS CloudWatch Metrics using SQL"
 description: "Allows users to query AWS CloudWatch Metrics to gather information about the performance of their AWS resources and applications."
+folder: "CloudWatch"
 ---
 
 # Table: aws_cloudwatch_metric - Query AWS CloudWatch Metrics using SQL

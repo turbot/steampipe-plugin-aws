@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_vpc_verified_access_endpoint - Query AWS VPC Verified Access Endpoint using SQL"
 description: "Allows users to query AWS VPC Verified Access Endpoint data, including details about the endpoint configuration, service name, and VPC ID. This information can be used to manage and secure network access to services within an AWS Virtual Private Cloud."
+folder: "VPC"
 ---
 
 # Table: aws_vpc_verified_access_endpoint - Query AWS VPC Verified Access Endpoint using SQL

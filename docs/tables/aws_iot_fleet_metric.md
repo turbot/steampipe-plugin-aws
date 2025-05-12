@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_iot_fleet_metric - Query AWS IoT Fleet Metrics using SQL"
 description: "Allows users to query AWS IoT Fleet Metrics to gain insights into each fleet metric's configuration, including ARN, creation date, and aggregation information."
+folder: "IoT Core"
 ---
 
 # Table: aws_iot_fleet_metric - Query AWS IoT Fleet Metrics using SQL
@@ -44,27 +45,23 @@ Group fleet metrics by their aggregation type name. This query is useful for ana
 ```sql+postgres
 select
   metric_name,
-  aggregation_field,
-  creation_date,
-  aggregation_type_name,
-  query_string
+  aggregation_type_name
 from
   aws_iot_fleet_metric
 group by
-  aggregation_type_name;
+  aggregation_type_name,
+  metric_name;
 ```
 
 ```sql+sqlite
 select
   metric_name,
-  aggregation_field,
-  creation_date,
-  aggregation_type_name,
-  query_string
+  aggregation_type_name
 from
   aws_iot_fleet_metric
 group by
-  aggregation_type_name;
+  aggregation_type_name,
+  metric_name;
 ```
 
 ### List fleet metrics updated in the last 30 days

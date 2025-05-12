@@ -2,11 +2,13 @@ package aws
 
 import (
 	"context"
+	"errors"
 	"sync"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ecs"
 	"github.com/aws/aws-sdk-go-v2/service/ecs/types"
+	"github.com/aws/smithy-go"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -349,6 +351,20 @@ func getEcsServiceTags(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 
 	response, err := svc.ListTagsForResource(ctx, params)
 	if err != nil {
+		// https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-account-settings.html#ecs-resource-ids
+		// We can have two arn format for the ESC Service:
+		// 1. arn:aws:ecs:<region>:<account_id>:service/<cluster_name>/<service_name> (Newer format)
+		// 2. arn:aws:ecs:<region>:<account_id>:service/<service_name> (Older format)
+		// While making the API with older service arn we are encountering the error:
+		// ERROR: rpc error: code = Unknown desc = my_aws_account: table 'aws_ecs_service' column 'tags' requires hydrate data from getEcsServiceTags,
+		// which failed with error operation error ECS: ListTagsForResource, https response error StatusCode: 400,
+		// RequestID: 076ed52f-8f0e-43b9-af89-3728995bb52b, InvalidParameterException: Long arn format must be used for tagging operations.
+		var ae smithy.APIError
+		if errors.As(err, &ae) {
+			if ae.ErrorCode() == "InvalidParameterException" {
+				return nil, nil
+			}
+		}
 		plugin.Logger(ctx).Error("aws_ecs_service.getEcsServiceTags", "api_error", err)
 		return nil, err
 	}

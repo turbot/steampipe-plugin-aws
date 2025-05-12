@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_cognito_user_pool - Query AWS Cognito User Pools using SQL"
 description: "Allows users to query AWS Cognito User Pools to fetch detailed information about each user pool, including the pool's configuration, status, and associated metadata."
+folder: "Cognito"
 ---
 
 # Table: aws_cognito_user_pool - Query AWS Cognito User Pools using SQL

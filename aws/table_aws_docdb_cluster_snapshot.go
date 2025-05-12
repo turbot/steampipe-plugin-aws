@@ -2,8 +2,8 @@ package aws
 
 import (
 	"context"
+	"slices"
 
-	"github.com/turbot/go-kit/helpers"
 	go_kit "github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -253,7 +253,7 @@ func listDocDBClusterSnapshots(ctx context.Context, d *plugin.QueryData, _ *plug
 
 		for _, cluster := range output.DBClusterSnapshots {
 			// The DescribeDBClusters API returns non-DocDB clusters as well, but we only want DocDB clusters here.
-			if helpers.StringSliceContains([]string{"docdb"}, *cluster.Engine) {
+			if slices.Contains([]string{"docdb"}, *cluster.Engine) {
 				d.StreamListItem(ctx, cluster)
 			}
 

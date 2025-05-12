@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 	"fmt"
+	"slices"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/route53resolver"
@@ -370,7 +371,7 @@ func buildRoute53ResolverEndpointFilter(quals plugin.KeyColumnQualMap) []types.F
 			filter := types.Filter{
 				Name: aws.String(filterName),
 			}
-			if helpers.StringSliceContains(columnsInt, columnName) { //check Int columns
+			if slices.Contains(columnsInt, columnName) { //check Int columns
 				value := getQualsValueByColumn(quals, columnName, "int64")
 				val, ok := value.(int64)
 				if ok {

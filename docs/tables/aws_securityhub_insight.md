@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_securityhub_insight - Query AWS Security Hub Insights using SQL"
 description: "Allows users to query AWS Security Hub Insights to retrieve information about the insights in AWS Security Hub. This includes details such as insight ARN, name, filters, group by attributes, and more."
+folder: "Security Hub"
 ---
 
 # Table: aws_securityhub_insight - Query AWS Security Hub Insights using SQL

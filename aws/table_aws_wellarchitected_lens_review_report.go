@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/wellarchitected"
@@ -122,7 +123,7 @@ func getWellArchitectedLensReviewReports(ctx context.Context, d *plugin.QueryDat
 			// If user provided milestone number does not exist then the API will throw ResourceNotFoundException error.
 			var ae smithy.APIError
 			if errors.As(err, &ae) {
-				if helpers.StringSliceContains([]string{"ResourceNotFoundException"}, ae.ErrorCode()) {
+				if slices.Contains([]string{"ResourceNotFoundException"}, ae.ErrorCode()) {
 					return nil, nil
 				}
 			}

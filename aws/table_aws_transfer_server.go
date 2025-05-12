@@ -143,13 +143,21 @@ func tableAwsTransferServer(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getTransferServer,
 			},
+			{
+				Name:        "tags_src",
+				Description: "A list of tags associated with the transfer server.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getTransferServer,
+				Transform:   transform.FromField("Tags"),
+			},
 
 			// Steampipe standard columns
 			{
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Tags"),
+				Hydrate:     getTransferServer,
+				Transform:   transform.From(transferServerTurbotTags),
 			},
 			{
 				Name:        "title",
@@ -256,4 +264,18 @@ func getTransferServer(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 		return op.Server, nil
 	}
 	return nil, nil
+}
+
+//// TRANSFORM FUNCTIONS
+
+func transferServerTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	tags := d.HydrateItem.(*types.DescribedServer)
+	var turbotTagsMap map[string]string
+	if tags.Tags != nil {
+		turbotTagsMap = map[string]string{}
+		for _, i := range tags.Tags {
+			turbotTagsMap[*i.Key] = *i.Value
+		}
+	}
+	return turbotTagsMap, nil
 }

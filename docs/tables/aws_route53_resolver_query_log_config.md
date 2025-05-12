@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_route53_resolver_query_log_config - Query AWS Route 53 Resolver Query Log Config using SQL"
 description: "Allows users to query AWS Route 53 Resolver Query Log Configurations."
+folder: "Config"
 ---
 
 # Table: aws_route53_resolver_query_log_config - Query AWS Route 53 Resolver Query Log Config using SQL

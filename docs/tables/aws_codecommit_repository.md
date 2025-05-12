@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_codecommit_repository - Query AWS CodeCommit Repositories using SQL"
 description: "Allows users to query AWS CodeCommit repositories and retrieve data such as repository name, ARN, description, clone URL, last modified date, and other related details."
+folder: "CodeCommit"
 ---
 
 # Table: aws_codecommit_repository - Query AWS CodeCommit Repositories using SQL

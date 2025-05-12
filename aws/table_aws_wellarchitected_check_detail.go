@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 	"errors"
+	"slices"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/wellarchitected"
@@ -221,7 +222,7 @@ func fetchWellArchitectedCheckDetails(ctx context.Context, d *plugin.QueryData, 
 			if err != nil {
 				var ae smithy.APIError
 				if errors.As(err, &ae) {
-					if helpers.StringSliceContains([]string{"ResourceNotFoundException"}, ae.ErrorCode()) {
+					if slices.Contains([]string{"ResourceNotFoundException"}, ae.ErrorCode()) {
 						return nil, nil
 					}
 				}
@@ -301,7 +302,7 @@ func getAnswerDetailsForWorkload(ctx context.Context, d *plugin.QueryData, h *pl
 			if err != nil {
 				var ae smithy.APIError
 				if errors.As(err, &ae) {
-					if helpers.StringSliceContains([]string{"ResourceNotFoundException"}, ae.ErrorCode()) {
+					if slices.Contains([]string{"ResourceNotFoundException"}, ae.ErrorCode()) {
 						return nil, nil
 					}
 				}

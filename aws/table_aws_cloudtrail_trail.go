@@ -3,13 +3,13 @@ package aws
 import (
 	"context"
 	"errors"
+	"slices"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/service/cloudtrail"
 	"github.com/aws/aws-sdk-go-v2/service/cloudtrail/types"
 
 	"github.com/aws/smithy-go"
-	"github.com/turbot/go-kit/helpers"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -355,7 +355,7 @@ func getCloudtrailTrailStatus(ctx context.Context, d *plugin.QueryData, h *plugi
 	if err != nil {
 		var ae smithy.APIError
 		if errors.As(err, &ae) {
-			if helpers.StringSliceContains([]string{"TrailNotFoundException", "CloudTrailARNInvalidException"}, ae.ErrorCode()) {
+			if slices.Contains([]string{"TrailNotFoundException", "CloudTrailARNInvalidException"}, ae.ErrorCode()) {
 				return nil, nil
 			}
 		}
@@ -398,7 +398,7 @@ func getCloudtrailTrailEventSelector(ctx context.Context, d *plugin.QueryData, h
 	if err != nil {
 		var ae smithy.APIError
 		if errors.As(err, &ae) {
-			if helpers.StringSliceContains([]string{"TrailNotFoundException", "CloudTrailARNInvalidException"}, ae.ErrorCode()) {
+			if slices.Contains([]string{"TrailNotFoundException", "CloudTrailARNInvalidException"}, ae.ErrorCode()) {
 				return nil, nil
 			}
 		}
@@ -440,7 +440,7 @@ func getCloudtrailTrailInsightSelector(ctx context.Context, d *plugin.QueryData,
 	if err != nil {
 		var ae smithy.APIError
 		if errors.As(err, &ae) {
-			if helpers.StringSliceContains([]string{"InsightNotEnabledException"}, ae.ErrorCode()) {
+			if slices.Contains([]string{"InsightNotEnabledException"}, ae.ErrorCode()) {
 				return nil, nil
 			}
 		}
@@ -483,7 +483,7 @@ func getCloudtrailTrailTags(ctx context.Context, d *plugin.QueryData, h *plugin.
 	if err != nil {
 		var ae smithy.APIError
 		if errors.As(err, &ae) {
-			if helpers.StringSliceContains([]string{"TrailNotFoundException", "CloudTrailARNInvalidException"}, ae.ErrorCode()) {
+			if slices.Contains([]string{"TrailNotFoundException", "CloudTrailARNInvalidException"}, ae.ErrorCode()) {
 				return nil, nil
 			}
 		}

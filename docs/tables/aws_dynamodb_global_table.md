@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_dynamodb_global_table - Query AWS DynamoDB Global Tables using SQL"
 description: "Allows users to query AWS DynamoDB Global Tables to gather information about the global tables, including the table name, creation time, status, and other related details."
+folder: "DynamoDB"
 ---
 
 # Table: aws_dynamodb_global_table - Query AWS DynamoDB Global Tables using SQL

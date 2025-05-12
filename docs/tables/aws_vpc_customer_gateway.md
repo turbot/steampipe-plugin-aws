@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_vpc_customer_gateway - Query AWS VPC Customer Gateway using SQL"
 description: "Allows users to query AWS VPC Customer Gateway, providing detailed information about each Customer Gateway in a Virtual Private Cloud (VPC)."
+folder: "VPC"
 ---
 
 # Table: aws_vpc_customer_gateway - Query AWS VPC Customer Gateway using SQL

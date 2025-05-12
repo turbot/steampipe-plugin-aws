@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_cost_by_account_monthly - Query AWS Cost Explorer Service using SQL"
 description: "Allows users to query monthly AWS costs per account. It provides cost details for each AWS account, allowing users to monitor and manage their AWS spending."
+folder: "Cost Explorer"
 ---
 
 # Table: aws_cost_by_account_monthly - Query AWS Cost Explorer Service using SQL

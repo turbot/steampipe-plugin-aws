@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_wellarchitected_lens - Query AWS Well-Architected Lens using SQL"
 description: "Allows users to query AWS Well-Architected Lens, providing details about each lens such as its name, description, and associated AWS Well-Architected Framework pillars."
+folder: "Well-Architected"
 ---
 
 # Table: aws_wellarchitected_lens - Query AWS Well-Architected Lens using SQL

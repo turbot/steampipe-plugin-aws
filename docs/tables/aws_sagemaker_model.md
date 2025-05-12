@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_sagemaker_model - Query AWS SageMaker Models using SQL"
 description: "Allows users to query AWS SageMaker Models for detailed information about each model, including its name, ARN, creation time, execution role, and more."
+folder: "SageMaker"
 ---
 
 # Table: aws_sagemaker_model - Query AWS SageMaker Models using SQL

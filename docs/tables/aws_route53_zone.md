@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_route53_zone - Query AWS Route 53 Zone using SQL"
 description: "Allows users to query AWS Route 53 Zone details including hosted zone ID, name, type, record set count, and associated tags."
+folder: "Route 53"
 ---
 
 # Table: aws_route53_zone - Query AWS Route 53 Zone using SQL

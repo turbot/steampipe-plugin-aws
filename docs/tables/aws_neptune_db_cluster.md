@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_neptune_db_cluster - Query Amazon Neptune DB Clusters using SQL"
 description: "Allows users to query Amazon Neptune DB clusters for comprehensive information about their configuration, status, and other relevant details."
+folder: "Neptune"
 ---
 
 # Table: aws_neptune_db_cluster - Query Amazon Neptune DB Clusters using SQL

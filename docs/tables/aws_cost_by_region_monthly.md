@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_cost_by_region_monthly - Query AWS Cost Explorer Service using SQL"
 description: "Allows users to query AWS Cost Explorer Service for monthly cost breakdown by region. This table provides details such as the region name, the cost associated with it, and the currency code."
+folder: "Cost Explorer"
 ---
 
 # Table: aws_cost_by_region_monthly - Query AWS Cost Explorer region using SQL

@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_iam_role - Query AWS Identity and Access Management (IAM) Roles using SQL"
 description: "Allows users to query IAM Roles to gain insights into their permissions, trust policies, and associated metadata."
+folder: "IAM"
 ---
 
 # Table: aws_iam_role - Query AWS Identity and Access Management (IAM) Roles using SQL

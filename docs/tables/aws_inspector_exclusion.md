@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_inspector_exclusion - Query AWS Inspector Exclusions using SQL"
 description: "Allows users to query AWS Inspector Exclusions and retrieve data about AWS Inspector Exclusions, including their ARNs, descriptions, and recommendations."
+folder: "Inspector"
 ---
 
 # Table: aws_inspector_exclusion - Query AWS Inspector Exclusions using SQL

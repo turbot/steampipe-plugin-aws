@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_media_store_container - Query AWS MediaStore Container using SQL"
 description: "Allows users to query AWS MediaStore Container information, including ARN, creation time, status, and access logging details."
+folder: "MediaStore"
 ---
 
 # Table: aws_media_store_container - Query AWS MediaStore Container using SQL

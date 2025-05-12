@@ -30,8 +30,6 @@ const AWS_API_ECR_SERVICE_ID = "api.ecr"
 
 const AWS_API_ECR_PUBLIC_SERVICE_ID = "api.ecr-public"
 
-const AWS_API_ELASTIC_INFERENCE_SERVICE_ID = "api.elastic-inference"
-
 const AWS_API_FLEETHUB_IOT_SERVICE_ID = "api.fleethub.iot"
 
 const AWS_API_IOTDEVICEADVISOR_SERVICE_ID = "api.iotdeviceadvisor"
@@ -505,6 +503,8 @@ const AWS_ROUTE53_SERVICE_ID = "route53"
 const AWS_ROUTE53_RECOVERY_CONTROL_CONFIG_SERVICE_ID = "route53-recovery-control-config"
 
 const AWS_ROUTE53DOMAINS_SERVICE_ID = "route53domains"
+
+const AWS_ROUTE53PROFILES_SERVICE_ID = "route53profiles"
 
 const AWS_ROUTE53RESOLVER_SERVICE_ID = "route53resolver"
 

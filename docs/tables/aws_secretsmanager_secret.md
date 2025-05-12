@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_secretsmanager_secret - Query AWS Secrets Manager Secret using SQL"
 description: "Allows users to query AWS Secrets Manager Secret data, including metadata, versions, rotation configuration, and more."
+folder: "ECR"
 ---
 
 # Table: aws_secretsmanager_secret - Query AWS Secrets Manager Secret using SQL

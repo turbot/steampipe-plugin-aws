@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_appstream_fleet - Query AWS AppStream Fleet using SQL"
 description: "Allows users to query AWS AppStream Fleets for detailed information about each fleet, including its state, instance type, and associated stack details."
+folder: "AppStream"
 ---
 
 # Table: aws_appstream_fleet - Query AWS AppStream Fleet using SQL

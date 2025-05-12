@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_ses_email_identity - Query AWS SES Email Identity using SQL"
 description: "Allows users to query AWS SES Email Identity to retrieve information about the email identities (domains and email addresses) that you have verified with Amazon SES."
+folder: "Simple Email Service (SES)"
 ---
 
 # Table: aws_ses_email_identity - Query AWS SES Email Identity using SQL

@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_securityhub_product - Query AWS Security Hub Products using SQL"
 description: "Allows users to query AWS Security Hub Product details for comprehensive security and compliance insights."
+folder: "Security Hub"
 ---
 
 # Table: aws_securityhub_product - Query AWS Security Hub Products using SQL

@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 	"errors"
+	"slices"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -11,7 +12,6 @@ import (
 
 	"github.com/aws/smithy-go"
 
-	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -370,7 +370,7 @@ func getAwsKmsKeyRotationStatus(ctx context.Context, d *plugin.QueryData, h *plu
 		// For AWS managed KMS keys GetKeyRotationStatus API generates exceptions
 		var ae smithy.APIError
 		if errors.As(err, &ae) {
-			if helpers.StringSliceContains([]string{"AccessDeniedException", "UnsupportedOperationException"}, ae.ErrorCode()) {
+			if slices.Contains([]string{"AccessDeniedException", "UnsupportedOperationException"}, ae.ErrorCode()) {
 				return &kms.GetKeyRotationStatusOutput{}, nil
 			}
 			return nil, err

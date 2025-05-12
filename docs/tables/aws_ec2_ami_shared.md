@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_ec2_ami_shared - Query AWS EC2 AMI using SQL"
 description: "Allows users to query shared Amazon Machine Images (AMIs) in AWS EC2"
+folder: "EC2"
 ---
 
 # Table: aws_ec2_ami_shared - Query AWS EC2 AMI using SQL
@@ -135,7 +136,7 @@ select
 from 
   aws_ec2_ami_shared
 where
-  image_ids = '["ami-08df646e18b182346", "ami-04c5f154a6c2fec00",]';
+  image_ids = '["ami-08df646e18b182346", "ami-04c5f154a6c2fec00"]';
 ```
 
 ### Batch API operation, ensuring AMIs are from trusted sources

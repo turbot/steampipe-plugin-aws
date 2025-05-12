@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_cloudformation_stack_resource - Query AWS CloudFormation Stack Resources using SQL"
 description: "Allows users to query AWS CloudFormation Stack Resources, providing details about each resource within the stack, including its status, type, and associated metadata. This table is useful for managing and analyzing AWS CloudFormation resources."
+folder: "CloudFormation"
 ---
 
 # Table: aws_cloudformation_stack_resource - Query AWS CloudFormation Stack Resources using SQL

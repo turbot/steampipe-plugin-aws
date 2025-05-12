@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_appautoscaling_policy - Query AWS Application Auto Scaling Policies using SQL"
 description: "Allows users to query AWS Application Auto Scaling Policies to obtain information about their configuration, attached resources, and other metadata."
+folder: "Application Auto Scaling"
 ---
 
 # Table: aws_appautoscaling_policy - Query AWS Application Auto Scaling Policies using SQL

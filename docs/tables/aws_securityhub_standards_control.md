@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_securityhub_standards_control - Query AWS Security Hub Standards Control using SQL"
 description: "Allows users to query AWS Security Hub Standards Control data including details about each security standard control available in an AWS account."
+folder: "RDS"
 ---
 
 # Table: aws_securityhub_standards_control - Query AWS Security Hub Standards Control using SQL

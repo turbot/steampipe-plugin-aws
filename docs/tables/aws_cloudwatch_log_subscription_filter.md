@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_cloudwatch_log_subscription_filter - Query AWS CloudWatch Log Subscription Filters using SQL"
 description: "Allows users to query AWS CloudWatch Log Subscription Filters, providing information about each subscription filter associated with the specified log group."
+folder: "CloudWatch"
 ---
 
 # Table: aws_cloudwatch_log_subscription_filter - Query AWS CloudWatch Log Subscription Filters using SQL

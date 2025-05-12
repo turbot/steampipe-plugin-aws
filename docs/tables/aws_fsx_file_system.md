@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_fsx_file_system - Query AWS FSx File Systems using SQL"
 description: "Allows users to query AWS FSx File Systems to gather information about the file system's details, including its lifecycle, type, storage capacity, and associated tags."
+folder: "FSx"
 ---
 
 # Table: aws_fsx_file_system - Query AWS FSx File Systems using SQL
