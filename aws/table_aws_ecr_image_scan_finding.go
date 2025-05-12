@@ -35,8 +35,8 @@ func tableAwsEcrImageScanFinding(_ context.Context) *plugin.Table {
 			// image_digest as it's more common/friendly to use.
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "repository_name", Require: plugin.Required},
-				{Name: "image_tag", Require: plugin.Optional},
-				{Name: "image_digest", Require: plugin.Optional},
+				{Name: "image_tag", Require: plugin.AnyOf},
+				{Name: "image_digest", Require: plugin.AnyOf},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(ecrv1.EndpointsID),
