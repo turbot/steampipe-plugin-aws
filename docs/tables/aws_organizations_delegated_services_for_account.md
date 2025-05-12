@@ -19,6 +19,27 @@ The `aws_organizations_delegated_administrator` table in Steampipe lets you quer
 ## Examples
 
 ### Basic info
+Retrieve basic information about all delegated services
+
+```sql+postgres
+select
+  delegated_account_id,
+  service_principal,
+  delegation_enabled_date
+from
+  aws_organizations_delegated_services_for_account
+```
+
+```sql+sqlite
+select
+  delegated_account_id,
+  service_principal,
+  delegation_enabled_date
+from
+  aws_organizations_delegated_services_for_account
+```
+
+### Basic info for a specific account
 Retrieve basic information about all delegated services for a specific account.
 
 ```sql+postgres

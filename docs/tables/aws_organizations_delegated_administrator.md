@@ -14,7 +14,7 @@ The `aws_organizations_delegated_administrator` table in Steampipe lets you quer
 
 **Important Notes:**
 - The table provides details about the *delegated administrator* accounts, not the management account making the API calls.
-- The `account_id` column in this table is the account ID from which the API calls are being made (often the management account). To get the described member account's ID, query the `delegated_account_id` column.
+- The `account_id` column in this table is the account ID from which the API calls are being made (often the management account). To get the described member account's ID, query the `id` column.
 
 ## Examples
 
@@ -23,28 +23,26 @@ Retrieve basic information about all delegated administrators in your organizati
 
 ```sql+postgres
 select
-  delegated_account_id,
+  id,
   arn,
   email,
   joined_method,
   joined_timestamp,
   name,
-  status,
-  delegation_enabled_date
+  status
 from
   aws_organizations_delegated_administrator;
 ```
 
 ```sql+sqlite
 select
-  delegated_account_id,
+  id,
   arn,
   email,
   joined_method,
   joined_timestamp,
   name,
-  status,
-  delegation_enabled_date
+  status
 from
   aws_organizations_delegated_administrator;
 ```
@@ -54,14 +52,13 @@ Identify delegated administrators with a particular status (e.g., ACTIVE, SUSPEN
 
 ```sql+postgres
 select
-  delegated_account_id,
+  id,
   name,
   arn,
   email,
   joined_method,
   joined_timestamp,
-  status,
-  delegation_enabled_date
+  status
 from
   aws_organizations_delegated_administrator
 where
@@ -70,14 +67,13 @@ where
 
 ```sql+sqlite
 select
-  delegated_account_id,
+  id,
   name,
   arn,
   email,
   joined_method,
   joined_timestamp,
-  status,
-  delegation_enabled_date
+  status
 from
   aws_organizations_delegated_administrator
 where
