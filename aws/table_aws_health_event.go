@@ -31,7 +31,6 @@ func tableAwsHealthEvent(_ context.Context) *plugin.Table {
 				{Name: "status_code", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(AWS_HEALTH_SERVICE_ID),
 		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "arn",

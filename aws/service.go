@@ -798,7 +798,7 @@ func GuardDutyClient(ctx context.Context, d *plugin.QueryData) (*guardduty.Clien
 
 func HealthClient(ctx context.Context, d *plugin.QueryData) (*health.Client, error) {
 	// Get Health API supported regions
-	healthAPISupportedRegions, err := listRegionsForService(ctx, d, healthEndpoint.EndpointsID)
+	healthAPISupportedRegions, err := listRegionsForService(ctx, d, AWS_HEALTH_SERVICE_ID)
 	if err != nil {
 		return nil, err
 	}
@@ -1194,8 +1194,8 @@ func RDSDBRecommendationClient(ctx context.Context, d *plugin.QueryData) (*rds.C
 		"cn-north-1",     // China (Beijing)
 		"cn-northwest-1", // China (Ningxia)
 	}
-	excludeRegions = append(excludeRegions, awsChinaRegions()...)
-	excludeRegions = append(excludeRegions, awsUsGovRegions()...)
+	excludeRegions = append(excludeRegions, getRegionByPartition("aws-cn")...)
+	excludeRegions = append(excludeRegions, getRegionByPartition("aws-us-gov")...)
 	cfg, err := getClientForQuerySupportedRegionWithExclusions(ctx, d, AWS_RDS_SERVICE_ID, excludeRegions)
 	if err != nil {
 		return nil, err
@@ -1219,8 +1219,8 @@ func RDSDBProxyClient(ctx context.Context, d *plugin.QueryData) (*rds.Client, er
 		"eu-south-2",     // Spain
 		"me-central-1",   // UAE
 	}
-	excludeRegions = append(excludeRegions, awsChinaRegions()...)
-	excludeRegions = append(excludeRegions, awsUsGovRegions()...)
+	excludeRegions = append(excludeRegions, getRegionByPartition("aws-cn")...)
+	excludeRegions = append(excludeRegions, getRegionByPartition("aws-us-gov")...)
 	cfg, err := getClientForQuerySupportedRegionWithExclusions(ctx, d, AWS_RDS_SERVICE_ID, excludeRegions)
 	if err != nil {
 		return nil, err

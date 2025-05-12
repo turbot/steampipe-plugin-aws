@@ -164,7 +164,7 @@ func listEKSIdentityProviderConfigs(ctx context.Context, d *plugin.QueryData, h 
 
 	// As per the API document input parameter MaxResults should support the value of 100.
 	// However with value of 100, API is throwing an error - InvalidParameterException: maxResults needs to be 1.
-	// Raised an issue with AWS SDK - https://github.com/aws/aws-sdk-go/issues/4457
+	// Raised an issue with AWS SDK - https://github.com/aws/aws-sdk-go-v2/issues/4457
 	// Same behaviour in AWS SDK V2 also.
 	param := &eks.ListIdentityProviderConfigsInput{
 		ClusterName: cluster.Name,

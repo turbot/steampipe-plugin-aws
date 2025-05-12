@@ -10,7 +10,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	"github.com/aws/aws-sdk-go-v2/service/ssm/types"
 
-	"github.com/turbot/go-kit/helpers"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 
