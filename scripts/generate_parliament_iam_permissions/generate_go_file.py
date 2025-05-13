@@ -135,42 +135,9 @@ def write_service(service, go_file):
 
 def generate_go_file(iam_permissions):
     with open('../../aws/parliament_iam_permissions.go', 'w') as go_file:
-        go_file.write("""package aws
+        go_file.write("""//go:build !dev
 
-type ParliamentCondition struct {
-Condition   string
-Description string
-Type string
-}
-
-type ParliamentResourceType struct {
-ConditionKeys []string
-DependentActions []string
-ResourceType string
-}
-
-type ParliamentPrivilege struct {
-AccessLevel string
-Description string
-Privilege string
-ResourceTypes []ParliamentResourceType
-}
-
-type ParliamentResource struct {
-Arn           string
-ConditionKeys []string
-Resource      string
-}
-
-type ParliamentService struct {
-Conditions []ParliamentCondition
-Prefix string
-Privileges []ParliamentPrivilege
-Resources []ParliamentResource
-ServiceName string
-}
-
-type ParliamentPermissions []ParliamentService
+package aws
 
 func getParliamentIamPermissions() ParliamentPermissions {
 permissions := ParliamentPermissions{

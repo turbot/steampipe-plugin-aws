@@ -106,6 +106,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/redshiftserverless v1.17.4
 	github.com/aws/aws-sdk-go-v2/service/resourceexplorer2 v1.10.5
 	github.com/aws/aws-sdk-go-v2/service/resourcegroupstaggingapi v1.21.4
+	github.com/aws/aws-sdk-go-v2/service/rolesanywhere v1.11.4
 	github.com/aws/aws-sdk-go-v2/service/route53 v1.40.4
 	github.com/aws/aws-sdk-go-v2/service/route53domains v1.23.4
 	github.com/aws/aws-sdk-go-v2/service/route53resolver v1.27.4
@@ -145,8 +146,8 @@ require (
 	github.com/rs/dnscache v0.0.0-20230804202142-fc85eb664529
 	github.com/turbot/go-kit v1.1.0
 	github.com/turbot/steampipe-plugin-sdk/v5 v5.11.5
-	golang.org/x/sync v0.11.0
-	golang.org/x/text v0.22.0
+	golang.org/x/sync v0.12.0
+	golang.org/x/text v0.23.0
 )
 
 require golang.org/x/xerrors v0.0.0-20231012003039-104605ab7028 // indirect
@@ -252,11 +253,11 @@ require (
 	go.opentelemetry.io/otel/sdk/metric v1.26.0 // indirect
 	go.opentelemetry.io/otel/trace v1.26.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.2.0 // indirect
-	golang.org/x/crypto v0.35.0 // indirect
+	golang.org/x/crypto v0.36.0 // indirect
 	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56 // indirect
-	golang.org/x/net v0.36.0 // indirect
+	golang.org/x/net v0.38.0 // indirect
 	golang.org/x/oauth2 v0.21.0 // indirect
-	golang.org/x/sys v0.30.0 // indirect
+	golang.org/x/sys v0.31.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
 	google.golang.org/api v0.171.0 // indirect
 	google.golang.org/genproto v0.0.0-20240227224415-6ceb2ff114de // indirect
