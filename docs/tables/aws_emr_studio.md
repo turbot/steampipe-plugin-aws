@@ -15,12 +15,13 @@ The `aws_emr_studio` table in Steampipe provides you with information about EMR 
 ## Examples
 
 ### Basic info
-Explore the basic information about your EMR Studios, including their names, IDs, and authentication modes. This can help you understand the configuration of your studios at a glance.
+Explore the basic information about your EMR Studios, including their names, IDs, ARNs, and authentication modes. This can help you understand the configuration of your studios at a glance.
 
 ```sql+postgres
 select
   name,
   studio_id,
+  arn,
   auth_mode,
   url,
   creation_time
@@ -32,11 +33,39 @@ from
 select
   name,
   studio_id,
+  arn,
   auth_mode,
   url,
   creation_time
 from
   aws_emr_studio;
+```
+
+### Find studio by ARN
+Retrieve a studio by its ARN, which is useful for automation and scripting scenarios.
+
+```sql+postgres
+select
+  name,
+  studio_id,
+  arn,
+  auth_mode
+from
+  aws_emr_studio
+where
+  arn = 'arn:aws:emr:us-east-1:123456789012:studio/es-EXAMPLE1234567890';
+```
+
+```sql+sqlite
+select
+  name,
+  studio_id,
+  arn,
+  auth_mode
+from
+  aws_emr_studio
+where
+  arn = 'arn:aws:emr:us-east-1:123456789012:studio/es-EXAMPLE1234567890';
 ```
 
 ### List studios with IAM authentication
@@ -211,93 +240,4 @@ where
   or workspace_security_group_id is null
   or vpc_id is null
   or json_array_length(subnet_ids) = 0;
-```
-
-### List studios by creation date
-Find studios created within a specific time period to track recent deployments or for audit purposes.
-
-```sql+postgres
-select
-  name,
-  studio_id,
-  creation_time,
-  auth_mode,
-  vpc_id
-from
-  aws_emr_studio
-where
-  creation_time >= now() - interval '30 days'
-order by
-  creation_time desc;
-```
-
-```sql+sqlite
-select
-  name,
-  studio_id,
-  creation_time,
-  auth_mode,
-  vpc_id
-from
-  aws_emr_studio
-where
-  creation_time >= datetime('now', '-30 days')
-order by
-  creation_time desc;
-```
-
-### Find studios with specific subnet configurations
-Identify studios that are using specific subnets, which can be useful for network planning and security analysis.
-
-```sql+postgres
-select
-  name,
-  studio_id,
-  vpc_id,
-  subnet_ids
-from
-  aws_emr_studio
-where
-  subnet_ids ? 'subnet-1234567890abcdef0';
-```
-
-```sql+sqlite
-select
-  name,
-  studio_id,
-  vpc_id,
-  subnet_ids
-from
-  aws_emr_studio
-where
-  json_extract(subnet_ids, '$[*]') like '%subnet-1234567890abcdef0%';
-```
-
-### List studios with service role configurations
-Find studios that have specific service role configurations, which is important for understanding IAM permissions.
-
-```sql+postgres
-select
-  name,
-  studio_id,
-  service_role,
-  user_role,
-  auth_mode
-from
-  aws_emr_studio
-where
-  service_role like '%EMRStudioServiceRole%';
-```
-
-```sql+sqlite
-select
-  name,
-  studio_id,
-  service_role,
-  user_role,
-  auth_mode
-from
-  aws_emr_studio
-where
-  service_role like '%EMRStudioServiceRole%';
 ```
