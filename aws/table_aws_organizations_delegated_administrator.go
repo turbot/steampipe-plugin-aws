@@ -23,7 +23,6 @@ func tableAwsOrganizationsDelegatedAdministrator(_ context.Context) *plugin.Tabl
 				Name:        "id",
 				Description: "The unique identifier (account ID) of the delegated administrator.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("Id"),
 			},
 			{
 				Name:        "arn",

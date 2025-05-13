@@ -3,9 +3,8 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/organizations"
-	organizationsTypes "github.com/aws/aws-sdk-go-v2/service/organizations/types"
+	"github.com/aws/aws-sdk-go-v2/service/organizations/types"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -30,7 +29,6 @@ func tableAwsOrganizationsDelegatedServicesForAccount(_ context.Context) *plugin
 				Name:        "delegated_account_id",
 				Description: "The unique identifier (account ID) of the delegated administrator account for which services are listed.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("DelegatedAccountId"),
 			},
 			{
 				Name:        "service_principal",
@@ -55,41 +53,15 @@ func tableAwsOrganizationsDelegatedServicesForAccount(_ context.Context) *plugin
 }
 
 func listDelegatedServices(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	var accountIdForApiCall string // Supplied either through Parent Hydrate or direct query (WHERE statement)
+	delegatedAccount := h.Item.(types.DelegatedAdministrator) // Get delegated administrator details
 
-	if h.Item != nil {
-		// Parent hydrate data is available (DelegatedAdministrator)
-		parentAdmin, ok := h.Item.(organizationsTypes.DelegatedAdministrator)
-		if !ok || parentAdmin.Id == nil {
-			plugin.Logger(ctx).Error("aws_organizations_delegated_services_for_account.listDelegatedServices", "parent_hydrate_error", "Failed to process parent item or parent admin ID is nil.")
-			return nil, nil // Skip this parent item if data is invalid
-		}
-		accountIdFromParent := aws.ToString(parentAdmin.Id)
+	delegatedAccountId := d.EqualsQualString("delegated_account_id") // Get delegated_account_id from where statement
 
-		// If user provided a delegated_account_id qual, it must match the parent item's ID
-		if qualValue, ok := d.EqualsQuals["delegated_account_id"]; ok {
-			accountIdFromQual := qualValue.GetStringValue()
-			if accountIdFromQual != accountIdFromParent {
-				// User is filtering for a specific account, and this parent admin is not it. Skip.
-				return nil, nil
-			}
+	// Minimize API calls
+	if delegatedAccountId != "" {
+		if delegatedAccountId != *delegatedAccount.Id {
+			return nil, nil
 		}
-		accountIdForApiCall = accountIdFromParent
-	} else {
-		// No parent hydrate data, so table is queried directly.
-		// delegated_account_id must be provided in the WHERE clause.
-		if qualValue, ok := d.EqualsQuals["delegated_account_id"]; ok {
-			accountIdForApiCall = qualValue.GetStringValue()
-		} else {
-			// No parent and no qual for delegated_account_id. API requires AccountId.
-			plugin.Logger(ctx).Warn("aws_organizations_delegated_services_for_account.listDelegatedServices", "account_id_required", "delegated_account_id qualifier is required for direct queries without parent context.")
-			return nil, nil // Cannot make an API call
-		}
-	}
-
-	if accountIdForApiCall == "" {
-		plugin.Logger(ctx).Info("aws_organizations_delegated_services_for_account.listDelegatedServices", "account_id_empty", "Account ID for API call is empty. Skipping.")
-		return nil, nil
 	}
 
 	// Get Client
@@ -110,7 +82,7 @@ func listDelegatedServices(ctx context.Context, d *plugin.QueryData, h *plugin.H
 		}
 	}
 	params := &organizations.ListDelegatedServicesForAccountInput{
-		AccountId:  aws.String(accountIdForApiCall),
+		AccountId:  delegatedAccount.Id,
 		MaxResults: &maxItems,
 	}
 
@@ -130,7 +102,7 @@ func listDelegatedServices(ctx context.Context, d *plugin.QueryData, h *plugin.H
 			// Stream a new struct that includes the AccountId used for the API call
 			d.StreamListItem(ctx, delegatedServiceInfo{
 				DelegatedService:   service,
-				DelegatedAccountId: accountIdForApiCall,
+				DelegatedAccountId: *delegatedAccount.Id,
 			})
 
 			// Context may get cancelled due to manual cancellation or if the limit has been reached
@@ -145,6 +117,6 @@ func listDelegatedServices(ctx context.Context, d *plugin.QueryData, h *plugin.H
 
 // Define a struct to hold the DelegatedService and the AccountId used to fetch it.\
 type delegatedServiceInfo struct {
-	organizationsTypes.DelegatedService
+	types.DelegatedService
 	DelegatedAccountId string
 }
