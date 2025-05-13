@@ -5,8 +5,6 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/kafka/types"
 
-	kafkav1 "github.com/aws/aws-sdk-go/service/kafka"
-
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -36,7 +34,7 @@ func tableAwsMSKServerlessCluster(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "kafka", "action": "DescribeClusterOperation"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(kafkav1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_KAFKA_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "arn",

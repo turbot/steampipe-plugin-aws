@@ -352,7 +352,7 @@ func doGetBucketRegion(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	}
 
 	// The most reliable way to discover the region of an S3 bucket is to make an unauthenticated HTTP HEAD request which this SDK manager.GetBucketRegion() function does.
-	// See https://github.com/aws/aws-sdk-go/issues/356#issuecomment-132707340
+	// See https://github.com/aws/aws-sdk-go-v2/issues/356#issuecomment-132707340
 	// and https://pkg.go.dev/github.com/aws/aws-sdk-go-v2/feature/s3/manager#GetBucketRegion
 	bucketRegion, err := manager.GetBucketRegion(ctx, svc, bucket)
 	if err != nil {

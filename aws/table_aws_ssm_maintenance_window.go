@@ -10,8 +10,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	"github.com/aws/aws-sdk-go-v2/service/ssm/types"
 
-	ssmv1 "github.com/aws/aws-sdk-go/service/ssm"
-
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 
@@ -58,7 +56,7 @@ func tableAwsSSMMaintenanceWindow(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "ssm", "action": "DescribeMaintenanceWindowTasks"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(ssmv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_SSM_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
