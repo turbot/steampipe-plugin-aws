@@ -18,10 +18,13 @@ func tableAwsEC2ClientVPNEndpoint(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_ec2_client_vpn_endpoint",
 		Description: "AWS EC2 Client VPN Endpoint",
+		// AWS EC2 Client VPN is not supported in all regions service EC2 is supported.
+		// For The regions where Client VPN is not supported, we are encountering the error:
+		// Error: aws: operation error EC2: DescribeClientVpnEndpoints, https response error StatusCode: 400, RequestID: a93b1ba5-1389-4824-9db4-ab95c53324ef, api error InvalidAction: The action DescribeClientVpnEndpoints is not valid for this web service. (SQLSTATE HV000)
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("client_vpn_endpoint_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ValidationError", "InvalidQueryParameter", "InvalidParameterValue", "InvalidClientVpnEndpointId.NotFound"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidAction", "ValidationError", "InvalidQueryParameter", "InvalidParameterValue", "InvalidClientVpnEndpointId.NotFound"}),
 			},
 			Hydrate: getEC2ClientVPNEndpoint,
 			Tags:    map[string]string{"service": "ec2", "action": "DescribeClientVpnEndpoints"},
@@ -29,6 +32,9 @@ func tableAwsEC2ClientVPNEndpoint(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listEC2ClientVPNEndpoints,
 			Tags:    map[string]string{"service": "ec2", "action": "DescribeClientVpnEndpoints"},
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidAction"}),
+			},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "transport_protocol", Require: plugin.Optional},
 			},

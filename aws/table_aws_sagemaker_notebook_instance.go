@@ -18,16 +18,23 @@ func tableAwsSageMakerNotebookInstance(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_sagemaker_notebook_instance",
 		Description: "AWS Sagemaker Notebook Instance",
+		// Sagemaker model resource type is not supported in all regions service is supported.
+		// For which We are encountering the error:
+		// Error: aws: operation error SageMaker: ListNotebookInstances, https response error StatusCode: 400, RequestID: 71e624e7-88a7-41a3-b2c6-8b11d63bd3a2, api error UnknownOperationException: The requested operation is not supported in the called region. (SQLSTATE HV000)
+		// Error: operation error SageMaker: DescribeNotebookInstance, https response error StatusCode: 400, RequestID: 9ad7b59d-ae35-4a5d-9056-be49e9bf9189, api error UnknownOperationException: The requested operation is not supported in the called region. (SQLSTATE HV000)
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("name"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ValidationException", "NotFoundException", "RecordNotFound"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"UnknownOperationException","ValidationException", "NotFoundException", "RecordNotFound"}),
 			},
 			Hydrate: getAwsSageMakerNotebookInstance,
 			Tags:    map[string]string{"service": "sagemaker", "action": "DescribeNotebookInstance"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsSageMakerNotebookInstances,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"UnknownOperationException"}),
+			},
 			Tags:    map[string]string{"service": "sagemaker", "action": "ListNotebookInstances"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "default_code_repository", Require: plugin.Optional},

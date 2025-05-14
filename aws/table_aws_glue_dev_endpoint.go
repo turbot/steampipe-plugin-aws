@@ -21,14 +21,20 @@ func tableAwsGlueDevEndpoint(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("endpoint_name"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"EntityNotFoundException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"EntityNotFoundException", "InvalidInputException"}),
 			},
 			Hydrate: getGlueDevEndpoint,
 			Tags:    map[string]string{"service": "glue", "action": "GetDevEndpoint"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listGlueDevEndpoints,
-			Tags:    map[string]string{"service": "glue", "action": "GetDevEndpoints"},
+			// The service Glue is supported in the region ap-southeast-5, but the resource type is not supported in the region ap-southeast-5.
+			// For which We are encountering the error:
+			// Error: aws: operation error Glue: GetDevEndpoints, https response error StatusCode: 400, RequestID: ef2f49de-9e99-4465-9ab9-aeb124b4101f, InvalidInputException: Operation is not supported in <ap-southeast-5> region
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidInputException"}),
+			},
+			Tags: map[string]string{"service": "glue", "action": "GetDevEndpoints"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(AWS_GLUE_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
