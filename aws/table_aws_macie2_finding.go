@@ -213,12 +213,6 @@ func listMacie2Findings(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			// Throws "AccessDeniedException: Macie is not enabled." when AWS Macie is not enabled in a region
-			// also the API throws AccessDeniedException if the request does not have proper permission
-			// with the below check we will only handle "Macie is not enabled"
-			if strings.Contains(err.Error(), "Macie is not enabled.") {
-				return nil, nil
-			}
 			plugin.Logger(ctx).Error("aws_macie2_finding.listMacie2Findings", "api_error", err)
 			return nil, err
 		}
