@@ -65,3 +65,45 @@ from
 where
   compliance_status is not null;
 ```
+
+### Filter Resources by Resource Types
+
+You can filter the results to retrieve only resources of specific AWS services or particular resource types within those services. This is useful for focusing your queries on particular categories of AWS resources and improving the relevance of your results.
+
+The filter uses the `resource_types` column, which accepts a JSON array of strings. Each string should be in the format:
+- `service` — to match all resources of a service (e.g., `"ec2"`)
+- `service:resourceType` — to match a specific resource type in a service (e.g., `"ec2:instance"`)
+
+**Examples:**
+
+- To retrieve all EC2 instances, S3 buckets, and any RDS resource:
+
+```sql
+select
+  name,
+  arn,
+  resource_types,
+  region
+from
+  aws_tagging_resource
+where
+  resource_types = '["ec2:instance", "s3:bucket", "rds"]';
+```
+
+- To filter by a single resource type, such as EC2 instances:
+
+```sql
+select
+  name,
+  arn,
+  resource_types,
+  region
+from
+  aws_tagging_resource
+where
+  resource_types = '["ec2:instance"]';
+```
+
+**Note:**
+- The `resource_types` filter matches the exact strings in the array.
+- For a complete list of valid resource type names, refer to the [AWS documentation](https://docs.aws.amazon.com/resourcegroupstagging/latest/APIReference/API_GetResources.html#API_GetResources_RequestParameters).
