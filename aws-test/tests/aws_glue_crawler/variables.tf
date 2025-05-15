@@ -68,6 +68,32 @@ resource "aws_iam_role" "named_test_resource" {
   })
 }
 
+resource "aws_iam_role_policy" "named_test_resource_policy" {
+  name = "${var.resource_name}-policy"
+  role = aws_iam_role.named_test_resource.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "dynamodb:DescribeTable",
+          "dynamodb:Scan"
+        ]
+        Resource = aws_dynamodb_table.named_test_resource.arn
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "glue:*"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+}
+
 resource "aws_dynamodb_table" "named_test_resource" {
   depends_on = [aws_glue_catalog_database.named_test_resource]
   name = var.resource_name

@@ -84,6 +84,7 @@ resource "aws_security_group" "named_test_resource" {
 resource "aws_subnet" "named_test_resource" {
   vpc_id     = aws_vpc.main.id
   cidr_block = "10.0.1.0/24"
+  availability_zone = "us-east-1a" 
   tags = {
     Name = var.resource_name
   }
@@ -100,7 +101,7 @@ resource "aws_mq_broker" "named_test_resource" {
 
   engine_type        = "ActiveMQ"
   engine_version     = "5.17.6"
-  host_instance_type = "mq.t2.micro"
+  host_instance_type = "mq.m5.large"
   security_groups    = [aws_security_group.named_test_resource.id]
   subnet_ids = [aws_subnet.named_test_resource.id]
 
