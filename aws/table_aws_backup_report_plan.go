@@ -138,13 +138,21 @@ func listAwsBackupReportPlans(ctx context.Context, d *plugin.QueryData, _ *plugi
 
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			// AWS Backup service is supported in these regions: https://aws.amazon.com/about-aws/global-infrastructure/regional-product-services/
+			// AWS Backup service is not supported in all AWS regions.
+			// Reference for supported regions: https://aws.amazon.com/about-aws/global-infrastructure/regional-product-services/
 
-			// For the region me-central-1
-			// Error: aws: operation error Backup: ListReportPlans, https response error StatusCode: 403, RequestID: 3144d09a-f1d9-49b0-8208-23d245bdcf3b, api error AccessDeniedException: This API is not available in current Region. (SQLSTATE HV000)
+			// Observed unsupported region errors:
+			//
+			// - In region `me-central-1`:
+			//   Error: aws: operation error Backup: ListReportPlans, https response error StatusCode: 403, RequestID: 3144d09a-f1d9-49b0-8208-23d245bdcf3b
+			//   api error AccessDeniedException: This API is not available in current Region. (SQLSTATE HV000)
+			//
+			// - In regions `ap-southeast-5` and `ap-southeast-3`:
+			//   Error: aws: operation error Backup: ListReportPlans, https response error StatusCode: 403, RequestID: 84d4f42e-ab18-4070-a281-a40a702a4c61
+			//   api error AccessDeniedException: Insufficient privileges to perform this action. (SQLSTATE HV000)
+			//
+			// These errors indicate **unsupported region scenarios** and are handled appropriately in the related list/get functions.
 
-			// For the regions  ap-southeast-5, ap-southeast-3
-			// Error: aws: operation error Backup: ListReportPlans, https response error StatusCode: 403, RequestID: 84d4f42e-ab18-4070-a281-a40a702a4c61, api error AccessDeniedException: Insufficient privileges to perform this action. (SQLSTATE HV000)
 			if strings.Contains(strings.ToLower(err.Error()), strings.ToLower("This API is not available in current Region")) || strings.Contains(strings.ToLower(err.Error()), strings.ToLower("Insufficient privileges to perform this action")) {
 				return nil, nil
 			}
@@ -192,13 +200,21 @@ func getAwsBackupReportPlan(ctx context.Context, d *plugin.QueryData, h *plugin.
 
 	op, err := svc.DescribeReportPlan(ctx, params)
 	if err != nil {
-		// AWS Backup service is supported in these regions: https://aws.amazon.com/about-aws/global-infrastructure/regional-product-services/
+		// AWS Backup service is not supported in all AWS regions.
+		// Reference for supported regions: https://aws.amazon.com/about-aws/global-infrastructure/regional-product-services/
 
-		// For the region me-central-1
-		// Error: aws: operation error Backup: ListReportPlans, https response error StatusCode: 403, RequestID: 3144d09a-f1d9-49b0-8208-23d245bdcf3b, api error AccessDeniedException: This API is not available in current Region. (SQLSTATE HV000)
+		// Observed unsupported region errors:
+		//
+		// - In region `me-central-1`:
+		//   Error: aws: operation error Backup: ListReportPlans, https response error StatusCode: 403, RequestID: 3144d09a-f1d9-49b0-8208-23d245bdcf3b
+		//   api error AccessDeniedException: This API is not available in current Region. (SQLSTATE HV000)
+		//
+		// - In regions `ap-southeast-5` and `ap-southeast-3`:
+		//   Error: aws: operation error Backup: ListReportPlans, https response error StatusCode: 403, RequestID: 84d4f42e-ab18-4070-a281-a40a702a4c61
+		//   api error AccessDeniedException: Insufficient privileges to perform this action. (SQLSTATE HV000)
+		//
+		// These errors indicate **unsupported region scenarios** and are handled appropriately in the related list/get functions.
 
-		// For the regions  ap-southeast-5, ap-southeast-3
-		// Error: aws: operation error Backup: ListReportPlans, https response error StatusCode: 403, RequestID: 84d4f42e-ab18-4070-a281-a40a702a4c61, api error AccessDeniedException: Insufficient privileges to perform this action. (SQLSTATE HV000)
 		if strings.Contains(strings.ToLower(err.Error()), strings.ToLower("This API is not available in current Region")) || strings.Contains(strings.ToLower(err.Error()), strings.ToLower("Insufficient privileges to perform this action")) {
 			return nil, nil
 		}

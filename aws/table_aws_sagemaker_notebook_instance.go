@@ -18,9 +18,12 @@ func tableAwsSageMakerNotebookInstance(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_sagemaker_notebook_instance",
 		Description: "AWS Sagemaker Notebook Instance",
-		// Sagemaker model resource type is not supported in all regions service is supported.
-		// For which We are encountering the error:
-		// Error: aws: operation error SageMaker: ListNotebookInstances, https response error StatusCode: 400, RequestID: 71e624e7-88a7-41a3-b2c6-8b11d63bd3a2, api error UnknownOperationException: The requested operation is not supported in the called region. (SQLSTATE HV000)
+		// AWS SageMaker service is available in the region, but the `Notebook Instance` resource type is not supported in all regions.
+		//
+		// Observed unsupported region error:
+		//
+		// - When calling `ListNotebookInstances` in region `ap-southeast-5`:
+		//   Error: aws: operation error SageMaker: ListNotebookInstances, https response error StatusCode: 400, RequestID: 71e624e7-88a7-41a3-b2c6-8b11d63bd3a2
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("name"),
 			IgnoreConfig: &plugin.IgnoreConfig{
@@ -34,7 +37,7 @@ func tableAwsSageMakerNotebookInstance(_ context.Context) *plugin.Table {
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"UnknownOperationException"}),
 			},
-			Tags:    map[string]string{"service": "sagemaker", "action": "ListNotebookInstances"},
+			Tags: map[string]string{"service": "sagemaker", "action": "ListNotebookInstances"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "default_code_repository", Require: plugin.Optional},
 				{Name: "notebook_instance_lifecycle_config_name", Require: plugin.Optional},

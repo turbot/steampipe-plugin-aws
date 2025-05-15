@@ -229,8 +229,13 @@ func listGlueDevEndpoints(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			// For the region ap-southeast-5 we are encountering the error:
-			// Error: aws_nagraj: operation error Glue: GetDevEndpoints, https response error StatusCode: 400, RequestID: af6ada69-e467-4eb7-92f2-7601bb50532e, InvalidInputException: Operation is not supported in <ap-southeast-5> region (SQLSTATE HV000)
+			// AWS Glue service's `GetDevEndpoints` API is not supported in all regions.
+			//
+			// Observed unsupported region error:
+			//
+			// - In region `ap-southeast-5`:
+			//   Error: aws_nagraj: operation error Glue: GetDevEndpoints, https response error StatusCode: 400, RequestID: af6ada69-e467-4eb7-92f2-7601bb50532e
+			//   api error InvalidInputException: Operation is not supported in <ap-southeast-5> region (SQLSTATE HV000)
 			if strings.Contains(strings.ToLower(err.Error()), strings.ToLower("Operation is not supported in")) {
 				return nil, nil
 			}
@@ -280,8 +285,13 @@ func getGlueDevEndpoint(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 	// Get call
 	data, err := svc.GetDevEndpoint(ctx, params)
 	if err != nil {
-		// For the region ap-southeast-5 we are encountering the error:
-		// Error: aws_nagraj: operation error Glue: GetDevEndpoints, https response error StatusCode: 400, RequestID: af6ada69-e467-4eb7-92f2-7601bb50532e, InvalidInputException: Operation is not supported in <ap-southeast-5> region (SQLSTATE HV000)
+		// AWS Glue service's `GetDevEndpoints` API is not supported in all regions.
+		//
+		// Observed unsupported region error:
+		//
+		// - In region `ap-southeast-5`:
+		//   Error: aws_nagraj: operation error Glue: GetDevEndpoints, https response error StatusCode: 400, RequestID: af6ada69-e467-4eb7-92f2-7601bb50532e
+		//   api error InvalidInputException: Operation is not supported in <ap-southeast-5> region (SQLSTATE HV000)
 		if strings.Contains(strings.ToLower(err.Error()), strings.ToLower("Operation is not supported in")) {
 			return nil, nil
 		}

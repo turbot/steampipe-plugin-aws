@@ -141,8 +141,13 @@ func listConfigConformancePacks(ctx context.Context, d *plugin.QueryData, _ *plu
 
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			// for the region ap-southeast-5 we are encountering the error:
-			// Error: aws_nagraj: operation error Config Service: DescribeConformancePacks, https response error StatusCode: 400, RequestID: f4c13e45-dc60-4175-bbf5-f0afef5a3463, api error AccessDeniedException: The DescribeConformancePacks API is not currently supported in this region. (SQLSTATE HV000)
+			// AWS Config `DescribeConformancePacks` API is not supported in all AWS regions.
+			//
+			// Observed unsupported region error:
+			//
+			// - In region `ap-southeast-5`:
+			//   Error: aws_nagraj: operation error Config Service: DescribeConformancePacks, https response error StatusCode: 400, RequestID: f4c13e45-dc60-4175-bbf5-f0afef5a3463
+			//   api error AccessDeniedException: The DescribeConformancePacks API is not currently supported in this region. (SQLSTATE HV000)
 			if strings.Contains(strings.ToLower(err.Error()), strings.ToLower("API is not currently supported in this region")) {
 				return nil, nil
 			}
@@ -182,8 +187,13 @@ func getConfigConformancePack(ctx context.Context, d *plugin.QueryData, _ *plugi
 
 	op, err := svc.DescribeConformancePacks(ctx, params)
 	if err != nil {
-		// for the region ap-southeast-5 we are encountering the error:
-		// Error: aws_nagraj: operation error Config Service: DescribeConformancePacks, https response error StatusCode: 400, RequestID: f4c13e45-dc60-4175-bbf5-f0afef5a3463, api error AccessDeniedException: The DescribeConformancePacks API is not currently supported in this region. (SQLSTATE HV000)
+		// AWS Config `DescribeConformancePacks` API is not supported in all AWS regions.
+			//
+			// Observed unsupported region error:
+			//
+			// - In region `ap-southeast-5`:
+			//   Error: aws_nagraj: operation error Config Service: DescribeConformancePacks, https response error StatusCode: 400, RequestID: f4c13e45-dc60-4175-bbf5-f0afef5a3463
+			//   api error AccessDeniedException: The DescribeConformancePacks API is not currently supported in this region. (SQLSTATE HV000)
 		if strings.Contains(strings.ToLower(err.Error()), strings.ToLower("API is not currently supported in this region")) {
 			return nil, nil
 		}
