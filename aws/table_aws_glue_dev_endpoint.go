@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/glue"
@@ -21,20 +22,14 @@ func tableAwsGlueDevEndpoint(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("endpoint_name"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"EntityNotFoundException", "InvalidInputException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"EntityNotFoundException"}),
 			},
 			Hydrate: getGlueDevEndpoint,
 			Tags:    map[string]string{"service": "glue", "action": "GetDevEndpoint"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listGlueDevEndpoints,
-			// The service Glue is supported in the region ap-southeast-5, but the resource type is not supported in the region ap-southeast-5.
-			// For which We are encountering the error:
-			// Error: aws: operation error Glue: GetDevEndpoints, https response error StatusCode: 400, RequestID: ef2f49de-9e99-4465-9ab9-aeb124b4101f, InvalidInputException: Operation is not supported in <ap-southeast-5> region
-			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidInputException"}),
-			},
-			Tags: map[string]string{"service": "glue", "action": "GetDevEndpoints"},
+			Tags:    map[string]string{"service": "glue", "action": "GetDevEndpoints"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(AWS_GLUE_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -234,6 +229,11 @@ func listGlueDevEndpoints(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
+			// For the region ap-southeast-5 we are encountering the error:
+			// Error: aws_nagraj: operation error Glue: GetDevEndpoints, https response error StatusCode: 400, RequestID: af6ada69-e467-4eb7-92f2-7601bb50532e, InvalidInputException: Operation is not supported in <ap-southeast-5> region (SQLSTATE HV000)
+			if strings.Contains(strings.ToLower(err.Error()), strings.ToLower("Operation is not supported in")) {
+				return nil, nil
+			}
 			plugin.Logger(ctx).Error("aws_glue_dev_endpoint.listGlueDevEndpoints", "api_error", err)
 			return nil, err
 		}
@@ -280,6 +280,11 @@ func getGlueDevEndpoint(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 	// Get call
 	data, err := svc.GetDevEndpoint(ctx, params)
 	if err != nil {
+		// For the region ap-southeast-5 we are encountering the error:
+		// Error: aws_nagraj: operation error Glue: GetDevEndpoints, https response error StatusCode: 400, RequestID: af6ada69-e467-4eb7-92f2-7601bb50532e, InvalidInputException: Operation is not supported in <ap-southeast-5> region (SQLSTATE HV000)
+		if strings.Contains(strings.ToLower(err.Error()), strings.ToLower("Operation is not supported in")) {
+			return nil, nil
+		}
 		plugin.Logger(ctx).Error("aws_glue_dev_endpoint.getGlueDevEndpoint", "api_error", err)
 		return nil, err
 	}
