@@ -1889,6 +1889,7 @@ func getClientWithMaxRetries(ctx context.Context, d *plugin.QueryData, region st
 	awsEndpointUrl = os.Getenv("AWS_ENDPOINT_URL")
 	if awsSpcConfig.EndpointUrl != nil {
 		awsEndpointUrl = *awsSpcConfig.EndpointUrl
+		//nolint
 		if awsEndpointUrl != "" {
 			customResolver := aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) {
 				return aws.Endpoint{
