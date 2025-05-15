@@ -54,7 +54,7 @@ resource "aws_neptune_cluster" "named_test_resource" {
   skip_final_snapshot                  = true
   iam_database_authentication_enabled  = false
   apply_immediately                    = true
-  neptune_cluster_parameter_group_name = "default.neptune1.2"
+  neptune_cluster_parameter_group_name = "default.neptune1.4"
 
   tags = {
     name = var.resource_name

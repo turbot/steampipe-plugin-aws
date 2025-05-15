@@ -3,6 +3,7 @@
 		"arn": "{{ output.resource_aka.value }}",
 		"function_config": {
 			"Comment": "test function",
+			"KeyValueStoreAssociations": null,
 			"Runtime": "cloudfront-js-1.0"
 		},
 		"name": "{{ output.id.value }}",

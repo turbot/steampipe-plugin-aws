@@ -75,7 +75,7 @@ resource "aws_appstream_fleet" "named_test_resource" {
   display_name                       = var.resource_name
   enable_default_internet_access     = false
   fleet_type                         = "ON_DEMAND"
-  image_name                         = "AppStream-WinServer2019-06-12-2023"
+  image_name                         = "AppStream-WinServer2022-02-11-2025"
   instance_type                      = "stream.standard.small"
   # max_user_duration_in_seconds       = 600
 
