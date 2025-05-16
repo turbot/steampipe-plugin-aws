@@ -85,12 +85,6 @@ func tableAwsS3tablesNamespace(_ context.Context) *plugin.Table {
 				Hydrate:     getFirstIndexNamespaceValue,
 				Transform:   transform.FromValue(),
 			},
-			{
-				Name:        "akas",
-				Description: resourceInterfaceDescription("akas"),
-				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Namespace.NamespaceId").Transform(transform.EnsureStringArray),
-			},
 		}),
 	}
 }
