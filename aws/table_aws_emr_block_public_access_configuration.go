@@ -5,8 +5,6 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/emr"
 
-	emrv1 "github.com/aws/aws-sdk-go/service/emr"
-
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -22,7 +20,7 @@ func tableAwsEmrBlockPublicAccessConfiguration(_ context.Context) *plugin.Table 
 			Hydrate: listBlockPublicAccessConfigurations,
 			Tags:    map[string]string{"service": "elasticmapreduce", "action": "GetBlockPublicAccessConfiguration"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(emrv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_ELASTICMAPREDUCE_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "block_public_security_group_rules",

@@ -6,8 +6,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/inspector2"
 
-	inspector2v1 "github.com/aws/aws-sdk-go/service/inspector2"
-
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -32,7 +30,7 @@ func tableAwsInspector2Member(_ context.Context) *plugin.Table {
 			},
 		},
 
-		GetMatrixItemFunc: SupportedRegionMatrix(inspector2v1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_INSPECTOR2_SERVICE_ID),
 
 		// We *do not* use the common columns, because the account_id/region of
 		// the default columns come from the call, *not* from the returned data.
@@ -54,7 +52,7 @@ func tableAwsInspector2Member(_ context.Context) *plugin.Table {
 			{
 				Name:        "only_associated",
 				Description: "Specifies whether to list only currently associated members if True or to list all members within the organization if False.",
-				Type:        proto.ColumnType_STRING,
+				Type:        proto.ColumnType_BOOL,
 				Transform:   transform.FromQual("only_associated"),
 			},
 			{
@@ -109,11 +107,7 @@ func listInspector2Member(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 
 	if d.EqualsQuals["only_associated"] != nil {
 		onlyAssociated := getQualsValueByColumn(d.Quals, "only_associated", "boolean")
-		if onlyAssociated.(string) == "true" {
-			input.OnlyAssociated = aws.Bool(true)
-		} else {
-			input.OnlyAssociated = aws.Bool(false)
-		}
+		input.OnlyAssociated = aws.Bool(onlyAssociated.(bool))
 	}
 
 	paginator := inspector2.NewListMembersPaginator(svc, input, func(o *inspector2.ListMembersPaginatorOptions) {
