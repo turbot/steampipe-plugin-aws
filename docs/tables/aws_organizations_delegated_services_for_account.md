@@ -13,7 +13,7 @@ The AWS Organizations Delegated Services for an Account is a resource that allow
 The `aws_organizations_delegated_administrator` table in Steampipe lets you query the services granted delegated administration access to a specific account. You specify the delegated account ID, and the table returns a list of services and their delegation status. The schema outlines various attributes of each delegated service.
 
 **Important Notes:**
-- This table requires specifying a `delegated_account_id` to retrieve data.  It doesn't list all delegated services across all accounts in the organization.
+- This table supports the optional list key column `delegated_account_id`.
 - The `delegated_account_id` is the ID of the account which has been granted delegated administration, *not* the management account making the API calls.
 
 ## Examples

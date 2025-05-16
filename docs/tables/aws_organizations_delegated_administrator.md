@@ -13,8 +13,8 @@ The AWS Organizations Delegated Administrator is a resource within AWS Organizat
 The `aws_organizations_delegated_administrator` table in Steampipe lets you query details of accounts designated as delegated administrators in AWS Organizations. This table allows you, as a DevOps engineer, to identify accounts with specific statuses, view the date delegation was enabled, and gather other relevant account information. The schema outlines various attributes of each delegated administrator account.
 
 **Important Notes:**
-- The table provides details about the *delegated administrator* accounts, not the management account making the API calls.
-- The `account_id` column in this table is the account ID from which the API calls are being made (often the management account). To get the described member account's ID, query the `id` column.
+* This table returns details about *delegated administrator* accounts, **not** the management account executing the API call.
+* The `account_id` column shows the ID of the account that made the API request (typically the management account). To retrieve the ID of the delegated administrator (member account), refer to the `id` column.
 
 ## Examples
 

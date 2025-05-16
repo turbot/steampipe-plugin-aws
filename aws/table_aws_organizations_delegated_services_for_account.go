@@ -52,6 +52,13 @@ func tableAwsOrganizationsDelegatedServicesForAccount(_ context.Context) *plugin
 	}
 }
 
+// Define a struct to hold the DelegatedService and the AccountId used to fetch it.\
+type delegatedServiceInfo struct {
+	types.DelegatedService
+	DelegatedAccountId string
+}
+
+
 func listDelegatedServices(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	delegatedAccount := h.Item.(types.DelegatedAdministrator) // Get delegated administrator details
 
@@ -113,10 +120,4 @@ func listDelegatedServices(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	}
 
 	return nil, nil
-}
-
-// Define a struct to hold the DelegatedService and the AccountId used to fetch it.\
-type delegatedServiceInfo struct {
-	types.DelegatedService
-	DelegatedAccountId string
 }
