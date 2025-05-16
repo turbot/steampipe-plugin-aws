@@ -130,13 +130,17 @@ func getWellArchitectedLensReviewReports(ctx context.Context, d *plugin.QueryDat
 			return nil, err
 		}
 
-		d.StreamListItem(ctx, ReviewReportInfo{
+		report :=  ReviewReportInfo{
 			Base64String:    op.LensReviewReport.Base64String,
 			LensAlias:       op.LensReviewReport.LensAlias,
 			LensArn:         op.LensReviewReport.LensArn,
-			MilestoneNumber: *op.MilestoneNumber,
 			WorkloadId:      op.WorkloadId,
-		})
+		}
+		if op.MilestoneNumber != nil {
+			report.MilestoneNumber = *op.MilestoneNumber
+		}
+
+		d.StreamListItem(ctx, report)
 
 		// Context can be cancelled due to manual cancellation or the limit has been hit
 		if d.RowsRemaining(ctx) == 0 {

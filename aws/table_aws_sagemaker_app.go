@@ -23,7 +23,7 @@ func tableAwsSageMakerApp(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"name", "app_type", "domain_id", "user_profile_name"}),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ValidationException", "NotFoundException", "ResourceNotFound"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ValidationException", "NotFoundException", "ResourceNotFound", "UnknownOperationException"}),
 			},
 			Hydrate: getSageMakerApp,
 			Tags:    map[string]string{"service": "sagemaker", "action": "DescribeApp"},
@@ -189,6 +189,7 @@ func listSageMakerApps(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
+
 			plugin.Logger(ctx).Error("aws_sagemaker_app.listSageMakerApps", "api_error", err)
 			return nil, err
 		}

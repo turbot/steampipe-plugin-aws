@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/service/configservice"
 
@@ -140,6 +141,16 @@ func listConfigConformancePacks(ctx context.Context, d *plugin.QueryData, _ *plu
 
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
+			// AWS Config `DescribeConformancePacks` API is not supported in all AWS regions.
+			//
+			// Observed unsupported region error:
+			//
+			// - In region `ap-southeast-5`:
+			//   Error: aws_nagraj: operation error Config Service: DescribeConformancePacks, https response error StatusCode: 400, RequestID: f4c13e45-dc60-4175-bbf5-f0afef5a3463
+			//   api error AccessDeniedException: The DescribeConformancePacks API is not currently supported in this region. (SQLSTATE HV000)
+			if strings.Contains(strings.ToLower(err.Error()), strings.ToLower("API is not currently supported in this region")) {
+				return nil, nil
+			}
 			plugin.Logger(ctx).Error("aws_config_conformance_pack.listConfigConformancePacks", "api_error", err)
 			return nil, err
 		}
@@ -176,6 +187,16 @@ func getConfigConformancePack(ctx context.Context, d *plugin.QueryData, _ *plugi
 
 	op, err := svc.DescribeConformancePacks(ctx, params)
 	if err != nil {
+		// AWS Config `DescribeConformancePacks` API is not supported in all AWS regions.
+			//
+			// Observed unsupported region error:
+			//
+			// - In region `ap-southeast-5`:
+			//   Error: aws_nagraj: operation error Config Service: DescribeConformancePacks, https response error StatusCode: 400, RequestID: f4c13e45-dc60-4175-bbf5-f0afef5a3463
+			//   api error AccessDeniedException: The DescribeConformancePacks API is not currently supported in this region. (SQLSTATE HV000)
+		if strings.Contains(strings.ToLower(err.Error()), strings.ToLower("API is not currently supported in this region")) {
+			return nil, nil
+		}
 		plugin.Logger(ctx).Error("aws_config_conformance_pack.getConfigConformancePack", "api_error", err)
 		return nil, err
 	}
