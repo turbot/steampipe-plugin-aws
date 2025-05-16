@@ -1907,6 +1907,11 @@ func getClientWithMaxRetries(ctx context.Context, d *plugin.QueryData, region st
 	awsEndpointUrl = os.Getenv("AWS_ENDPOINT_URL")
 	if awsSpcConfig.EndpointUrl != nil {
 		awsEndpointUrl = *awsSpcConfig.EndpointUrl
+
+		// The aws.EndpointResolverWithOptionsFunc() is deprecated in AWS SDK v2 (version >= v1.27.0).
+		// However, we are intentionally keeping it for now to maintain backward compatibility, and plan to remove it in the future.
+		// Since its usage currently causes a lint failure, we have added a nolint directive here to suppress the warning temporarily.
+		//nolint:staticcheck // using custom endpoint resolver intentionally for legacy compatibility
 		if awsEndpointUrl != "" {
 			customResolver := aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) {
 				return aws.Endpoint{

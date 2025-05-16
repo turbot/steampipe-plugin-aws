@@ -21,9 +21,10 @@ func tableAwsKinesisConsumer(_ context.Context) *plugin.Table {
 		Name:        "aws_kinesis_consumer",
 		Description: "AWS Kinesis Consumer",
 		Get: &plugin.GetConfig{
+			// For the other region where resource is not found, it returns InvalidArgumentException
 			KeyColumns: plugin.SingleColumn("consumer_arn"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "InvalidArgumentException"}),
 			},
 			Hydrate: getAwsKinesisConsumer,
 			Tags:    map[string]string{"service": "kinesis", "action": "DescribeStreamConsumer"},

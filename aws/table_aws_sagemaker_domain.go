@@ -2,10 +2,12 @@ package aws
 
 import (
 	"context"
+	"errors"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/sagemaker"
 	"github.com/aws/aws-sdk-go-v2/service/sagemaker/types"
+	"github.com/aws/smithy-go"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -21,7 +23,7 @@ func tableAwsSageMakerDomain(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ValidationException", "NotFoundException", "ResourceNotFound"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ValidationException", "NotFoundException", "ResourceNotFound", "UnknownOperationException"}),
 			},
 			Hydrate: getAwsSageMakerDomain,
 			Tags:    map[string]string{"service": "sagemaker", "action": "DescribeDomain"},
@@ -241,6 +243,22 @@ func listAwsSageMakerDomains(ctx context.Context, d *plugin.QueryData, _ *plugin
 
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
+			// This table is act as parent of Sagemaker App table.
+			// In the case the ignore config is not working as expected.
+			//
+			// AWS SageMaker service is available in the region ap-southeast-5, but the `ListDomains` API is not supported in this regions.
+			//
+			// Observed unsupported region error:
+			//
+			// - When calling `ListDomains` in an unsupported region:
+			//   Error: aws_nagraj: operation error SageMaker: ListDomains, https response error StatusCode: 400, RequestID: da25f297-1682-4be0-8f85-fc9f0cd39589
+			//   api error UnknownOperationException: The requested operation is not supported in the called region. (SQLSTATE HV000)
+			var ae smithy.APIError
+			if errors.As(err, &ae) {
+				if ae.ErrorCode() == "UnknownOperationException" {
+					return nil, nil
+				}
+			}
 			plugin.Logger(ctx).Error("aws_sagemaker_domain.listAwsSageMakerDomains", "api_error", err)
 			return nil, err
 		}

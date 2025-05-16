@@ -213,13 +213,17 @@ func stereamlistLensReviewImprovements(ctx context.Context, d *plugin.QueryData,
 				output.LensAlias = output.LensArn
 			}
 
-			d.StreamListItem(ctx, ReviewImprovementInfo{
+			reviewImprovementInfo := ReviewImprovementInfo{
 				LensAlias:          output.LensAlias,
 				LensArn:            output.LensArn,
-				MilestoneNumber:    *output.MilestoneNumber,
 				WorkloadId:         output.WorkloadId,
 				ImprovementSummary: item,
-			})
+			}
+			if output.MilestoneNumber != nil {
+				reviewImprovementInfo.MilestoneNumber = *output.MilestoneNumber
+			}
+
+			d.StreamListItem(ctx, reviewImprovementInfo)
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
 			if d.RowsRemaining(ctx) == 0 {

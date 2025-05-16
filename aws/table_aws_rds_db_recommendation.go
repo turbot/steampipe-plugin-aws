@@ -18,8 +18,18 @@ func tableAwsRDSDBRecommendation(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_rds_db_recommendation",
 		Description: "AWS RDS DB Recommendation",
+		// AWS RDS service's `DescribeDBRecommendations` API is not supported in all regions.
+		//
+		// Observed unsupported region error:
+		//
+		// - In region `ap-southeast-5`:
+		//   Error: aws: operation error RDS: DescribeDBRecommendations, https response error StatusCode: 400, RequestID: f6b02c93-bc6d-4a0c-ba5a-9ca5515cf5ba
+		//   api error InvalidAction: DescribeDBRecommendations is not available in this region. (SQLSTATE HV000)
 		List: &plugin.ListConfig{
 			Hydrate: listRDSDBRecommendations,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidAction"}),
+			},
 			KeyColumns: plugin.KeyColumnSlice{
 				{Name: "recommendation_id", Require: plugin.Optional},
 				{Name: "status", Require: plugin.Optional},

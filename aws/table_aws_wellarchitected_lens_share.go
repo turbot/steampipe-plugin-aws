@@ -97,7 +97,7 @@ type LensShareInfo struct {
 //// LIST FUNCTION
 
 func listWellArchitectedLensShares(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	lens := h.Item.(types.LensSummary)
+	lens := h.Item.(LensInfo)
 	lensAlias := d.EqualsQualString("lens_alias")
 
 	// Reduce the number of API calls if the 'lens_alias' has been provided in the query parameter
