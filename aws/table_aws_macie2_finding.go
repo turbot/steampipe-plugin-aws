@@ -2,7 +2,6 @@ package aws
 
 import (
 	"context"
-	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/macie2"
@@ -22,7 +21,7 @@ func tableAwsMacie2Finding(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ValidationException", "InvalidParameter"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
 			Hydrate: getMacie2Finding,
 			Tags:    map[string]string{"service": "macie2", "action": "GetFindings"},
@@ -265,12 +264,6 @@ func getMacie2Finding(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	// Get call
 	op, err := svc.GetFindings(ctx, params)
 	if err != nil {
-		// Throws "AccessDeniedException: Macie is not enabled." when AWS Macie is not enabled in a region
-		// also the API throws AccessDeniedException if the request does not have proper permission
-		// with the below check we will only handle "Macie is not enabled"
-		if strings.Contains(err.Error(), "Macie is not enabled.") {
-			return nil, nil
-		}
 		plugin.Logger(ctx).Error("aws_macie2_finding.getMacie2Finding", "api_error", err)
 		return nil, err
 	}
