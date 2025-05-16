@@ -21,7 +21,7 @@ The table uses a parent/child hydration pattern, listing tables for each S3 tabl
 ### Basic info
 Retrieves fundamental information about all S3 Tables tables in your AWS account, including their names, ARNs, creation dates, and namespace information.
 
-```sql+postgresql
+```sql+postgres
 select
   name,
   arn,
@@ -47,7 +47,7 @@ from
 
 View tables along with who created them and when they were last modified.
 
-```sql+postgresql
+```sql+postgres
 select
   name,
   created_at,
@@ -78,7 +78,7 @@ order by
 ### Find tables in a specific table bucket
 Get all tables within a specific table bucket to understand their relationships and structure.
 
-```sql+postgresql
+```sql+postgres
 select
   name,
   namespace,
@@ -107,7 +107,7 @@ where
 ### Find recently modified tables
 Identify tables that have been modified recently, which may indicate active development or data updates.
 
-```sql+postgresql
+```sql+postgres
 select
   name,
   created_at,
@@ -140,7 +140,7 @@ order by
 ### Get table details including format and metadata location
 Examine the details of tables including their format and metadata location to better understand how data is stored and accessed.
 
-```sql+postgresql
+```sql+postgres
 select
   name,
   namespace,
@@ -167,7 +167,7 @@ from
 ### Filter tables by namespace name
 Find all tables within a specific namespace to analyze related data collections.
 
-```sql+postgresql
+```sql+postgres
 select
   name,
   created_at,
@@ -194,7 +194,7 @@ where
 ### Get namespace info for the tables
 Get a complete view of tables with their associated namespaces and table buckets to understand the full hierarchy.
 
-```sql+postgresql
+```sql+postgres
 select
   t.name as table_name,
   t.format as table_format,

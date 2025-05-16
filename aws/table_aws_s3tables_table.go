@@ -258,7 +258,7 @@ func getS3tablesTable(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 		if tableInfo.Name != nil {
 			name = *tableInfo.Name
 		}
-		if tableInfo.Namespace != nil && len(tableInfo.Namespace) > 0 {
+		if len(tableInfo.Namespace) > 0 {
 			namespace = tableInfo.Namespace[0]
 		}
 		bucketARN = tableInfo.TableBucketArn
@@ -268,10 +268,6 @@ func getS3tablesTable(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 		namespace = d.EqualsQualString("namespace")
 		bucketARN = d.EqualsQualString("table_bucket_arn")
 
-		// Initialize a new TableInfo for direct Get calls
-		tableInfo = &TableInfo{
-			TableBucketArn: bucketARN,
-		}
 	}
 
 	// Create service
@@ -303,24 +299,28 @@ func getS3tablesTable(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 		return nil, nil
 	}
 
-	// Update the TableInfo with data from GetTable response
-	tableInfo.Name = data.Name
-	tableInfo.TableARN = data.TableARN
-	tableInfo.TableBucketId = data.TableBucketId
-	tableInfo.NamespaceId = data.NamespaceId
-	tableInfo.Namespace = data.Namespace
-	tableInfo.CreatedAt = data.CreatedAt
-	tableInfo.ModifiedAt = data.ModifiedAt
-	tableInfo.Type = data.Type
-	tableInfo.CreatedBy = data.CreatedBy
-	tableInfo.ModifiedBy = data.ModifiedBy
-	tableInfo.OwnerAccountId = data.OwnerAccountId
-	// Convert the Format enum to a string since it's a string type
-	tableInfo.Format = aws.String(string(data.Format))
-	tableInfo.WarehouseLocation = data.WarehouseLocation
-	tableInfo.MetadataLocation = data.MetadataLocation
-	tableInfo.VersionToken = data.VersionToken
-	tableInfo.ManagedByService = data.ManagedByService
+	// Initialize a new TableInfo for direct Get calls
+	tableInfo = &TableInfo{
+		TableBucketArn: bucketARN,
+		// Update the TableInfo with data from GetTable response
+		Name:           data.Name,
+		TableARN:       data.TableARN,
+		TableBucketId:  data.TableBucketId,
+		NamespaceId:    data.NamespaceId,
+		Namespace:      data.Namespace,
+		CreatedAt:      data.CreatedAt,
+		ModifiedAt:     data.ModifiedAt,
+		Type:           data.Type,
+		CreatedBy:      data.CreatedBy,
+		ModifiedBy:     data.ModifiedBy,
+		OwnerAccountId: data.OwnerAccountId,
+		// Convert the Format enum to a string since it's a string type
+		Format:            aws.String(string(data.Format)),
+		WarehouseLocation: data.WarehouseLocation,
+		MetadataLocation:  data.MetadataLocation,
+		VersionToken:      data.VersionToken,
+		ManagedByService:  data.ManagedByService,
+	}
 
 	return tableInfo, nil
 }
