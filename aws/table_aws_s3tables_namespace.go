@@ -12,13 +12,6 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
-// NamespaceInfo holds namespace data along with its parent bucket info
-type NamespaceInfo struct {
-	Namespace       types.NamespaceSummary
-	TableBucketName string
-	TableBucketArn  string
-}
-
 func tableAwsS3tablesNamespace(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_s3tables_namespace",
@@ -101,6 +94,14 @@ func tableAwsS3tablesNamespace(_ context.Context) *plugin.Table {
 		}),
 	}
 }
+
+// NamespaceInfo holds namespace data along with its parent bucket info
+type NamespaceInfo struct {
+	Namespace       types.NamespaceSummary
+	TableBucketName string
+	TableBucketArn  string
+}
+
 
 //// LIST FUNCTION
 
