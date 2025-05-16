@@ -114,7 +114,7 @@ func listS3tablesNamespaces(ctx context.Context, d *plugin.QueryData, h *plugin.
 	}
 
 	// Create Session
-	svc, err := S3TablesClient(ctx, d, d.EqualsQualString("region"))
+	svc, err := S3TablesClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_s3tables_namespace.listS3tablesNamespaces", "connection_error", err)
 		return nil, err
@@ -178,7 +178,7 @@ func getS3tablesNamespaceById(ctx context.Context, d *plugin.QueryData, _ *plugi
 	tableBucketArn := d.EqualsQualString("table_bucket_arn")
 
 	// Create service
-	svc, err := S3TablesClient(ctx, d, d.EqualsQualString("region"))
+	svc, err := S3TablesClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_s3tables_namespace.getS3tablesNamespaceById", "connection_error", err)
 		return nil, err
@@ -202,15 +202,15 @@ func getS3tablesNamespaceById(ctx context.Context, d *plugin.QueryData, _ *plugi
 
 	if output != nil {
 		return &NamespaceInfo{
-			Namespace:       types.NamespaceSummary{
-				NamespaceId: output.NamespaceId,
-				Namespace:   output.Namespace,
-				CreatedAt:   output.CreatedAt,
-				CreatedBy:   output.CreatedBy,
+			Namespace: types.NamespaceSummary{
+				NamespaceId:    output.NamespaceId,
+				Namespace:      output.Namespace,
+				CreatedAt:      output.CreatedAt,
+				CreatedBy:      output.CreatedBy,
 				OwnerAccountId: output.OwnerAccountId,
 				TableBucketId:  output.TableBucketId,
 			},
-			TableBucketArn:  tableBucketArn,
+			TableBucketArn: tableBucketArn,
 		}, nil
 	}
 

@@ -17,7 +17,6 @@ The `aws_s3tables_table_bucket` table provides information about S3 Tables table
 ## Examples
 
 ### Basic info
-
 Retrieves fundamental information about all S3 Tables table buckets in your AWS account, including their names, ARNs, creation dates, and owner account IDs. This provides a quick overview of all table buckets you have access to.
 
 ```sql+postgresql
@@ -41,7 +40,6 @@ from
 ```
 
 ### Get details for a specific table bucket
-
 Show detailed information about a specific table bucket by name. This is useful when you need to examine the properties of a particular table bucket.
 
 ```sql+postgresql
@@ -71,7 +69,6 @@ where
 ```
 
 ### Count table buckets by region
-
 Aggregates and counts table buckets by AWS region, ordering the results by count in descending order. This helps you understand the distribution of your table buckets across different regions.
 
 ```sql+postgresql
@@ -99,7 +96,6 @@ order by
 ```
 
 ### Find table buckets created in the last 30 days
-
 Identifies table buckets that were created within the last 30 days, ordered by creation date. This is helpful for tracking recent bucket creations and monitoring new resources.
 
 ```sql+postgresql
@@ -131,7 +127,6 @@ order by
 ```
 
 ### List table buckets belonging to a specific account
-
 Table buckets to show only those owned by a specific AWS account. This is useful for multi-account environments where you need to identify resources associated with a particular account.
 
 ```sql+postgresql
@@ -159,7 +154,6 @@ where
 ```
 
 ### Join with tables and namespaces to view complete hierarchy
-
 Shows the hierarchical relationship between table buckets, namespaces, and tables, providing a complete view of your S3 Tables resources.
 
 ```sql+postgresql

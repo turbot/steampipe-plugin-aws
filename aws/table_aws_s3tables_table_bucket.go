@@ -25,7 +25,7 @@ func tableAwsS3tablesTableBucket(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listS3tablesTableBuckets,
-			Tags: map[string]string{"service": "s3tables", "action": "ListTableBuckets"},
+			Tags:    map[string]string{"service": "s3tables", "action": "ListTableBuckets"},
 		},
 		GetMatrixItemFunc: S3TablesRegionsMatrix,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -76,7 +76,7 @@ func tableAwsS3tablesTableBucket(_ context.Context) *plugin.Table {
 
 func listS3tablesTableBuckets(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create Session
-	svc, err := S3TablesClient(ctx, d, d.EqualsQualString("region"))
+	svc, err := S3TablesClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_s3tables_table_bucket.listS3tablesTableBuckets", "connection_error", err)
 		return nil, err
@@ -133,8 +133,13 @@ func listS3tablesTableBuckets(ctx context.Context, d *plugin.QueryData, _ *plugi
 func getS3tablesTableBucket(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	arn := d.EqualsQualString("arn")
 
+	// Empty check for required qual
+	if arn == "" {
+		return nil, nil
+	}
+
 	// Create service
-	svc, err := S3TablesClient(ctx, d, d.EqualsQualString("region"))
+	svc, err := S3TablesClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_s3tables_table_bucket.getS3tablesTableBucket", "connection_error", err)
 		return nil, err

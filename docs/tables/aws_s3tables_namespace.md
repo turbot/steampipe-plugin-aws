@@ -17,7 +17,6 @@ The `aws_s3tables_namespace` table provides information about namespaces in Amaz
 ## Examples
 
 ### Basic info
-
 Retrieves fundamental information about all S3 Tables namespaces in your AWS account, including their names, IDs, creation dates, and owner account IDs.
 
 ```sql+postgresql
@@ -43,7 +42,6 @@ from
 ```
 
 ### Find recently created namespaces
-
 Identify namespaces that have been created recently, which may indicate new data organization initiatives or projects.
 
 ```sql+postgresql
@@ -75,7 +73,6 @@ order by
 ```
 
 ### Count tables in each namespace
-
 Analyze the distribution of tables across namespaces to understand your data organization.
 
 ```sql+postgresql
@@ -107,7 +104,6 @@ order by
 ```
 
 ### Get namespaces and their associated table buckets
-
 Examine the relationships between namespaces and table buckets to understand your S3 Tables resource organization.
 
 ```sql+postgresql
@@ -133,7 +129,6 @@ order by
 ```
 
 ### Find namespaces in a specific table bucket
-
 Identify all namespaces within a specific table bucket to understand the namespace organization.
 
 ```sql+postgresql
@@ -163,7 +158,6 @@ where
 ```
 
 ### Join namespaces with table buckets and tables for a complete hierarchy
-
 Provides a comprehensive view of your S3 Tables organization, showing the relationships between table buckets, namespaces, and tables.
 
 ```sql+postgresql

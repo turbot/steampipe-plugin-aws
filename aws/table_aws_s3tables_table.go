@@ -28,7 +28,7 @@ func tableAwsS3tablesTable(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			ParentHydrate: listS3tablesTableBuckets,
 			Hydrate:       listS3tablesTables,
-			Tags: map[string]string{"service": "s3tables", "action": "ListTables"},
+			Tags:          map[string]string{"service": "s3tables", "action": "ListTables"},
 		},
 		GetMatrixItemFunc: S3TablesRegionsMatrix,
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -170,7 +170,7 @@ type TableInfo struct {
 	ManagedByService  *string
 
 	// Parent info
-	TableBucketArn  string
+	TableBucketArn string
 }
 
 //// LIST FUNCTION
@@ -180,7 +180,7 @@ func listS3tablesTables(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	bucket := h.Item.(types.TableBucketSummary)
 
 	// Create Session
-	svc, err := S3TablesClient(ctx, d, d.EqualsQualString("region"))
+	svc, err := S3TablesClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_s3tables_table.listS3tablesTables", "connection_error", err)
 		return nil, err
@@ -223,15 +223,15 @@ func listS3tablesTables(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 		for _, table := range output.Tables {
 			// Create unified TableInfo from TableSummary
 			tableInfo := &TableInfo{
-				Name:          table.Name,
-				TableARN:      table.TableARN,
-				TableBucketId: table.TableBucketId,
-				NamespaceId:   table.NamespaceId,
-				Namespace:     table.Namespace,
-				CreatedAt:     table.CreatedAt,
-				ModifiedAt:    table.ModifiedAt,
-				Type:          table.Type,
-				TableBucketArn:     *bucket.Arn,
+				Name:           table.Name,
+				TableARN:       table.TableARN,
+				TableBucketId:  table.TableBucketId,
+				NamespaceId:    table.NamespaceId,
+				Namespace:      table.Namespace,
+				CreatedAt:      table.CreatedAt,
+				ModifiedAt:     table.ModifiedAt,
+				Type:           table.Type,
+				TableBucketArn: *bucket.Arn,
 			}
 
 			d.StreamLeafListItem(ctx, tableInfo)
@@ -275,7 +275,7 @@ func getS3tablesTable(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 	}
 
 	// Create service
-	svc, err := S3TablesClient(ctx, d, d.EqualsQualString("region"))
+	svc, err := S3TablesClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_s3tables_table.getS3tablesTable", "connection_error", err)
 		return nil, err

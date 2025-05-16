@@ -1357,7 +1357,8 @@ func S3Client(ctx context.Context, d *plugin.QueryData, region string) (*s3.Clie
 }
 
 // S3TablesClient returns the service client for AWS S3 Tables service.
-func S3TablesClient(ctx context.Context, d *plugin.QueryData, region string) (*s3tables.Client, error) {
+func S3TablesClient(ctx context.Context, d *plugin.QueryData) (*s3tables.Client, error) {
+	region := d.EqualsQualString(matrixKeyRegion)
 	cfg, err := getClientForRegion(ctx, d, region)
 	if err != nil {
 		return nil, err
