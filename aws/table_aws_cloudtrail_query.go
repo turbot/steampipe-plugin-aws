@@ -24,13 +24,16 @@ func tableAwsCloudTrailQuery(_ context.Context) *plugin.Table {
 			Tags:       map[string]string{"service": "cloudtrail", "action": "DescribeQuery"},
 			KeyColumns: plugin.AllColumns([]string{"event_data_store_arn", "query_id"}),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"EventDataStoreNotFoundException", "QueryIdNotFoundException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"EventDataStoreNotFoundException", "QueryIdNotFoundException", "UnsupportedOperationException"}),
 			},
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listCloudTrailEventDataStores,
 			Hydrate:       listCloudTrailLakeQueries,
 			Tags:          map[string]string{"service": "cloudtrail", "action": "ListQueries"},
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"UnsupportedOperationException"}),
+			},
 			KeyColumns: plugin.KeyColumnSlice{
 				{
 					Name:    "event_data_store_arn",

@@ -28,6 +28,9 @@ func tableAwsSecurityLakeSubscriber(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listSecurityLakeSubscribers,
 			Tags:    map[string]string{"service": "securitylake", "action": "ListSubscribers"},
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(AWS_SECURITYLAKE_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{

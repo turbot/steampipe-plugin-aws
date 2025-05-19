@@ -200,8 +200,7 @@ func listWellArchitectedLensReviews(ctx context.Context, d *plugin.QueryData, h 
 		}
 
 		for _, item := range output.LensReviewSummaries {
-			d.StreamListItem(ctx, LensReviewInfo{
-				MilestoneNumber: *output.MilestoneNumber,
+			reviewSummary := LensReviewInfo{
 				WorkloadId:      workloadId,
 				LensReview: &types.LensReview{
 					LensAlias:   item.LensAlias,
@@ -212,7 +211,11 @@ func listWellArchitectedLensReviews(ctx context.Context, d *plugin.QueryData, h 
 					RiskCounts:  item.RiskCounts,
 					UpdatedAt:   item.UpdatedAt,
 				},
-			})
+			}
+			if output.MilestoneNumber != nil {
+				reviewSummary.MilestoneNumber = *output.MilestoneNumber
+			}
+			d.StreamListItem(ctx, reviewSummary)
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
 			if d.RowsRemaining(ctx) == 0 {
@@ -268,9 +271,12 @@ func getWellArchitectedLensReview(ctx context.Context, d *plugin.QueryData, h *p
 		return nil, err
 	}
 
-	return LensReviewInfo{
-		MilestoneNumber: *op.MilestoneNumber,
+	review := LensReviewInfo{
 		WorkloadId:      &workloadId,
 		LensReview:      op.LensReview,
-	}, nil
+	}
+	if op.MilestoneNumber != nil {
+		review.MilestoneNumber = *op.MilestoneNumber
+	}
+	return review, nil
 }

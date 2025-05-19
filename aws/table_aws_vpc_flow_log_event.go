@@ -43,6 +43,9 @@ func tableAwsVpcFlowLogEvent(_ context.Context) *plugin.Table {
 			Hydrate:    listCloudwatchLogEvents,
 			Tags:       map[string]string{"service": "logs", "action": "FilterLogEvents"},
 			KeyColumns: tableAwsVpcFlowLogEventListKeyColumns(),
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(AWS_LOGS_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
