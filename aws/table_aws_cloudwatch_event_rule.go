@@ -162,11 +162,7 @@ func listAwsCloudWatchEventRules(ctx context.Context, d *plugin.QueryData, h *pl
 		limit := int32(*d.QueryContext.Limit)
 		// AWS API enforces a minimum limit of 1 and a default of 100, so adjust if a lower value is provided.
 		if limit < maxLimit {
-			if limit < 1 {
-				maxLimit = 1
-			} else {
-				maxLimit = limit
-			}
+			maxLimit = limit
 		}
 	}
 
