@@ -2,11 +2,10 @@ package aws
 
 import (
 	"context"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/backup"
-
-	backupv1 "github.com/aws/aws-sdk-go/service/backup"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -31,7 +30,7 @@ func tableAwsBackupReportPlan(_ context.Context) *plugin.Table {
 			Hydrate: listAwsBackupReportPlans,
 			Tags:    map[string]string{"service": "backup", "action": "ListReportPlans"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(backupv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_BACKUP_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "arn",
@@ -139,7 +138,25 @@ func listAwsBackupReportPlans(ctx context.Context, d *plugin.QueryData, _ *plugi
 
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_backup_report_plan.listAwsBackupReportPlans", "api_error", err)
+			// AWS Backup service is not supported in all AWS regions.
+			// Reference for supported regions: https://aws.amazon.com/about-aws/global-infrastructure/regional-product-services/
+
+			// Observed unsupported region errors:
+			//
+			// - In region `me-central-1`:
+			//   Error: aws: operation error Backup: ListReportPlans, https response error StatusCode: 403, RequestID: 3144d09a-f1d9-49b0-8208-23d245bdcf3b
+			//   api error AccessDeniedException: This API is not available in current Region. (SQLSTATE HV000)
+			//
+			// - In regions `ap-southeast-5` and `ap-southeast-3`:
+			//   Error: aws: operation error Backup: ListReportPlans, https response error StatusCode: 403, RequestID: 84d4f42e-ab18-4070-a281-a40a702a4c61
+			//   api error AccessDeniedException: Insufficient privileges to perform this action. (SQLSTATE HV000)
+			//
+			// These errors indicate **unsupported region scenarios** and are handled appropriately in the related list/get functions.
+
+			if strings.Contains(strings.ToLower(err.Error()), strings.ToLower("This API is not available in current Region")) || strings.Contains(strings.ToLower(err.Error()), strings.ToLower("Insufficient privileges to perform this action")) {
+				return nil, nil
+			}
+			plugin.Logger(ctx).Error("aws_backup_report_plan.listAwsBackupReportPlans", "api_error", err, d.EqualsQualString("region"))
 			return nil, err
 		}
 
@@ -183,7 +200,26 @@ func getAwsBackupReportPlan(ctx context.Context, d *plugin.QueryData, h *plugin.
 
 	op, err := svc.DescribeReportPlan(ctx, params)
 	if err != nil {
+		// AWS Backup service is not supported in all AWS regions.
+		// Reference for supported regions: https://aws.amazon.com/about-aws/global-infrastructure/regional-product-services/
+
+		// Observed unsupported region errors:
+		//
+		// - In region `me-central-1`:
+		//   Error: aws: operation error Backup: ListReportPlans, https response error StatusCode: 403, RequestID: 3144d09a-f1d9-49b0-8208-23d245bdcf3b
+		//   api error AccessDeniedException: This API is not available in current Region. (SQLSTATE HV000)
+		//
+		// - In regions `ap-southeast-5` and `ap-southeast-3`:
+		//   Error: aws: operation error Backup: ListReportPlans, https response error StatusCode: 403, RequestID: 84d4f42e-ab18-4070-a281-a40a702a4c61
+		//   api error AccessDeniedException: Insufficient privileges to perform this action. (SQLSTATE HV000)
+		//
+		// These errors indicate **unsupported region scenarios** and are handled appropriately in the related list/get functions.
+
+		if strings.Contains(strings.ToLower(err.Error()), strings.ToLower("This API is not available in current Region")) || strings.Contains(strings.ToLower(err.Error()), strings.ToLower("Insufficient privileges to perform this action")) {
+			return nil, nil
+		}
 		plugin.Logger(ctx).Error("aws_backup_report_plan.getAwsBackupReportPlan", "api_error", err)
+		return nil, err
 	}
 
 	if op != nil {

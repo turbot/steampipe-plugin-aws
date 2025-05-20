@@ -8,8 +8,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/wellarchitected"
 	"github.com/aws/aws-sdk-go-v2/service/wellarchitected/types"
 
-	wellarchitectedv1 "github.com/aws/aws-sdk-go/service/wellarchitected"
-
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -53,7 +51,7 @@ func tableAwsWellArchitectedLensReview(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "wellarchitected", "action": "GetLensReview"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(wellarchitectedv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_WELLARCHITECTED_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "lens_name",
@@ -202,8 +200,7 @@ func listWellArchitectedLensReviews(ctx context.Context, d *plugin.QueryData, h 
 		}
 
 		for _, item := range output.LensReviewSummaries {
-			d.StreamListItem(ctx, LensReviewInfo{
-				MilestoneNumber: *output.MilestoneNumber,
+			reviewSummary := LensReviewInfo{
 				WorkloadId:      workloadId,
 				LensReview: &types.LensReview{
 					LensAlias:   item.LensAlias,
@@ -214,7 +211,11 @@ func listWellArchitectedLensReviews(ctx context.Context, d *plugin.QueryData, h 
 					RiskCounts:  item.RiskCounts,
 					UpdatedAt:   item.UpdatedAt,
 				},
-			})
+			}
+			if output.MilestoneNumber != nil {
+				reviewSummary.MilestoneNumber = *output.MilestoneNumber
+			}
+			d.StreamListItem(ctx, reviewSummary)
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
 			if d.RowsRemaining(ctx) == 0 {
@@ -270,9 +271,12 @@ func getWellArchitectedLensReview(ctx context.Context, d *plugin.QueryData, h *p
 		return nil, err
 	}
 
-	return LensReviewInfo{
-		MilestoneNumber: *op.MilestoneNumber,
+	review := LensReviewInfo{
 		WorkloadId:      &workloadId,
 		LensReview:      op.LensReview,
-	}, nil
+	}
+	if op.MilestoneNumber != nil {
+		review.MilestoneNumber = *op.MilestoneNumber
+	}
+	return review, nil
 }

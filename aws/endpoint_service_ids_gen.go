@@ -266,6 +266,8 @@ const AWS_FSX_SERVICE_ID = "fsx"
 
 const AWS_GAMELIFT_SERVICE_ID = "gamelift"
 
+const AWS_GAMELIFTSTREAMS_SERVICE_ID = "gameliftstreams"
+
 const AWS_GEO_SERVICE_ID = "geo"
 
 const AWS_GLACIER_SERVICE_ID = "glacier"
@@ -471,6 +473,8 @@ const AWS_PROTON_SERVICE_ID = "proton"
 const AWS_QBUSINESS_SERVICE_ID = "qbusiness"
 
 const AWS_QLDB_SERVICE_ID = "qldb"
+
+const AWS_QUERY_TIMESTREAM_SERVICE_ID = "query.timestream"
 
 const AWS_QUICKSIGHT_SERVICE_ID = "quicksight"
 

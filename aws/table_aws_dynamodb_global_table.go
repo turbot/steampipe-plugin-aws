@@ -7,8 +7,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 
-	dynamodbv1 "github.com/aws/aws-sdk-go/service/dynamodb"
-
 	go_kit_pack "github.com/turbot/go-kit/types"
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -43,7 +41,7 @@ func tableAwsDynamoDBGlobalTable(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "dynamodb", "action": "DescribeGlobalTable"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(dynamodbv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_DYNAMODB_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "global_table_name",
