@@ -7,8 +7,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ecs"
 	"github.com/aws/aws-sdk-go-v2/service/ecs/types"
 
-	ecsv1 "github.com/aws/aws-sdk-go/service/ecs"
-
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -23,7 +21,7 @@ func tableAwsEcsContainerInstance(_ context.Context) *plugin.Table {
 			Hydrate:       listEcsContainerInstances,
 			Tags:          map[string]string{"service": "ecs", "action": "ListContainerInstances"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(ecsv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_ECS_SERVICE_ID),
 		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "arn",

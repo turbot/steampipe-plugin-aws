@@ -7,8 +7,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 
-	dynamodbv1 "github.com/aws/aws-sdk-go/service/dynamodb"
-
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -44,7 +42,7 @@ func tableAwsDynamoDBBackup(_ context.Context) *plugin.Table {
 				},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(dynamodbv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_DYNAMODB_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

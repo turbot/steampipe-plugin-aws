@@ -7,8 +7,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/sagemaker"
 	"github.com/aws/aws-sdk-go-v2/service/sagemaker/types"
 
-	sagemakerv1 "github.com/aws/aws-sdk-go/service/sagemaker"
-
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -20,17 +18,26 @@ func tableAwsSageMakerNotebookInstance(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_sagemaker_notebook_instance",
 		Description: "AWS Sagemaker Notebook Instance",
+		// AWS SageMaker service is available in the region, but the `Notebook Instance` resource type is not supported in all regions.
+		//
+		// Observed unsupported region error:
+		//
+		// - When calling `ListNotebookInstances` in region `ap-southeast-5`:
+		//   Error: aws: operation error SageMaker: ListNotebookInstances, https response error StatusCode: 400, RequestID: 71e624e7-88a7-41a3-b2c6-8b11d63bd3a2
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("name"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ValidationException", "NotFoundException", "RecordNotFound"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"UnknownOperationException", "ValidationException", "NotFoundException", "RecordNotFound"}),
 			},
 			Hydrate: getAwsSageMakerNotebookInstance,
 			Tags:    map[string]string{"service": "sagemaker", "action": "DescribeNotebookInstance"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listAwsSageMakerNotebookInstances,
-			Tags:    map[string]string{"service": "sagemaker", "action": "ListNotebookInstances"},
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"UnknownOperationException"}),
+			},
+			Tags: map[string]string{"service": "sagemaker", "action": "ListNotebookInstances"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "default_code_repository", Require: plugin.Optional},
 				{Name: "notebook_instance_lifecycle_config_name", Require: plugin.Optional},
@@ -47,7 +54,7 @@ func tableAwsSageMakerNotebookInstance(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "sagemaker", "action": "ListTags"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(sagemakerv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_API_SAGEMAKER_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

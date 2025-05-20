@@ -6,8 +6,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/wellarchitected"
 
-	wellarchitectedv1 "github.com/aws/aws-sdk-go/service/wellarchitected"
-
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -26,7 +24,7 @@ func tableAwsWellArchitectedNotification(_ context.Context) *plugin.Table {
 				{Name: "workload_id", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(wellarchitectedv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_WELLARCHITECTED_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "current_lens_version",

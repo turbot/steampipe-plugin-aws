@@ -8,8 +8,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/redshift"
 	"github.com/aws/aws-sdk-go-v2/service/redshift/types"
 
-	redshiftv1 "github.com/aws/aws-sdk-go/service/redshift"
-
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -37,7 +35,7 @@ func tableAwsRedshiftParameterGroup(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "redshift", "action": "DescribeClusterParameters"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(redshiftv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_REDSHIFT_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

@@ -315,7 +315,7 @@ func buildCostOptimizationHubRecommendationInputFromQuals(quals plugin.KeyColumn
 			switch columnName {
 			case "restart_needed", "rollback_possible":
 				value := getQualsValueByColumn(quals, columnName, "boolean")
-				val := value.(string) == "true"
+				val := value.(bool)
 				if columnName == "restart_needed" {
 					param.RestartNeeded = &val
 				}

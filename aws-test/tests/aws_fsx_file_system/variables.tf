@@ -51,8 +51,9 @@ resource "aws_subnet" "my_subnet" {
 resource "aws_fsx_lustre_file_system" "named_test_resource" {
   storage_capacity = 1200
   subnet_ids = [
-    "${aws_subnet.my_subnet.id}"
+    aws_subnet.my_subnet.id
   ]
+  deployment_type = "SCRATCH_2"
   tags = {
     foo = var.resource_name
   }

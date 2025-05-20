@@ -8,8 +8,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/directoryservice"
 	"github.com/aws/aws-sdk-go-v2/service/directoryservice/types"
 
-	directoryservicev1 "github.com/aws/aws-sdk-go/service/directoryservice"
-
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -57,7 +55,7 @@ func tableAwsDirectoryServiceDirectory(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "ds", "action": "ListTagsForResource"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(directoryservicev1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_DS_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

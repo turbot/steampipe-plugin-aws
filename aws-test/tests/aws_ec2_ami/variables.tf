@@ -56,6 +56,7 @@ resource "aws_ebs_volume" "my_volume" {
   availability_zone = "us-east-1a"
   size              = 8
   encrypted         = true
+  kms_key_id        = aws_kms_key.ebs_cmk.arn
   tags = {
     Name = "turbot-volume-test"
   }
@@ -67,6 +68,11 @@ resource "aws_ebs_snapshot" "my_snapshot" {
   tags = {
     Name = "turbot-snapshot-test"
   }
+}
+
+resource "aws_kms_key" "ebs_cmk" {
+  description             = "CMK for EBS volume encryption"
+  deletion_window_in_days = 7
 }
 
 # Create AWS > EC2 > AMI
@@ -83,6 +89,42 @@ resource "aws_ami" "named_test_resource" {
   tags = {
     Name = var.resource_name
   }
+}
+
+resource "aws_kms_key_policy" "ebs_cmk_policy" {
+  key_id = aws_kms_key.ebs_cmk.id
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Id": "key-default-1",
+  "Statement": [
+    {
+      "Sid": "AllowRootAccount",
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "${data.aws_caller_identity.current.arn}"
+      },
+      "Action": "kms:*",
+      "Resource": "*"
+    },
+    {
+      "Sid": "AllowTrustedAccountUse",
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "arn:aws:iam::${var.trusted_accounts_allow}:root"
+      },
+      "Action": [
+        "kms:Decrypt",
+        "kms:ReEncryptFrom",
+        "kms:ReEncryptTo",
+        "kms:CreateGrant",
+        "kms:DescribeKey"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
+EOF
 }
 
 resource "aws_ami_launch_permission" "allow_access" {

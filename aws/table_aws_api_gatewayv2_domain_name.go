@@ -8,8 +8,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/apigatewayv2"
 	"github.com/aws/aws-sdk-go-v2/service/apigatewayv2/types"
 
-	apigatewayv2v1 "github.com/aws/aws-sdk-go/service/apigatewayv2"
-
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -33,7 +31,7 @@ func tableAwsAPIGatewayV2DomainName(_ context.Context) *plugin.Table {
 			Hydrate: listDomainNames,
 			Tags:    map[string]string{"service": "apigateway", "action": "GetDomainNames"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(apigatewayv2v1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_APIGATEWAY_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "domain_name",
