@@ -6,7 +6,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/lakeformation"
 	"github.com/aws/aws-sdk-go-v2/service/lakeformation/types"
-	lakeformationv1 "github.com/aws/aws-sdk-go/service/lakeformation"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -44,7 +43,7 @@ func tableAwsLakeformationPermission(ctx context.Context) *plugin.Table {
 			},
 			Tags: map[string]string{"service": "lakeformation", "action": "ListPermissions"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(lakeformationv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_LAKEFORMATION_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			// Principal Information
 			{

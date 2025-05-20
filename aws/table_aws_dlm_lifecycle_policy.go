@@ -7,8 +7,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dlm"
 	"github.com/aws/aws-sdk-go-v2/service/dlm/types"
 
-	dlmv1 "github.com/aws/aws-sdk-go/service/dlm"
-
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -38,7 +36,7 @@ func tableAwsDLMLifecyclePolicy(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "dlm", "action": "GetLifecyclePolicy"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(dlmv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_DLM_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "policy_id",

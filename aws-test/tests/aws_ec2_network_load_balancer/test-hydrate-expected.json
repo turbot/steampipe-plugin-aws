@@ -2,12 +2,20 @@
   {
     "arn": "{{ output.resource_aka.value }}",
     "load_balancer_attributes": [
+       {
+        "Key": "dns_record.client_routing_policy",
+        "Value": "any_availability_zone"
+      },
       {
         "Key": "access_logs.s3.prefix",
         "Value": ""
       },
       {
         "Key": "deletion_protection.enabled",
+        "Value": "false"
+      },
+      {
+        "Key": "zonal_shift.config.enabled",
         "Value": "false"
       },
       {

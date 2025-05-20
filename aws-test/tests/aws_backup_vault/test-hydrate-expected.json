@@ -17,7 +17,7 @@
 					],
 					"Effect": "Allow",
 					"Principal": {
-						"AWS": "*"
+						"AWS": "arn:aws:iam::{{ output.account_id.value }}:root"
 					},
 					"Resource": "{{ output.resource_aka.value }}",
 					"Sid": "default"
