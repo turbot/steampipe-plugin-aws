@@ -6,8 +6,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ses"
 	"github.com/aws/aws-sdk-go-v2/service/ses/types"
 
-	sesv1 "github.com/aws/aws-sdk-go/service/ses"
-
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -26,13 +24,7 @@ func tableAwsSESTemplate(_ context.Context) *plugin.Table {
 			Hydrate: listSESTemplates,
 			Tags:    map[string]string{"service": "ses", "action": "ListTemplates"},
 		},
-		HydrateConfig: []plugin.HydrateConfig{
-			{
-				Func: getSESTemplate,
-				Tags: map[string]string{"service": "ses", "action": "GetTemplate"},
-			},
-		},
-		GetMatrixItemFunc: SupportedRegionMatrix(sesv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_EMAIL_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -62,12 +54,6 @@ func tableAwsSESTemplate(_ context.Context) *plugin.Table {
 				Description: "The time and date the template was created.",
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
-			{
-				Name:        "last_updated_timestamp",
-				Description: "The time and date the template was last updated.",
-				Type:        proto.ColumnType_TIMESTAMP,
-			},
-
 			// Standard columns for all tables
 			{
 				Name:        "title",
