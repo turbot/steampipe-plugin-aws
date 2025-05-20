@@ -127,11 +127,7 @@ func listCognitoUserGroups(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	limit := d.QueryContext.Limit
 	if d.QueryContext.Limit != nil {
 		if *limit < int64(maxLimit) {
-			if *limit < 1 {
-				maxLimit = 1
-			} else {
-				maxLimit = int32(*limit)
-			}
+			maxLimit = int32(*limit)
 		}
 	}
 
