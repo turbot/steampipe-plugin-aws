@@ -42,11 +42,6 @@ func tableAwsEmrStudio(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "studio_arn",
-				Description: "The Amazon Resource Name (ARN) of the EMR Studio.",
-				Type:        proto.ColumnType_STRING,
-			},
-			{
 				Name:        "arn",
 				Description: "The Amazon Resource Name (ARN) of the EMR Studio.",
 				Type:        proto.ColumnType_STRING,
