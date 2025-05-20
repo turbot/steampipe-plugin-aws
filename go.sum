@@ -269,6 +269,8 @@ github.com/aws/aws-sdk-go-v2/service/autoscaling v1.40.5 h1:vhdJymxlWS2qftzLiuCj
 github.com/aws/aws-sdk-go-v2/service/autoscaling v1.40.5/go.mod h1:ZErgk/bPaaZIpj+lUWGlwI1A0UFhSIscgnCPzTLnb2s=
 github.com/aws/aws-sdk-go-v2/service/backup v1.34.2 h1:M7OwCjc77SL2zcpvAGV/ORMik1zh9q7PjZWk6hQDOpI=
 github.com/aws/aws-sdk-go-v2/service/backup v1.34.2/go.mod h1:AI+UC6udX0Vo3bScHfV2LMiwecGjerEhGJZ9oFOW+2w=
+github.com/aws/aws-sdk-go-v2/service/batch v1.37.4 h1:N54MVxMi3qU/s9uJKcyU+dQnGCpCx/o3+VayLG1SaKo=
+github.com/aws/aws-sdk-go-v2/service/batch v1.37.4/go.mod h1:hqOLhSiZjmX2+1axOvbJ6OdBtl+WsYvolcszo2j7+NQ=
 github.com/aws/aws-sdk-go-v2/service/cloudcontrol v1.18.4 h1:y9xLchBUDKriRuDsA6OwwzgP9binHw67dR0uicHmOQQ=
 github.com/aws/aws-sdk-go-v2/service/cloudcontrol v1.18.4/go.mod h1:oOvzqGwjzl5fyWi0C7YfOalzMDS8R4yapREwUVV5gBY=
 github.com/aws/aws-sdk-go-v2/service/cloudformation v1.49.0 h1:XSUAzNAV7kCSWhV8duijMz+FrOdMqbLiRXXWBs6BA9A=
