@@ -409,6 +409,8 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_organizations_policy":                                     tableAwsOrganizationsPolicy(ctx),
 			"aws_organizations_policy_target":                              tableAwsOrganizationsPolicyTarget(ctx),
 			"aws_organizations_root":                                       tableAwsOrganizationsRoot(ctx),
+			"aws_organizations_delegated_administrator":                    tableAwsOrganizationsDelegatedAdministrator(ctx),
+			"aws_organizations_delegated_services_for_account":             tableAwsOrganizationsDelegatedServicesForAccount(ctx),
 			"aws_pinpoint_app":                                             tableAwsPinpointApp(ctx),
 			"aws_pipes_pipe":                                               tableAwsPipes(ctx),
 			"aws_pricing_product":                                          tableAwsPricingProduct(ctx),
