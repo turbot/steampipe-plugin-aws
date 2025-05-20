@@ -7,8 +7,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/identitystore"
 	"github.com/aws/aws-sdk-go-v2/service/identitystore/types"
 
-	identitystorev1 "github.com/aws/aws-sdk-go/service/identitystore"
-
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -34,7 +32,7 @@ func tableAwsIdentityStoreUser(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(identitystorev1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_IDENTITYSTORE_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "identity_store_id",

@@ -9,8 +9,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/wellarchitected/types"
 	"github.com/aws/smithy-go"
 
-	wellarchitectedv1 "github.com/aws/aws-sdk-go/service/wellarchitected"
-
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -37,7 +35,7 @@ func tableAwsWellArchitectedLensShare(_ context.Context) *plugin.Table {
 				{Name: "status", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(wellarchitectedv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_WELLARCHITECTED_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "lens_alias",
@@ -99,7 +97,7 @@ type LensShareInfo struct {
 //// LIST FUNCTION
 
 func listWellArchitectedLensShares(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	lens := h.Item.(types.LensSummary)
+	lens := h.Item.(LensInfo)
 	lensAlias := d.EqualsQualString("lens_alias")
 
 	// Reduce the number of API calls if the 'lens_alias' has been provided in the query parameter

@@ -7,8 +7,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/neptune"
 	"github.com/aws/aws-sdk-go-v2/service/neptune/types"
 
-	neptunev1 "github.com/aws/aws-sdk-go/service/neptune"
-
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -38,7 +36,7 @@ func tableAwsNeptuneDBCluster(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "neptune", "action": "ListTagsForResource"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(neptunev1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_RDS_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "db_cluster_identifier",
@@ -334,7 +332,7 @@ func listNeptuneDBClusters(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 			// but we only want Neptune clusters here. The input has a Filter param
 			// which can help filter out non-Neptune clusters, but as of 2022/08/15,
 			// the SDK says the Filter param is not currently supported.
-			// Related issue: https://github.com/aws/aws-sdk-go/issues/4515
+			// Related issue: https://github.com/aws/aws-sdk-go-v2/issues/4515
 			if *cluster.Engine == "neptune" {
 				d.StreamListItem(ctx, cluster)
 			}

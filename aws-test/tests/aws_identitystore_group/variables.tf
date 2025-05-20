@@ -48,6 +48,31 @@ data "null_data_source" "resource" {
 
 data "aws_ssoadmin_instances" "main" {}
 
+resource "aws_iam_policy" "identitystore_access" {
+  name = "${var.resource_name}-identitystore-access"
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect   = "Allow",
+        Action   = [
+          "identitystore:CreateGroup",
+          "identitystore:DescribeGroup",
+          "identitystore:ListGroups",
+          "identitystore:DeleteGroup"
+        ],
+        Resource = "arn:aws:identitystore::*:identitystore/*"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_user_policy_attachment" "attach_policy_to_user" {
+  user       = "partha" # Replace with your IAM user name
+  policy_arn = aws_iam_policy.identitystore_access.arn
+}
+
 resource "aws_identitystore_group" "main" {
   display_name      = var.resource_name
   description       = "Example description"
@@ -67,13 +92,13 @@ output "aws_partition" {
 }
 
 output "resource_id" {
-  value = resource.aws_identitystore_group.main.group_id
+  value = aws_identitystore_group.main.group_id
 }
 
 output "resource_name" {
-  value = resource.aws_identitystore_group.main.display_name
+  value = aws_identitystore_group.main.display_name
 }
 
 output "identity_store_id" {
-  value = resource.aws_identitystore_group.main.identity_store_id
+  value = aws_identitystore_group.main.identity_store_id
 }

@@ -8,8 +8,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dax"
 	"github.com/aws/aws-sdk-go-v2/service/dax/types"
 
-	daxv1 "github.com/aws/aws-sdk-go/service/dax"
-
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -48,7 +46,7 @@ func tableAwsDaxCluster(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "dax", "action": "ListTags"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(daxv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_DAX_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "cluster_name",

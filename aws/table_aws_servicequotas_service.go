@@ -8,8 +8,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/servicequotas"
 	"github.com/aws/aws-sdk-go-v2/service/servicequotas/types"
 
-	servicequotasv1 "github.com/aws/aws-sdk-go/service/servicequotas"
-
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -23,7 +21,7 @@ func tableAwsServiceQuotasService(_ context.Context) *plugin.Table {
 			Hydrate: listServiceQuotasServices,
 			Tags:    map[string]string{"service": "servicequotas", "action": "ListServices"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(servicequotasv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_SERVICEQUOTAS_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "service_name",

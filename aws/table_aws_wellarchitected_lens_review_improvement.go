@@ -10,8 +10,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/wellarchitected/types"
 	"github.com/aws/smithy-go"
 
-	wellarchitectedv1 "github.com/aws/aws-sdk-go/service/wellarchitected"
-
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -39,7 +37,7 @@ func tableAwsWellArchitectedLensReviewImprovement(_ context.Context) *plugin.Tab
 				{Name: "pillar_id", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(wellarchitectedv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_WELLARCHITECTED_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "lens_alias",
@@ -215,13 +213,17 @@ func stereamlistLensReviewImprovements(ctx context.Context, d *plugin.QueryData,
 				output.LensAlias = output.LensArn
 			}
 
-			d.StreamListItem(ctx, ReviewImprovementInfo{
+			reviewImprovementInfo := ReviewImprovementInfo{
 				LensAlias:          output.LensAlias,
 				LensArn:            output.LensArn,
-				MilestoneNumber:    *output.MilestoneNumber,
 				WorkloadId:         output.WorkloadId,
 				ImprovementSummary: item,
-			})
+			}
+			if output.MilestoneNumber != nil {
+				reviewImprovementInfo.MilestoneNumber = *output.MilestoneNumber
+			}
+
+			d.StreamListItem(ctx, reviewImprovementInfo)
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
 			if d.RowsRemaining(ctx) == 0 {
