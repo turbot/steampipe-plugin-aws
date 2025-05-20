@@ -49,7 +49,7 @@ func tableAwsTrustedAdvisorCheckSummary(_ context.Context) *plugin.Table {
 				Name:        "check_id",
 				Description: "The unique identifier for the Trusted Advisor check.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("Id", "CheckId"),
+				Hydrate:     getTrustedAdvisorCheckSummary,
 			},
 			{
 				Name:        "category",
