@@ -7,6 +7,7 @@
 		},
 		"encryption_at_rest": {
 			"CatalogEncryptionMode": "SSE-KMS",
+			"CatalogEncryptionServiceRole": null,
 			"SseAwsKmsKeyId": "{{ output.aws_kms_key.value }}"
 		},
 		"region": "{{ output.aws_region.value }}"

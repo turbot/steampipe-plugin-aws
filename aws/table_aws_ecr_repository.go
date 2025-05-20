@@ -9,8 +9,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ecr"
 	"github.com/aws/aws-sdk-go-v2/service/ecr/types"
 
-	ecrv1 "github.com/aws/aws-sdk-go/service/ecr"
-
 	"github.com/aws/smithy-go"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
@@ -69,7 +67,7 @@ func tableAwsEcrRepository(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "ecr", "action": "BatchGetRepositoryScanningConfiguration"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(ecrv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_API_ECR_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "repository_name",

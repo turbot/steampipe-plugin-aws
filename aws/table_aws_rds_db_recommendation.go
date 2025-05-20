@@ -7,8 +7,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/rds"
 	"github.com/aws/aws-sdk-go-v2/service/rds/types"
 
-	rdsv1 "github.com/aws/aws-sdk-go/service/rds"
-
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -20,8 +18,18 @@ func tableAwsRDSDBRecommendation(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_rds_db_recommendation",
 		Description: "AWS RDS DB Recommendation",
+		// AWS RDS service's `DescribeDBRecommendations` API is not supported in all regions.
+		//
+		// Observed unsupported region error:
+		//
+		// - In region `ap-southeast-5`:
+		//   Error: aws: operation error RDS: DescribeDBRecommendations, https response error StatusCode: 400, RequestID: f6b02c93-bc6d-4a0c-ba5a-9ca5515cf5ba
+		//   api error InvalidAction: DescribeDBRecommendations is not available in this region. (SQLSTATE HV000)
 		List: &plugin.ListConfig{
 			Hydrate: listRDSDBRecommendations,
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidAction"}),
+			},
 			KeyColumns: plugin.KeyColumnSlice{
 				{Name: "recommendation_id", Require: plugin.Optional},
 				{Name: "status", Require: plugin.Optional},
@@ -31,7 +39,7 @@ func tableAwsRDSDBRecommendation(_ context.Context) *plugin.Table {
 			},
 			Tags: map[string]string{"service": "rds", "action": "DescribeDBRecommendations"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(rdsv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_RDS_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "recommendation_id",

@@ -8,8 +8,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/codeartifact"
 	"github.com/aws/aws-sdk-go-v2/service/codeartifact/types"
 
-	codeartifactv1 "github.com/aws/aws-sdk-go/service/codeartifact"
-
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -53,7 +51,7 @@ func tableAwsCodeArtifactDomain(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "codeartifact", "action": "DescribeDomain"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(codeartifactv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_CODEARTIFACT_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

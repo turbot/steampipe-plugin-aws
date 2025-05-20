@@ -3,13 +3,12 @@ package aws
 import (
 	"context"
 	"slices"
+	"strconv"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	"github.com/aws/aws-sdk-go-v2/service/ssm/types"
-
-	ssmv1 "github.com/aws/aws-sdk-go/service/ssm"
 
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
@@ -57,7 +56,7 @@ func tableAwsSSMMaintenanceWindow(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "ssm", "action": "DescribeMaintenanceWindowTasks"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(ssmv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_SSM_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -441,8 +440,8 @@ func buildSSMMaintenanceWindowFilter(quals plugin.KeyColumnQualMap) []types.Main
 				Key: aws.String(filterName),
 			}
 			if slices.Contains(columnBool, columnName) {
-				value := getQualsValueByColumn(quals, columnName, "boolean").(string)
-				filter.Values = []string{cases.Title(language.English, cases.NoLower).String(value)}
+				value := getQualsValueByColumn(quals, columnName, "boolean").(bool)
+				filter.Values = []string{cases.Title(language.English, cases.NoLower).String(strconv.FormatBool(value))}
 			} else {
 				value := getQualsValueByColumn(quals, columnName, "string")
 				val, ok := value.(string)
