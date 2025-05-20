@@ -33,6 +33,7 @@ func tableAwsSESTemplate(_ context.Context) *plugin.Table {
 				Name:        "name",
 				Description: "The name of the template.",
 				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Name", "TemplateName"),
 			},
 			{
 				Name:        "subject_part",
@@ -62,7 +63,7 @@ func tableAwsSESTemplate(_ context.Context) *plugin.Table {
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("Name"),
+				Transform:   transform.FromField("Name", "TemplateName"),
 			},
 			{
 				Name:        "akas",
@@ -94,7 +95,7 @@ func listSESTemplates(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
 		if limit < maxItems {
-				maxItems = limit
+			maxItems = limit
 		}
 	}
 
@@ -158,7 +159,15 @@ func getSESTemplate(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateD
 }
 
 func getSESTemplateARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	templateName := *h.Item.(types.TemplateMetadata).Name
+	var templateName string
+	switch item := h.Item.(type) {
+	case types.TemplateMetadata:
+		templateName = *item.Name
+	case *types.Template:
+		templateName = *item.TemplateName
+	default:
+		return nil, nil
+	}
 	region := d.EqualsQualString(matrixKeyRegion)
 
 	c, err := getCommonColumns(ctx, d, h)
