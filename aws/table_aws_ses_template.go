@@ -18,7 +18,10 @@ func tableAwsSESTemplate(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("name"),
 			Hydrate:    getSESTemplate,
-			Tags:       map[string]string{"service": "ses", "action": "GetTemplate"},
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"TemplateDoesNotExist"}),
+			},
+			Tags: map[string]string{"service": "ses", "action": "GetTemplate"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listSESTemplates,
@@ -91,11 +94,7 @@ func listSESTemplates(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
 		if limit < maxItems {
-			if limit < 1 {
-				maxItems = 1
-			} else {
 				maxItems = limit
-			}
 		}
 	}
 
