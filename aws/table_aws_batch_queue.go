@@ -69,7 +69,7 @@ func tableAwsBatchQueue(_ context.Context) *plugin.Table {
 				Description: "A short, human-readable string to provide additional details about the current status of the job queue",
 				Type:        proto.ColumnType_STRING,
 			},
-			
+
 			// Standard columns for all tables
 			{
 				Name:        "tags",
@@ -105,8 +105,17 @@ func listBatchQueues(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 		return nil, nil
 	}
 
+	// Limiting the results
+	maxLimit := int32(100)
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			maxLimit = limit
+		}
+	}
+
 	input := &batch.DescribeJobQueuesInput{
-		MaxResults: aws.Int32(100),
+		MaxResults: aws.Int32(maxLimit),
 	}
 
 	paginator := batch.NewDescribeJobQueuesPaginator(svc, input)
