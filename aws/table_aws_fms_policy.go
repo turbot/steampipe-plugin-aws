@@ -7,8 +7,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/fms"
 	"github.com/aws/aws-sdk-go-v2/service/fms/types"
 
-	fmsv1 "github.com/aws/aws-sdk-go/service/fms"
-
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -38,7 +36,7 @@ func tableAwsFMSPolicy(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "fms", "action": "GetPolicy"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(fmsv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_FMS_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "policy_name",

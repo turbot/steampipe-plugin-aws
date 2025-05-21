@@ -30,10 +30,11 @@ type Service struct {
 
 // Endpoint represents an individual endpoint for a service.
 type Endpoint struct {
-	CredentialScope *CredentialScope `json:"credentialScope"`
-	Hostname        string           `json:"hostname"`
-	Deprecated      bool             `json:"deprecated,omitempty"`
-	Variants        []Variant        `json:"variants,omitempty"`
+	CredentialScope   *CredentialScope `json:"credentialScope"`
+	Hostname          string           `json:"hostname"`
+	Deprecated        bool             `json:"deprecated,omitempty"`
+	SignatureVersions []string         `json:"signatureVersions,omitempty"`
+	Variants          []Variant        `json:"variants,omitempty"`
 }
 
 // CredentialScope defines the credential scope for an endpoint.

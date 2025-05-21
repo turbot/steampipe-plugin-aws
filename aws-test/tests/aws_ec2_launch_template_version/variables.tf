@@ -87,9 +87,10 @@ EOF
 resource "aws_launch_template" "named_test_resource" {
   name = var.resource_name
 
+  instance_type = "t2.micro"
+
   block_device_mappings {
     device_name = "/dev/sda1"
-
     ebs {
       volume_size = 20
     }
@@ -99,17 +100,13 @@ resource "aws_launch_template" "named_test_resource" {
     capacity_reservation_preference = "open"
   }
 
-  cpu_options {
-    core_count       = 4
-    threads_per_core = 2
-  }
-
   iam_instance_profile {
     name = aws_iam_instance_profile.instance_profile.name
   }
 
-  credit_specification {
-    cpu_credits = "standard"
+  cpu_options {
+    core_count       = 1
+    threads_per_core = 1
   }
 
   disable_api_stop        = true
@@ -117,24 +114,10 @@ resource "aws_launch_template" "named_test_resource" {
 
   ebs_optimized = true
 
-  elastic_gpu_specifications {
-    type = "test"
-  }
-
-  elastic_inference_accelerator {
-    type = "eia1.medium"
-  }
-
   instance_initiated_shutdown_behavior = "terminate"
 
   instance_market_options {
     market_type = "spot"
-  }
-
-  instance_type = "t2.micro"
-
-  license_specification {
-    license_configuration_arn = aws_licensemanager_license_configuration.named_test_resource.arn
   }
 
   metadata_options {
@@ -152,10 +135,6 @@ resource "aws_launch_template" "named_test_resource" {
     associate_public_ip_address = true
   }
 
-  placement {
-    availability_zone = "us-west-2a"
-  }
-
   tag_specifications {
     resource_type = "instance"
 
@@ -167,7 +146,6 @@ resource "aws_launch_template" "named_test_resource" {
   tags = {
     Name = var.resource_name
   }
-
 }
 
 output "resource_aka" {

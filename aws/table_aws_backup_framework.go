@@ -3,12 +3,11 @@ package aws
 import (
 	"context"
 	"errors"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/backup"
 	"github.com/aws/aws-sdk-go-v2/service/backup/types"
-
-	backupv1 "github.com/aws/aws-sdk-go/service/backup"
 
 	"github.com/aws/smithy-go"
 
@@ -44,7 +43,7 @@ func tableAwsBackupFramework(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "backup", "action": "ListTags"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(backupv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_BACKUP_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "framework_name",
@@ -178,6 +177,23 @@ func listAwsBackupFrameworks(ctx context.Context, d *plugin.QueryData, _ *plugin
 
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
+			// AWS Backup service is not supported in all AWS regions.
+			// Reference for supported regions: https://aws.amazon.com/about-aws/global-infrastructure/regional-product-services/
+
+			// Observed unsupported region errors:
+			//
+			// - In region `me-central-1`:
+			//   Error: aws: operation error Backup: ListFrameworks, https response error StatusCode: 403, RequestID: 2674aa5d-a9c3-465e-bc96-69797f65db93
+			//   api error AccessDeniedException: This API is not available in current Region. (SQLSTATE HV000)
+			//
+			// - In regions `ap-southeast-5` and `ap-southeast-3`:
+			//   Error: aws: operation error Backup: ListReportPlans, https response error StatusCode: 403, RequestID: 84d4f42e-ab18-4070-a281-a40a702a4c61
+			//   api error AccessDeniedException: Insufficient privileges to perform this action. (SQLSTATE HV000)
+			//
+			// These are considered **unsupported region errors** and are handled accordingly in the relevant list/get functions.
+			if strings.Contains(strings.ToLower(err.Error()), strings.ToLower("This API is not available in current Region")) || strings.Contains(strings.ToLower(err.Error()), strings.ToLower("Insufficient privileges to perform this action")) {
+				return nil, nil
+			}
 			plugin.Logger(ctx).Error("aws_backup_framework.listAwsBackupFrameworks", "api_error", err)
 			return nil, err
 		}
@@ -241,6 +257,23 @@ func getAwsBackupFramework(ctx context.Context, d *plugin.QueryData, h *plugin.H
 			if ae.ErrorCode() == "ResourceNotFoundException" {
 				return nil, nil
 			}
+		}
+		// AWS Backup service is not supported in all AWS regions.
+		// Reference for supported regions: https://aws.amazon.com/about-aws/global-infrastructure/regional-product-services/
+
+		// Observed unsupported region errors:
+		//
+		// - In region `me-central-1`:
+		//   Error: aws: operation error Backup: ListFrameworks, https response error StatusCode: 403, RequestID: 2674aa5d-a9c3-465e-bc96-69797f65db93
+		//   api error AccessDeniedException: This API is not available in current Region. (SQLSTATE HV000)
+		//
+		// - In regions `ap-southeast-5` and `ap-southeast-3`:
+		//   Error: aws: operation error Backup: ListReportPlans, https response error StatusCode: 403, RequestID: 84d4f42e-ab18-4070-a281-a40a702a4c61
+		//   api error AccessDeniedException: Insufficient privileges to perform this action. (SQLSTATE HV000)
+		//
+		// These are considered **unsupported region errors** and are handled accordingly in the relevant list/get functions.
+		if strings.Contains(strings.ToLower(err.Error()), strings.ToLower("This API is not available in current Region")) || strings.Contains(strings.ToLower(err.Error()), strings.ToLower("Insufficient privileges to perform this action")) {
+			return nil, nil
 		}
 		plugin.Logger(ctx).Error("aws_backup_framework.getAwsBackupFramework", "api_error", err)
 		return nil, err

@@ -62,7 +62,7 @@ resource "aws_backup_vault_policy" "named_test_resource" {
       "Sid": "default",
       "Effect": "Allow",
       "Principal": {
-        "AWS": "*"
+        "AWS": "${data.aws_caller_identity.current.account_id}"
       },
       "Action": [
         "backup:DescribeBackupVault",
@@ -87,4 +87,8 @@ output "id" {
 
 output "resource_aka" {
   value = aws_backup_vault.named_test_resource.arn
+}
+
+output "account_id" {
+  value = data.aws_caller_identity.current.account_id
 }

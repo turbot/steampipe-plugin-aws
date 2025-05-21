@@ -72,8 +72,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 
-	cloudwatchv1 "github.com/aws/aws-sdk-go/service/cloudwatch"
-
 	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v5/logging"
 	"github.com/turbot/steampipe-plugin-sdk/v5/memoize"
@@ -99,7 +97,7 @@ func AllRegionsMatrix(ctx context.Context, d *plugin.QueryData) []map[string]int
 // _metric_ tables must all be limited to the CloudWatch service regions.
 // This is a convenience function for them to use.
 func CloudWatchRegionsMatrix(ctx context.Context, d *plugin.QueryData) []map[string]interface{} {
-	return SupportedRegionMatrixWithExclusions(cloudwatchv1.EndpointsID, []string{})(ctx, d)
+	return SupportedRegionMatrixWithExclusions(AWS_MONITORING_SERVICE_ID, []string{})(ctx, d)
 }
 
 // Return a matrix of regions supported by serviceID, which will then be

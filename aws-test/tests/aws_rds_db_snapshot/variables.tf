@@ -84,7 +84,7 @@ resource "aws_db_instance" "my_instance" {
   db_name              = var.resource_name
   allocated_storage    = 20
   engine               = "mysql"
-  instance_class       = "db.t2.micro"
+  instance_class       = "db.t3.micro"
   username             = "turbottest"
   password             = "test123Q"
   skip_final_snapshot  = true

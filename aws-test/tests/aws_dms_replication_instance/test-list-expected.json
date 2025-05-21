@@ -3,7 +3,7 @@
     "arn": "{{ output.resource_aka.value }}",
     "publicly_accessible": false,
     "region": "{{ output.aws_region.value }}",
-    "replication_instance_class": "dms.t2.micro",
+    "replication_instance_class": "dms.t3.small",
     "replication_instance_identifier": "{{ resourceName }}",
     "title": "{{ resourceName }}"
   }
