@@ -37,7 +37,6 @@ func tableAwsSESTemplate(_ context.Context) *plugin.Table {
 				Name:        "name",
 				Description: "The name of the template.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("Name", "TemplateName"),
 			},
 			{
 				Name:        "subject_part",
@@ -62,11 +61,13 @@ func tableAwsSESTemplate(_ context.Context) *plugin.Table {
 				Description: "The time and date the template was created.",
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
+
+			// Standard columns for all tables
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("Name", "TemplateName"),
+				Transform:   transform.FromField("Name"),
 			},
 		}),
 	}
