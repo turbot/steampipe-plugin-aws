@@ -142,13 +142,6 @@ func tableAwsCodeBuildFleet(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Tags"),
 				Hydrate:     getCodeBuildFleet,
 			},
-			{
-				Name:        "tags",
-				Description: "A map of tags key and value pairs associated with this compute fleet.",
-				Type:        proto.ColumnType_JSON,
-				Transform:   transform.From(codeBuildFleetTurbotTags),
-				Hydrate:     getCodeBuildFleet,
-			},
 
 			// Standard columns
 			{
@@ -162,6 +155,13 @@ func tableAwsCodeBuildFleet(_ context.Context) *plugin.Table {
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("Arn").Transform(transform.EnsureStringArray),
+			},
+			{
+				Name:        "tags",
+				Description: "A map of tags key and value pairs associated with this compute fleet.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.From(codeBuildFleetTurbotTags),
+				Hydrate:     getCodeBuildFleet,
 			},
 		}),
 	}
