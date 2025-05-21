@@ -1,10 +1,10 @@
 ---
 title: "Steampipe Table: aws_codebuild_fleet - Query AWS CodeBuild Fleet using SQL"
-description: "Allows users to query AWS CodeBuild Fleet resources to obtain details about compute fleets used for CodeBuild projects including capacity, status, and configuration."
+description: "Allows users to query AWS CodeBuild Fleet resources to obtain details about compute fleets used for CodeBuild projects, including capacity, status, and configuration."
 folder: "CodeBuild"
 ---
 
-# Table: aws_codebuild_fleet - Query AWS CodeBuild Fleet using SQL
+# Table: aws_codebuild_fleet - Query AWS CodeBuild Fleets using SQL
 
 AWS CodeBuild Fleet is a feature that allows you to create and manage dedicated compute resources for your CodeBuild projects. Compute fleets enable you to provision capacity ahead of time, reducing wait times for builds and allowing for more predictable build performance. Fleets help optimize build costs and can be configured with various compute types and capacity settings.
 
