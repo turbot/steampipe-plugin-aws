@@ -123,6 +123,9 @@ func listSESTemplates(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 func getSESTemplateDetails(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	templateName := h.Item.(types.TemplateMetadata).Name
 
+	if templateName == nil {
+		return nil, nil
+	}
 	if d.EqualsQualString("name") != "" && *templateName != d.EqualsQualString("name") {
 		return nil, nil
 	}
