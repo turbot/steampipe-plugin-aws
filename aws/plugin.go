@@ -249,6 +249,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_ec2_network_load_balancer":                                tableAwsEc2NetworkLoadBalancer(ctx),
 			"aws_ec2_network_load_balancer_metric_net_flow_count":          tableAwsEc2NetworkLoadBalancerMetricNetFlowCount(ctx),
 			"aws_ec2_network_load_balancer_metric_net_flow_count_daily":    tableAwsEc2NetworkLoadBalancerMetricNetFlowCountDaily(ctx),
+			"aws_ec2_placement_group":                                      tableAwsEc2PlacementGroup(ctx),
 			"aws_ec2_regional_settings":                                    tableAwsEc2RegionalSettings(ctx),
 			"aws_ec2_reserved_instance":                                    tableAwsEc2ReservedInstance(ctx),
 			"aws_ec2_spot_price":                                           tableAwsEc2SpotPrice(ctx),
