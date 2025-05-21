@@ -11,20 +11,6 @@
     "description": "Test assessment to validate table outcomes.",
     "id": "{{ output.assessment_id.value }}",
     "name": "{{ resourceName }}",
-    "scope": {
-      "AwsAccounts": [
-        {
-          "EmailAddress": null,
-          "Id": "{{ output.account_id.value }}",
-          "Name": null
-        }
-      ],
-      "AwsServices": [
-        {
-          "ServiceName": "ec2"
-        }
-      ]
-    },
     "status": "ACTIVE"
   }
 ]

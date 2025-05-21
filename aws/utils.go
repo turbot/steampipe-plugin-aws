@@ -179,9 +179,9 @@ func getQualsValueByColumn(equalQuals plugin.KeyColumnQualMap, columnName string
 		if dataType == "boolean" {
 			switch q.Operator {
 			case "<>":
-				value = "false"
+				value = !q.Value.GetBoolValue()
 			case "=":
-				value = "true"
+				value = q.Value.GetBoolValue()
 			}
 		}
 		if dataType == "int64" {

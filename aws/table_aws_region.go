@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"slices"
 
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
@@ -50,6 +51,18 @@ func tableAwsRegion(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("RegionName"),
 			},
+			{
+				Name:        "steampipe_available",
+				Description: "True if the region is available for query in Steampipe.",
+				Type:        proto.ColumnType_BOOL,
+				Hydrate:     getAWSRegionsInConfig,
+			},
+			{
+				Name:        "steampipe_default",
+				Description: "True if this region is the default region for Steampipe to use.",
+				Type:        proto.ColumnType_BOOL,
+				Hydrate:     getAWSRegionsInConfig,
+			},
 		}),
 	}
 }
@@ -76,4 +89,33 @@ func getAwsRegionAkas(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 
 	akas := []string{"arn:" + commonColumnData.Partition + "::" + *region.RegionName + ":" + commonColumnData.AccountId}
 	return akas, nil
+}
+
+func getAWSRegionsInConfig(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	region := h.Item.(types.Region)
+
+	// Retrieve regions list from the AWS plugin steampipe connection config
+	configRegions, err := listQueryRegionsForConnection(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+
+	var regionsInConfig RegionsInConfig
+
+	// check if the region is set as a default region in the connection config
+	defaultRegion := getAwsSpcConfigDefaultRegion(ctx, d)
+	if *region.RegionName == defaultRegion {
+		regionsInConfig.SteampipeDefault = true
+	}
+
+	// check if the region is set in the connection config
+	if slices.Contains(configRegions, *region.RegionName) {
+		regionsInConfig.SteampipeAvailable = true
+	}
+	return regionsInConfig, nil
+}
+
+type RegionsInConfig struct {
+	SteampipeAvailable bool
+	SteampipeDefault   bool
 }

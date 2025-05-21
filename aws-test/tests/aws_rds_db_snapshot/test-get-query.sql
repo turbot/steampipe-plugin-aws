@@ -1,7 +1,7 @@
 SELECT
   db_snapshot_identifier,
   arn,
-  TYPE,
+  type,
   allocated_storage,
   db_instance_identifier,
   encrypted,
@@ -16,4 +16,4 @@ SELECT
 FROM
   aws.aws_rds_db_snapshot
 WHERE
-  db_snapshot_identifier = '{{ resourceName }}'
+  db_snapshot_identifier = '{{ resourceName }}-snapshot' and region = '{{ output.region_name.value }}'

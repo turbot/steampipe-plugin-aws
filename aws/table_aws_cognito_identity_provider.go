@@ -7,8 +7,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider"
 	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider/types"
 
-	cognitoidentityproviderv1 "github.com/aws/aws-sdk-go/service/cognitoidentityprovider"
-
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -44,7 +42,7 @@ func tableAwsCognitoIdentityProvider(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "cognito-idp", "action": "DescribeIdentityProvider"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(cognitoidentityproviderv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_COGNITO_IDP_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "provider_name",

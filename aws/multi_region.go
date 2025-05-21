@@ -72,8 +72,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 
-	cloudwatchv1 "github.com/aws/aws-sdk-go/service/cloudwatch"
-
 	"github.com/turbot/go-kit/helpers"
 	"github.com/turbot/steampipe-plugin-sdk/v5/logging"
 	"github.com/turbot/steampipe-plugin-sdk/v5/memoize"
@@ -99,7 +97,34 @@ func AllRegionsMatrix(ctx context.Context, d *plugin.QueryData) []map[string]int
 // _metric_ tables must all be limited to the CloudWatch service regions.
 // This is a convenience function for them to use.
 func CloudWatchRegionsMatrix(ctx context.Context, d *plugin.QueryData) []map[string]interface{} {
-	return SupportedRegionMatrixWithExclusions(cloudwatchv1.EndpointsID, []string{})(ctx, d)
+	return SupportedRegionMatrixWithExclusions(AWS_MONITORING_SERVICE_ID, []string{})(ctx, d)
+}
+
+func S3TablesRegionsMatrix(ctx context.Context, d *plugin.QueryData) []map[string]interface{} {
+
+	commonColumnData, err := getCommonColumns(ctx, d, nil)
+	if err != nil {
+		plugin.Logger(ctx).Error("S3TablesRegionsMatrix", "getCommonColumns", "unable to get common column info", err)
+		panic(err)
+	}
+	partitionName := commonColumnData.(*awsCommonColumnData).Partition
+
+	// Get AWS partition based on the partition name
+	// Get supported service along with the endpoints for the partition
+	partition, err := getPartitionValueByPartitionName(partitionName)
+	if err != nil {
+		panic(fmt.Errorf("S3TablesRegionsMatrix: failed to get the endpoint details for the partition '%s', %v", partitionName, err))
+	}
+
+	s3SupportedRegions := partition.Services[AWS_S3_SERVICE_ID].Endpoints
+	var unsupportedRegionsForS3Tables []string
+	for region, ed := range s3SupportedRegions {
+		if !slices.Contains(ed.SignatureVersions, "s3v4") {
+			unsupportedRegionsForS3Tables = append(unsupportedRegionsForS3Tables, region)
+		}
+	}
+
+	return SupportedRegionMatrixWithExclusions(AWS_S3_SERVICE_ID, unsupportedRegionsForS3Tables)(ctx, d)
 }
 
 // Return a matrix of regions supported by serviceID, which will then be

@@ -6,8 +6,7 @@ select
   assessment_report_destination,
   assessment_report_destination_type,
   description,
-  aws_account,
-  scope
+  aws_account
 from
   aws.aws_auditmanager_assessment
 where
