@@ -1,10 +1,10 @@
 ---
-title: "Steampipe Table: aws_s3tables_namespace - Query AWS S3 Tables Namespace using SQL"
-description: "Allows users to query AWS S3 Tables Namespace, providing information about the configuration, settings, and properties of your S3 namespaces."
+title: "Steampipe Table: aws_s3tables_namespace - Query AWS S3 Tables Namespaces using SQL"
+description: "Allows users to query AWS S3 Tables Namespaces, providing information about the configuration, settings, and properties of your S3 namespaces."
 folder: "S3Tables"
 ---
 
-# aws_s3tables_namespace - Query AWS S3 Tables Namespace using SQL
+# aws_s3tables_namespace - Query AWS S3 Tables Namespaces using SQL
 
 Amazon S3 Tables provide storage that's optimized for analytics workloads, with built-in Apache Iceberg support and features designed to continuously improve query performance and reduce storage costs for tables. Namespaces in S3 Tables help organize and categorize tables, providing a logical grouping mechanism.
 

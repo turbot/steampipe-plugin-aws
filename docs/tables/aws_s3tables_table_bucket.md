@@ -1,10 +1,10 @@
 ---
-title: "Steampipe Table: aws_s3tables_table_bucket - Query AWS S3 Tables Table Bucket using SQL"
-description: "Allows users to query AWS S3 Tables Table Bucket, providing information about the configuration, settings, and properties of your S3 table buckets."
+title: "Steampipe Table: aws_s3tables_table_bucket - Query AWS S3 Tables Table Buckets using SQL"
+description: "Allows users to query AWS S3 Tables Table Buckets, providing information about the configuration, settings, and properties of your S3 table buckets."
 folder: "S3Tables"
 ---
 
-# aws_s3tables_table_bucket - Query AWS S3 Tables Table Bucket using SQL
+# aws_s3tables_table_bucket - Query AWS S3 Tables Table Buckets using SQL
 
 Amazon S3 Tables provide storage that's optimized for analytics workloads, with built-in Apache Iceberg support and features designed to continuously improve query performance and reduce storage costs for tables. S3 Tables store tabular data in table buckets, which are purpose-built for tables and provide higher transactions per second (TPS) and better query throughput compared to self-managed tables in S3 general purpose buckets.
 
