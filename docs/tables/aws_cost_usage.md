@@ -131,26 +131,7 @@ select * from ranked_costs where rank <=5
 ```
 
 ```sql+sqlite
-with ranked_costs as (
-  select
-    dimension_1 as account_id,
-    dimension_2 as service_name,
-    cast(sum(net_unblended_cost_amount) as numeric) as net_unblended_cost,
-    rank() over (
-        partition by dimension_1
-        order by sum(net_unblended_cost_amount) desc
-    )
-  from
-    aws_cost_usage
-  where
-    granularity = 'MONTHLY'
-    and dimension_type_1 = 'LINKED_ACCOUNT'
-    and dimension_type_2 = 'SERVICE'
-  group by
-    dimension_1,
-    dimension_2
-)
-select * from ranked_costs where rank <=5
+Error: SQLite does not support the rank window function.
 ```
 
 ### Monthly net unblended cost by account and record type

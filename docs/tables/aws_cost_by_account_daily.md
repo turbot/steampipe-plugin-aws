@@ -106,16 +106,7 @@ select * from ranked_costs where rank <= 10;
 ```
 
 ```sql+sqlite
-with ranked_costs as (
-  select
-    linked_account_id,
-    period_start,
-    cast(unblended_cost_amount as real) as unblended_cost_amount,
-    rank() over (partition by linked_account_id order by unblended_cost_amount desc) as rnk
-  from
-    aws_cost_by_account_daily
-)
-select * from ranked_costs where rnk <= 10;
+Error: SQLite does not support the rank window function.
 ```
 
 ### Get the specific costs within a given time frame
