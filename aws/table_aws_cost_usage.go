@@ -147,7 +147,7 @@ func buildInputFromQuals(ctx context.Context, keyQuals *plugin.QueryData) *coste
 	endTime := time.Now().Format(timeFormat)
 	startTime := getCEStartDateForGranularity(granularity).Format(timeFormat)
 
-	st, et := getSearchStartTImeAndSearchEndTime(keyQuals, granularity)
+	st, et := getSearchStartTimeAndSearchEndTime(keyQuals, granularity)
 	if st != "" {
 		startTime = st
 	}
@@ -189,7 +189,7 @@ func buildInputFromQuals(ctx context.Context, keyQuals *plugin.QueryData) *coste
 	return params
 }
 
-func getSearchStartTImeAndSearchEndTime(keyQuals *plugin.QueryData, granularity string) (string, string) {
+func getSearchStartTimeAndSearchEndTime(keyQuals *plugin.QueryData, granularity string) (string, string) {
 	timeFormat := "2006-01-02"
 	if granularity == "HOURLY" {
 		timeFormat = "2006-01-02T15:04:05Z"

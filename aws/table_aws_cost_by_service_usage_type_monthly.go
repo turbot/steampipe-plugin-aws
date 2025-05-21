@@ -82,7 +82,7 @@ func buildCostByServiceAndUsageInput(granularity string, d *plugin.QueryData) *c
 	endTime := time.Now().Format(timeFormat)
 	startTime := getCEStartDateForGranularity(granularity).Format(timeFormat)
 
-	st, et := getSearchStartTImeAndSearchEndTime(d, granularity)
+	st, et := getSearchStartTimeAndSearchEndTime(d, granularity)
 	if st != "" {
 		startTime = st
 	}

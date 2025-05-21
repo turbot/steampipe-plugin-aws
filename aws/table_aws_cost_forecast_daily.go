@@ -105,7 +105,7 @@ func buildCostForecastInput(d *plugin.QueryData, granularity string) *costexplor
 	endTime := getForecastEndDateForGranularity(granularity).Format(timeFormat)
 
 	// Get search start time and search end time based on the quals value with operator
-	st, et := getSearchStartTImeAndSearchEndTime(d, granularity)
+	st, et := getSearchStartTimeAndSearchEndTime(d, granularity)
 	if st != "" {
 		startTime = st
 	}

@@ -106,7 +106,7 @@ func buildInputFromTagKeyAndTagValueQuals(ctx context.Context, d *plugin.QueryDa
 	endTime := time.Now().Format(timeFormat)
 	startTime := getCEStartDateForGranularity(granularity).Format(timeFormat)
 
-	st, et := getSearchStartTImeAndSearchEndTime(d, granularity)
+	st, et := getSearchStartTimeAndSearchEndTime(d, granularity)
 	if st != "" {
 		startTime = st
 	}
