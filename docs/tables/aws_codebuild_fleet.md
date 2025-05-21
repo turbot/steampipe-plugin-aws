@@ -15,7 +15,6 @@ The `aws_codebuild_fleet` table in Steampipe provides you with information about
 ## Examples
 
 ### Basic info
-
 Retrieve fundamental information about all compute fleets in your AWS environment. This query helps you get a quick overview of your fleet configurations, including their names, ARNs, status, and compute specifications.
 
 ```sql+postgres
@@ -43,7 +42,6 @@ from
 ```
 
 ### List compute fleets by status
-
 Monitor active compute fleets and their creation times. This query is useful for identifying when fleets were created and their current operational status, helping you track fleet lifecycle and troubleshoot any status-related issues.
 
 ```sql+postgres
@@ -73,7 +71,6 @@ where
 ```
 
 ### Get fleet capacity details
-
 Analyze the capacity configurations of your compute fleets. This query helps you understand your fleet's scaling capabilities by showing current, desired, minimum, maximum, and base capacities, which is essential for capacity planning and optimization.
 
 ```sql+postgres
@@ -107,7 +104,6 @@ order by
 ```
 
 ### Find fleets with VPC configuration
-
 Identify compute fleets that are configured to run within a VPC. This query is valuable for security and networking teams to ensure proper network isolation and access control for build environments.
 
 ```sql+postgres
@@ -137,7 +133,6 @@ where
 ```
 
 ### Get fleets by compute type
-
 Analyze the distribution of compute types across your fleets and their total capacity. This query helps in understanding resource allocation and identifying potential areas for optimization or consolidation.
 
 ```sql+postgres
@@ -167,7 +162,6 @@ order by
 ```
 
 ### Find recently modified fleets
-
 Track recent changes to your compute fleets. This query helps in change management and auditing by showing fleets that have been modified in the last week, along with their current status and any status-related messages.
 
 ```sql+postgres
@@ -201,7 +195,6 @@ order by
 ```
 
 ### List fleets by environment type
-
 Group and analyze fleets based on their environment types. This query helps in understanding the distribution of different build environments across your fleets, which is useful for environment standardization and management.
 
 ```sql+postgres
@@ -227,7 +220,7 @@ group by
 ```
 
 ### Find fleets without proper tagging
-Identify fleets that may not comply with tagging standards. This query helps in maintaining consistent resource tagging by finding fleets that are missing required tags like 'Environment' and 'Project', which are important for resource organization and cost allocation.
+Identify fleets that may not comply with tagging standards. This query helps maintain consistent resource tagging by finding fleets that are missing required tags like 'Environment' and 'Project', which are important for resource organization and cost allocation.
 
 ```sql+postgres
 select
