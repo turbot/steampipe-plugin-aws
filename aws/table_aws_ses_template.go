@@ -10,13 +10,26 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
+
 func tableAwsSESTemplate(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_ses_template",
 		Description: "AWS SES Template",
 		List: &plugin.ListConfig{
 			Hydrate: listSESTemplates,
-			Tags:    map[string]string{"service": "ses", "action": "ListTemplates"},
+			KeyColumns: []*plugin.KeyColumn{
+				{
+					Name:    "name",
+					Require: plugin.Optional,
+				},
+			},
+			Tags: map[string]string{"service": "ses", "action": "ListTemplates"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getSESTemplateDetails,
+				Tags: map[string]string{"service": "ses", "action": "GetTemplate"},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(AWS_EMAIL_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -54,13 +67,6 @@ func tableAwsSESTemplate(_ context.Context) *plugin.Table {
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("Name", "TemplateName"),
-			},
-			{
-				Name:        "akas",
-				Description: resourceInterfaceDescription("akas"),
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     getSESTemplateARN,
-				Transform:   transform.FromValue().Transform(transform.EnsureStringArray),
 			},
 		}),
 	}
@@ -117,6 +123,10 @@ func listSESTemplates(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 func getSESTemplateDetails(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	templateName := h.Item.(types.TemplateMetadata).Name
 
+	if d.EqualsQualString("name") != "" && *templateName != d.EqualsQualString("name") {
+		return nil, nil
+	}
+
 	svc, err := SESClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ses_template.getSESTemplateDetails", "connection_error", err)
@@ -137,25 +147,4 @@ func getSESTemplateDetails(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	}
 
 	return op.Template, nil
-}
-func getSESTemplateARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	var templateName string
-	switch item := h.Item.(type) {
-	case types.TemplateMetadata:
-		templateName = *item.Name
-	case *types.Template:
-		templateName = *item.TemplateName
-	default:
-		return nil, nil
-	}
-	region := d.EqualsQualString(matrixKeyRegion)
-
-	c, err := getCommonColumns(ctx, d, h)
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_ses_template.getSESTemplateARN", "api_error", err)
-		return nil, err
-	}
-	commonColumnData := c.(*awsCommonColumnData)
-	arn := "arn:" + commonColumnData.Partition + ":ses:" + region + ":" + commonColumnData.AccountId + ":template/" + templateName
-	return arn, nil
 }
