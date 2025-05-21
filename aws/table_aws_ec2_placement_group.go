@@ -6,7 +6,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/aws/aws-sdk-go/aws"
-	ec2v1 "github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -28,19 +27,18 @@ func tableAwsEc2PlacementGroup(_ context.Context) *plugin.Table {
 			Hydrate: listEc2PlacementGroups,
 			Tags:    map[string]string{"service": "ec2", "action": "DescribePlacementGroups"},
 			KeyColumns: []*plugin.KeyColumn{
-				{Name: "group_arn", Require: plugin.Optional},
-				{Name: "group_name", Require: plugin.Optional},
 				{Name: "spread_level", Require: plugin.Optional},
 				{Name: "state", Require: plugin.Optional},
 				{Name: "strategy", Require: plugin.Optional},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(ec2v1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_EC2_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
-				Name:        "group_arn",
+				Name:        "arn",
 				Description: "The ARN of the placement group.",
 				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("GroupArn"),
 			},
 			{
 				Name:        "group_id",
@@ -78,6 +76,7 @@ func tableAwsEc2PlacementGroup(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("Tags"),
 			},
+
 			// Standard columns for all tables
 			{
 				Name:        "title",
@@ -95,11 +94,13 @@ func tableAwsEc2PlacementGroup(_ context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("GroupArn").Transform(arnToAkas),
+				Transform:   transform.FromField("GroupArn").Transform(transform.EnsureStringArray),
 			},
 		}),
 	}
 }
+
+//// LIST FUNCTION
 
 func listEc2PlacementGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	svc, err := EC2Client(ctx, d)
@@ -114,6 +115,7 @@ func listEc2PlacementGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.
 		input.Filters = filters
 	}
 
+	// Pagination does not support
 	resp, err := svc.DescribePlacementGroups(ctx, input)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_ec2_placement_group.listEc2PlacementGroups", "api_error", err)
@@ -121,12 +123,16 @@ func listEc2PlacementGroups(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	}
 	for _, group := range resp.PlacementGroups {
 		d.StreamListItem(ctx, group)
+
+		// Context may get cancelled due to manual cancellation or if the limit has been reached
 		if d.RowsRemaining(ctx) == 0 {
 			return nil, nil
 		}
 	}
 	return nil, nil
 }
+
+//// HYDRATE FUNCTION
 
 func getEc2PlacementGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	var input *ec2.DescribePlacementGroupsInput
@@ -159,6 +165,8 @@ func getEc2PlacementGroup(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 	return nil, nil
 }
 
+//// TRANSFORM FUNCTION
+
 func getEc2PlacementGroupTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	group := d.HydrateItem.(types.PlacementGroup)
 	if group.Tags == nil {
@@ -173,11 +181,10 @@ func getEc2PlacementGroupTurbotTags(_ context.Context, d *transform.TransformDat
 	return &turbotTagsMap, nil
 }
 
+// Build input parameter for list function
 func buildEc2PlacementGroupFilter(quals plugin.KeyColumnQualMap) []types.Filter {
 	filters := []types.Filter{}
 	filterQuals := map[string]string{
-		"group_arn":    "group-arn",
-		"group_name":   "group-name",
 		"spread_level": "spread-level",
 		"state":        "state",
 		"strategy":     "strategy",
