@@ -104,7 +104,7 @@ func S3TablesRegionsMatrix(ctx context.Context, d *plugin.QueryData) []map[strin
 
 	commonColumnData, err := getCommonColumns(ctx, d, nil)
 	if err != nil {
-		plugin.Logger(ctx).Error("S3TablesRegionsMatrix", "connection_name", d.Connection.Name, "unable to get partition name", err)
+		plugin.Logger(ctx).Error("S3TablesRegionsMatrix", "getCommonColumns", "unable to get common column info", err)
 		panic(err)
 	}
 	partitionName := commonColumnData.(*awsCommonColumnData).Partition
