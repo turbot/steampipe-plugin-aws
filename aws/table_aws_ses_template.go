@@ -10,19 +10,10 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
-
 func tableAwsSESTemplate(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_ses_template",
 		Description: "AWS SES Template",
-		Get: &plugin.GetConfig{
-			KeyColumns: plugin.SingleColumn("name"),
-			Hydrate:    getSESTemplate,
-			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"TemplateDoesNotExist"}),
-			},
-			Tags: map[string]string{"service": "ses", "action": "GetTemplate"},
-		},
 		List: &plugin.ListConfig{
 			Hydrate: listSESTemplates,
 			Tags:    map[string]string{"service": "ses", "action": "ListTemplates"},
@@ -39,26 +30,25 @@ func tableAwsSESTemplate(_ context.Context) *plugin.Table {
 				Name:        "subject_part",
 				Description: "The subject line of the email.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getSESTemplate,
+				Hydrate:     getSESTemplateDetails,
 			},
 			{
 				Name:        "text_part",
 				Description: "The email body that will be visible to recipients whose email clients do not display HTML.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getSESTemplate,
+				Hydrate:     getSESTemplateDetails,
 			},
 			{
 				Name:        "html_part",
 				Description: "The HTML body of the email.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getSESTemplate,
+				Hydrate:     getSESTemplateDetails,
 			},
 			{
 				Name:        "created_timestamp",
 				Description: "The time and date the template was created.",
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
-			// Standard columns for all tables
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
@@ -124,40 +114,30 @@ func listSESTemplates(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 
 //// HYDRATE FUNCTIONS
 
-func getSESTemplate(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	var templateName string
-	if h.Item != nil {
-		templateName = *h.Item.(types.TemplateMetadata).Name
-	} else {
-		templateName = d.EqualsQuals["name"].GetStringValue()
-	}
+func getSESTemplateDetails(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	templateName := h.Item.(types.TemplateMetadata).Name
 
-	// Create Session
 	svc, err := SESClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_ses_template.getSESTemplate", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_ses_template.getSESTemplateDetails", "connection_error", err)
 		return nil, err
 	}
 	if svc == nil {
-		// Unsupported region check
 		return nil, nil
 	}
 
-	// Build the params
 	params := &ses.GetTemplateInput{
-		TemplateName: &templateName,
+		TemplateName: templateName,
 	}
 
-	// Get call
 	op, err := svc.GetTemplate(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_ses_template.getSESTemplate", "api_error", err)
+		plugin.Logger(ctx).Error("aws_ses_template.getSESTemplateDetails", "api_error", err)
 		return nil, err
 	}
 
 	return op.Template, nil
 }
-
 func getSESTemplateARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	var templateName string
 	switch item := h.Item.(type) {
