@@ -197,7 +197,7 @@ func getSearchStartTimeAndSearchEndTime(keyQuals *plugin.QueryData, granularity 
 
 	st, et := "", ""
 
-	if keyQuals.Quals["period_start"] != nil && !(len(keyQuals.Quals["period_start"].Quals) > 1) {
+	if keyQuals.Quals["period_start"] != nil && len(keyQuals.Quals["period_start"].Quals) <= 1 {
 		for _, q := range keyQuals.Quals["period_start"].Quals {
 			t := q.Value.GetTimestampValue().AsTime().Format(timeFormat)
 			switch q.Operator {
@@ -221,7 +221,7 @@ func getSearchStartTimeAndSearchEndTime(keyQuals *plugin.QueryData, granularity 
 	// In this scenario, manipulating the start and end time is a bit difficult and challenging.
 	// Let the API fetch all the rows, and filtering will occur at the Steampipe level.
 
-	if keyQuals.Quals["period_end"] != nil && !(len(keyQuals.Quals["period_end"].Quals) > 1) {
+	if keyQuals.Quals["period_end"] != nil && len(keyQuals.Quals["period_end"].Quals) <= 1 {
 		for _, q := range keyQuals.Quals["period_end"].Quals {
 			t := q.Value.GetTimestampValue().AsTime().Format(timeFormat)
 			switch q.Operator {
