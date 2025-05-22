@@ -1837,7 +1837,7 @@ func getClientUncached(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	// number of retries as 9 (our default). The default maximum delay will not be more than approximately 3 minutes to avoid Steampipe
 	// waiting too long to return results
 	maxRetries := 9
-	var minRetryDelay time.Duration = 25 * time.Millisecond // Default minimum delay
+	var minRetryDelay = 25 * time.Millisecond // Default minimum delay
 
 	// Set max retry count from config file or env variable (config file has precedence)
 	if awsSpcConfig.MaxErrorRetryAttempts != nil {

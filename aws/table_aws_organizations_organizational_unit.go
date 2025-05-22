@@ -148,7 +148,7 @@ func listAllNestedOUs(ctx context.Context, d *plugin.QueryData, svc *organizatio
 		}
 
 		for _, unit := range output.OrganizationalUnits {
-			ouPath := strings.Replace(currentPath, "-", "_", -1) + "." + strings.Replace(*unit.Id, "-", "_", -1)
+			ouPath := strings.ReplaceAll(currentPath, "-", "_") + "." + strings.ReplaceAll(*unit.Id, "-", "_")
 			d.StreamListItem(ctx, OrganizationalUnit{unit, ouPath, parentId})
 
 			// Recursively list units for this child
