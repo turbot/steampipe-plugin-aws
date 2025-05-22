@@ -20,7 +20,7 @@ _What's new?_
 _Enhancements_
 
 - Added `period_start` and `period_end` as optional qualifiers to all `aws_cost_*` tables to enable custom date range filtering and reduce API usage costs. ([#2168](https://github.com/turbot/steampipe-plugin-aws/pull/2168))
-- Updated all `aws_*` tables to use AWS Go SDK v2 instead of v1, enabling dynamic region discovery and support for new regions like `ap-southeast-5`. ([#2370](https://github.com/turbot/steampipe-plugin-aws/pull/2370))
+- Updated all `aws_*` tables to use AWS Go SDK v2 instead of v1, ensuring consistent dynamic region discovery and support for new regions like `ap-southeast-5`. ([#2370](https://github.com/turbot/steampipe-plugin-aws/pull/2370))
 
 _Dependencies_
 
