@@ -128,12 +128,6 @@ func tableAwsMacie2Finding(_ context.Context) *plugin.Table {
 				Hydrate:     getMacie2Finding,
 			},
 			{
-				Name:        "source_region",
-				Description: "The AWS Region where the finding was generated.",
-				Type:        proto.ColumnType_STRING,
-				Hydrate:     getMacie2Finding,
-			},
-			{
 				Name:        "source_account_id",
 				Description: "The AWS account ID for the account that owns the finding.",
 				Type:        proto.ColumnType_STRING,
