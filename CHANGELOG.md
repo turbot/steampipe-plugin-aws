@@ -1,3 +1,9 @@
+## v1.14.1 [2025-05-22]
+
+_Bug fixes_
+
+- Removed the duplicate column `source_region` from `aws_macie2_finding` table schema.
+
 ## v1.14.0 [2025-05-22]
 
 _What's new?_
