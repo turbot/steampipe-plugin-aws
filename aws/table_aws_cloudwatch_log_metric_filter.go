@@ -234,11 +234,12 @@ func logMetricTransformationsData(ctx context.Context, d *transform.TransformDat
 	metricFilterData := d.HydrateItem.(types.MetricFilter)
 
 	if len(metricFilterData.MetricTransformations) > 0 {
-		if d.Param.(string) == "MetricName" {
+		switch param := d.Param.(string); param {
+		case "MetricName":
 			return metricFilterData.MetricTransformations[0].MetricName, nil
-		} else if d.Param.(string) == "MetricNamespace" {
+		case "MetricNamespace":
 			return metricFilterData.MetricTransformations[0].MetricNamespace, nil
-		} else {
+		case "MetricValue":
 			return metricFilterData.MetricTransformations[0].MetricValue, nil
 		}
 	}

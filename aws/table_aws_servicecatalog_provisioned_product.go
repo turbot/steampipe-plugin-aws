@@ -283,7 +283,7 @@ func getServiceCatalogProvisionedProduct(ctx context.Context, d *plugin.QueryDat
 	}
 
 	if id != "" && name != "" {
-		return nil, fmt.Errorf("Both ProvisionedProductName and ProvisionedProductId cannot be passed in the where clause simultaneously")
+		return nil, fmt.Errorf("both 'ProvisionedProductName' and 'ProvisionedProductId' cannot be passed in the where clause simultaneously")
 	}
 
 	// Create client
