@@ -10,8 +10,8 @@ _What's new?_
   - [aws_ec2_placement_group](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_ec2_placement_group) ([#2491](https://github.com/turbot/steampipe-plugin-aws/pull/2491))
   - [aws_emr_studio](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_emr_studio) ([#2479](https://github.com/turbot/steampipe-plugin-aws/pull/2479))
   - [aws_macie2_finding](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_macie2_finding) ([#2481](https://github.com/turbot/steampipe-plugin-aws/pull/2481))
-  - [aws_organizations_delegated_administrator](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_organizations_delegated_administrator) ([#2477](https://github.com/turbot/steampipe-plugin-aws/pull/2477)) (Thanks [@FuadAbdullah](https://github.com/FuadAbdullah) for the contribution!!)
-  - [aws_organizations_delegated_services_for_account](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_organizations_delegated_services_for_account) ([#2477](https://github.com/turbot/steampipe-plugin-aws/pull/2477)) (Thanks [@FuadAbdullah](https://github.com/FuadAbdullah) for the contribution!!)
+  - [aws_organizations_delegated_administrator](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_organizations_delegated_administrator) ([#2477](https://github.com/turbot/steampipe-plugin-aws/pull/2477)) (Thanks [@FuadAbdullah](https://github.com/FuadAbdullah) for the contribution!)
+  - [aws_organizations_delegated_services_for_account](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_organizations_delegated_services_for_account) ([#2477](https://github.com/turbot/steampipe-plugin-aws/pull/2477)) (Thanks [@FuadAbdullah](https://github.com/FuadAbdullah) for the contribution!)
   - [aws_s3tables_namespace](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_s3tables_namespace) ([#2498](https://github.com/turbot/steampipe-plugin-aws/pull/2498))
   - [aws_s3tables_table_bucket](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_s3tables_table_bucket) ([#2498](https://github.com/turbot/steampipe-plugin-aws/pull/2498))
   - [aws_s3tables_table](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_s3tables_table) ([#2498](https://github.com/turbot/steampipe-plugin-aws/pull/2498))
@@ -19,16 +19,16 @@ _What's new?_
 
 _Enhancements_
 
-- Added `period_start` and `period_end` as optional qualifiers to all `aws_cost_*` tables to enable custom date range filtering and reduce API usage costs ([#2168](https://github.com/turbot/steampipe-plugin-aws/pull/2168))
-- Updated all `aws_* table`s to use AWS Go SDK v2 instead of v1, enabling dynamic region discovery and support for new regions like `ap-southeast-5`. ([#2370](https://github.com/turbot/steampipe-plugin-aws/pull/2370))
+- Added `period_start` and `period_end` as optional qualifiers to all `aws_cost_*` tables to enable custom date range filtering and reduce API usage costs. ([#2168](https://github.com/turbot/steampipe-plugin-aws/pull/2168))
+- Updated all `aws_*` tables to use AWS Go SDK v2 instead of v1, enabling dynamic region discovery and support for new regions like `ap-southeast-5`. ([#2370](https://github.com/turbot/steampipe-plugin-aws/pull/2370))
 
 _Dependencies_
 
-- Recompiled plugin with `Go SDK v2 1.36.3`. ([#2495](https://github.com/turbot/steampipe-plugin-aws/pull/2495))
+- Recompiled plugin with AWS Go SDK v2.1.36.3. ([#2495](https://github.com/turbot/steampipe-plugin-aws/pull/2495))
 
-_Deprecated_
+_Deprecations_
 
-- Deprecated `search_start_time` and `search_end_time` columns in the `aws_cost_usage` table. Please use `period_start` and `period_end` columns instead. ([#2168](https://github.com/turbot/steampipe-plugin-aws/pull/2168))
+- Deprecated `search_start_time` and `search_end_time` columns in the `aws_cost_usage` table. Please use `period_start` and `period_end` instead. ([#2168](https://github.com/turbot/steampipe-plugin-aws/pull/2168))
 
 ## v1.13.0 [2025-05-12]
 
