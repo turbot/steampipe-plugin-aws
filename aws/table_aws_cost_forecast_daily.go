@@ -11,6 +11,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/query_cache"
 )
 
 func tableAwsCostForecastDaily(_ context.Context) *plugin.Table {
@@ -19,7 +20,21 @@ func tableAwsCostForecastDaily(_ context.Context) *plugin.Table {
 		Description: "AWS Cost Explorer - Cost Forecast (Daily)",
 		List: &plugin.ListConfig{
 			Hydrate: listCostForecastDaily,
-			Tags:    map[string]string{"service": "ce", "action": "GetCostForecast"},
+			KeyColumns: plugin.KeyColumnSlice{
+				{
+					Name:       "period_start",
+					Require:    plugin.Optional,
+					Operators:  []string{">", ">=", "=", "<", "<="},
+					CacheMatch: query_cache.CacheMatchExact,
+				},
+				{
+					Name:       "period_end",
+					Require:    plugin.Optional,
+					Operators:  []string{">", ">=", "=", "<", "<="},
+					CacheMatch: query_cache.CacheMatchExact,
+				},
+			},
+			Tags: map[string]string{"service": "ce", "action": "GetCostForecast"},
 		},
 		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
@@ -39,8 +54,7 @@ func tableAwsCostForecastDaily(_ context.Context) *plugin.Table {
 				Description: "Average forecasted value",
 				Type:        proto.ColumnType_DOUBLE,
 			},
-		},
-		),
+		}),
 	}
 }
 
@@ -55,7 +69,7 @@ func listCostForecastDaily(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 		return nil, err
 	}
 
-	params := buildCostForecastInput(d.EqualsQuals, "DAILY")
+	params := buildCostForecastInput(d, "DAILY")
 
 	output, err := svc.GetCostForecast(ctx, params)
 	if err != nil {
@@ -75,7 +89,7 @@ func listCostForecastDaily(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 	return nil, nil
 }
 
-func buildCostForecastInput(_ map[string]*proto.QualValue, granularity string) *costexplorer.GetCostForecastInput {
+func buildCostForecastInput(d *plugin.QueryData, granularity string) *costexplorer.GetCostForecastInput {
 
 	// TO DO - specify metric as qual?   get all cost metrics in parallel?
 	//metric := strings.ToUpper(keyQuals["metric"].GetStringValue())
@@ -89,6 +103,15 @@ func buildCostForecastInput(_ map[string]*proto.QualValue, granularity string) *
 	timeFormat := "2006-01-02"
 	startTime := time.Now().UTC().Format(timeFormat)
 	endTime := getForecastEndDateForGranularity(granularity).Format(timeFormat)
+
+	// Get search start time and search end time based on the quals value with operator
+	st, et := getSearchStartTimeAndSearchEndTime(d, granularity)
+	if st != "" {
+		startTime = st
+	}
+	if et != "" {
+		endTime = et
+	}
 
 	params := &costexplorer.GetCostForecastInput{
 		TimePeriod: &types.DateInterval{

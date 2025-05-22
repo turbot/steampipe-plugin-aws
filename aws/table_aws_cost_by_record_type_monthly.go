@@ -11,6 +11,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/query_cache"
 )
 
 func tableAwsCostByRecordTypeMonthly(_ context.Context) *plugin.Table {
@@ -19,11 +20,24 @@ func tableAwsCostByRecordTypeMonthly(_ context.Context) *plugin.Table {
 		Description: "AWS Cost Explorer - Cost by Record Type (Monthly)",
 		List: &plugin.ListConfig{
 			Hydrate: listCostByRecordTypeMonthly,
-			Tags:    map[string]string{"service": "ce", "action": "GetCostAndUsage"},
+			KeyColumns: plugin.KeyColumnSlice{
+				{
+					Name:       "period_start",
+					Require:    plugin.Optional,
+					Operators:  []string{">", ">=", "=", "<", "<="},
+					CacheMatch: query_cache.CacheMatchExact,
+				},
+				{
+					Name:       "period_end",
+					Require:    plugin.Optional,
+					Operators:  []string{">", ">=", "=", "<", "<="},
+					CacheMatch: query_cache.CacheMatchExact,
+				},
+			},
+			Tags: map[string]string{"service": "ce", "action": "GetCostAndUsage"},
 		},
 		Columns: awsGlobalRegionColumns(
 			costExplorerColumns([]*plugin.Column{
-
 				{
 					Name:        "linked_account_id",
 					Description: "The linked AWS Account ID.",
@@ -44,12 +58,11 @@ func tableAwsCostByRecordTypeMonthly(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listCostByRecordTypeMonthly(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	params := buildCostByRecordTypeInput("MONTHLY")
-
+	params := buildCostByRecordTypeInput(d, "MONTHLY")
 	return streamCostAndUsage(ctx, d, params)
 }
 
-func buildCostByRecordTypeInput(granularity string) *costexplorer.GetCostAndUsageInput {
+func buildCostByRecordTypeInput(d *plugin.QueryData, granularity string) *costexplorer.GetCostAndUsageInput {
 	timeFormat := "2006-01-02"
 	if granularity == "HOURLY" {
 		timeFormat = "2006-01-02T15:04:05Z"
@@ -57,13 +70,26 @@ func buildCostByRecordTypeInput(granularity string) *costexplorer.GetCostAndUsag
 	endTime := time.Now().Format(timeFormat)
 	startTime := getCEStartDateForGranularity(granularity).Format(timeFormat)
 
+	st, et := getSearchStartTimeAndSearchEndTime(d, granularity)
+	if st != "" {
+		startTime = st
+	}
+	if et != "" {
+		endTime = et
+	}
+
+	selectedMetrics := AllCostMetrics()
+	if len(getMetricsByQueryContext(d.QueryContext)) > 0 {
+		selectedMetrics = getMetricsByQueryContext(d.QueryContext)
+	}
+
 	params := &costexplorer.GetCostAndUsageInput{
 		TimePeriod: &types.DateInterval{
 			Start: aws.String(startTime),
 			End:   aws.String(endTime),
 		},
 		Granularity: types.Granularity(granularity),
-		Metrics:     AllCostMetrics(),
+		Metrics:     selectedMetrics,
 		GroupBy: []types.GroupDefinition{
 			{
 				Type: types.GroupDefinitionType("DIMENSION"),
