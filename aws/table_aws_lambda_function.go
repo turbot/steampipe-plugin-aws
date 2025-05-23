@@ -221,6 +221,12 @@ func tableAwsLambdaFunction(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Configuration.FileSystemConfigs", "FileSystemConfigs"),
 			},
 			{
+				Name:        "ephemeral_storage",
+				Description: "The size of the function's /tmp directory in MB. The default value is 512, but can be any whole number between 512 and 10,240 MB.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("Configuration.EphemeralStorage", "EphemeralStorage"),
+			},
+			{
 				Name:        "policy",
 				Description: "The resource-based iam policy of Lambda function.",
 				Type:        proto.ColumnType_JSON,
