@@ -117,18 +117,50 @@ func listTaggingResources(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 		return nil, err
 	}
 
+	// Parse resource type filters
+	var allResourceTypes []string
+	resource_types := d.EqualsQuals["resource_types"].GetJsonbValue()
+	if resource_types != "" {
+		err := json.Unmarshal([]byte(resource_types), &allResourceTypes)
+		if err != nil {
+			return nil, errors.New("failed to parse 'resource_types' qualifier: value must be a JSON array of strings, e.g. [\"ec2:instance\", \"s3:bucket\", \"rds\"]")
+		}
+	}
+
+	// Split resource types into batches that don't exceed 256 characters when comma-separated
+	resourceTypeBatches := splitResourceTypes(allResourceTypes, 256)
+
+	// If no resource types specified, make a single request
+	if len(resourceTypeBatches) == 0 {
+		resourceTypeBatches = append(resourceTypeBatches, []string{})
+	}
+
+	// Track seen resources to avoid duplicates across batches
+	seenResources := make(map[string]bool)
+
+	// Process each batch
+	for _, resourceTypesBatch := range resourceTypeBatches {
+		err := fetchResourcesForBatch(ctx, d, svc, resourceTypesBatch, seenResources)
+		if err != nil {
+			return nil, err
+		}
+
+		// Check if we've hit the limit
+		if d.RowsRemaining(ctx) == 0 {
+			return nil, nil
+		}
+	}
+
+	return nil, nil
+}
+
+// fetchResourcesForBatch fetches resources for a specific batch of resource types
+func fetchResourcesForBatch(ctx context.Context, d *plugin.QueryData, svc *resourcegroupstaggingapi.Client, resourceTypes []string, seenResources map[string]bool) error {
 	input := &resourcegroupstaggingapi.GetResourcesInput{
 		ResourcesPerPage: aws.Int32(100),
 	}
 
-	// Add resource type filters
-	resource_types := d.EqualsQuals["resource_types"].GetJsonbValue()
-	if resource_types != "" {
-		var resourceTypes []string
-		err := json.Unmarshal([]byte(resource_types), &resourceTypes)
-		if err != nil {
-			return nil, errors.New("failed to parse 'resource_types' qualifier: value must be a JSON array of strings, e.g. [\"ec2:instance\", \"s3:bucket\", \"rds\"]")
-		}
+	if len(resourceTypes) > 0 {
 		input.ResourceTypeFilters = resourceTypes
 	}
 
@@ -156,20 +188,64 @@ func listTaggingResources(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_tagging_resource.listTaggingResources", "api_error", err)
-			return nil, err
+			return err
 		}
 
 		for _, resource := range output.ResourceTagMappingList {
+			// Deduplicate based on ARN
+			arn := aws.ToString(resource.ResourceARN)
+			if seenResources[arn] {
+				continue // Skip duplicate
+			}
+			seenResources[arn] = true
+
 			d.StreamListItem(ctx, resource)
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
 			if d.RowsRemaining(ctx) == 0 {
-				return nil, nil
+				return nil
 			}
 		}
 	}
 
-	return nil, err
+	return nil
+}
+
+// splitResourceTypes splits resource types into batches that don't exceed maxLength when comma-separated
+func splitResourceTypes(resourceTypes []string, maxLength int) [][]string {
+	if len(resourceTypes) == 0 {
+		return [][]string{}
+	}
+
+	var batches [][]string
+	var currentBatch []string
+	currentLength := 0
+
+	for _, resourceType := range resourceTypes {
+		// Calculate the length if we add this resource type
+		// Need to account for comma separator (except for first item)
+		additionalLength := len(resourceType)
+		if len(currentBatch) > 0 {
+			additionalLength += 1 // for comma
+		}
+
+		// If adding this would exceed the limit, start a new batch
+		if currentLength+additionalLength > maxLength && len(currentBatch) > 0 {
+			batches = append(batches, currentBatch)
+			currentBatch = []string{resourceType}
+			currentLength = len(resourceType)
+		} else {
+			currentBatch = append(currentBatch, resourceType)
+			currentLength += additionalLength
+		}
+	}
+
+	// Add the last batch if it has items
+	if len(currentBatch) > 0 {
+		batches = append(batches, currentBatch)
+	}
+
+	return batches
 }
 
 //// HYDRATE FUNCTIONS
