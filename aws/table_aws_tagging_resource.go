@@ -2,6 +2,8 @@ package aws
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/resourcegroupstaggingapi"
@@ -10,6 +12,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/query_cache"
 )
 
 func tableAwsTaggingResource(_ context.Context) *plugin.Table {
@@ -27,6 +30,14 @@ func tableAwsTaggingResource(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listTaggingResources,
 			Tags:    map[string]string{"service": "tag", "action": "GetResources"},
+			KeyColumns: []*plugin.KeyColumn{
+				{
+					Name:       "resource_types",
+					Require:    plugin.Optional,
+					Operators:  []string{"="},
+					CacheMatch: query_cache.CacheMatchExact,
+				},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(AWS_TAGGING_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -66,6 +77,12 @@ func tableAwsTaggingResource(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("Tags"),
 			},
+			{
+				Name:        "resource_types",
+				Description: "The resource types to filter by in the form of an array of strings.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromQual("resource_types"),
+			},
 
 			/// Steampipe standard columns
 			{
@@ -102,6 +119,17 @@ func listTaggingResources(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 
 	input := &resourcegroupstaggingapi.GetResourcesInput{
 		ResourcesPerPage: aws.Int32(100),
+	}
+
+	// Add resource type filters
+	resource_types := d.EqualsQuals["resource_types"].GetJsonbValue()
+	if resource_types != "" {
+		var resourceTypes []string
+		err := json.Unmarshal([]byte(resource_types), &resourceTypes)
+		if err != nil {
+			return nil, errors.New("failed to parse 'resource_types' qualifier: value must be a JSON array of strings, e.g. [\"ec2:instance\", \"s3:bucket\", \"rds\"]")
+		}
+		input.ResourceTypeFilters = resourceTypes
 	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
