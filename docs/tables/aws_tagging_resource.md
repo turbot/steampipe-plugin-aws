@@ -68,29 +68,19 @@ where
 
 ### Filter Resources by Resource Types
 
-The `aws_tagging_resource` table supports filtering by resource types to help you focus on specific AWS services or resource types. This is particularly useful when you need to:
-- Audit tags on specific resource categories
-- Generate compliance reports for particular services
-- Analyze costs for specific resource types
-- Troubleshoot issues with particular AWS services
+Filter results to retrieve only resources from specific AWS services or resource types. The `resource_types` column accepts a JSON array of strings in two formats:
 
-#### How Resource Type Filtering Works
+- `service` — All resources from a service (e.g., `"ec2"`)
+- `service:resourceType` — Specific resource type (e.g., `"ec2:instance"`)
 
-The filter uses the `resource_types` column, which accepts a JSON array of strings. Each string can be specified in two formats:
+#### Examples
 
-| Format | Description | Example | Matches |
-|--------|-------------|---------|---------|
-| `service` | All resources from a specific AWS service | `"ec2"` | All EC2 resources (instances, volumes, security groups, etc.) |
-| `service:resourceType` | Specific resource type within a service | `"ec2:instance"` | Only EC2 instances |
-
-#### Basic Examples
-
-**Filter by a single resource type:**
+**Get tags for EC2 instances only:**
 ```sql
 select
   name,
   arn,
-  resource_types,
+  tags,
   region
 from
   aws_tagging_resource
@@ -98,12 +88,12 @@ where
   resource_types = '["ec2:instance"]';
 ```
 
-**Filter by multiple specific resource types:**
+**Get tags for multiple resource types:**
 ```sql
 select
   name,
   arn,
-  resource_types,
+  tags,
   region
 from
   aws_tagging_resource
@@ -111,54 +101,8 @@ where
   resource_types = '["ec2:instance", "s3:bucket", "rds:db"]';
 ```
 
-**Filter by entire service (all resource types within a service):**
+**Get tags for all resources in specific services:**
 ```sql
-select
-  name,
-  arn,
-  resource_types,
-  region
-from
-  aws_tagging_resource
-where
-  resource_types = '["ec2", "s3"]';
-```
-
-#### Advanced Examples
-
-**Mix service-level and resource-type-level filters:**
-```sql
--- Get all Lambda resources and only RDS database instances
-select
-  name,
-  arn,
-  resource_types,
-  region
-from
-  aws_tagging_resource
-where
-  resource_types = '["lambda", "rds:db"]';
-```
-
-**Common resource types for compliance auditing:**
-```sql
--- Focus on compute and storage resources
-select
-  name,
-  arn,
-  compliance_status,
-  tags,
-  region
-from
-  aws_tagging_resource
-where
-  resource_types = '["ec2:instance", "ec2:volume", "s3:bucket", "rds:db", "ecs:cluster"]'
-  and compliance_status = false;
-```
-
-**Network and security resources:**
-```sql
--- Audit network-related resources
 select
   name,
   arn,
@@ -167,25 +111,19 @@ select
 from
   aws_tagging_resource
 where
-  resource_types = '["ec2:security-group", "ec2:vpc", "ec2:subnet", "elbv2:loadbalancer"]';
+  resource_types = '["lambda", "dynamodb"]';
 ```
 
-#### Common Resource Type Values
+#### Common Resource Types
 
-Here are some frequently used resource type combinations:
-
-| Use Case | Resource Types |
+| Category | Resource Types |
 |----------|----------------|
-| Compute resources | `["ec2:instance", "lambda:function", "ecs:cluster"]` |
-| Storage resources | `["s3:bucket", "ec2:volume", "efs:file-system"]` |
-| Database resources | `["rds:db", "rds:cluster", "dynamodb:table"]` |
-| Network resources | `["ec2:vpc", "ec2:subnet", "ec2:security-group"]` |
-| All EC2 resources | `["ec2"]` |
+| Compute | `["ec2:instance", "lambda:function", "ecs:cluster"]` |
+| Storage | `["s3:bucket", "ec2:volume", "efs:file-system"]` |
+| Database | `["rds:db", "rds:cluster", "dynamodb:table"]` |
+| Network | `["ec2:vpc", "ec2:security-group", "elbv2:loadbalancer"]` |
 
-#### Important Notes
-
-- **JSON Format**: The `resource_types` value must be a valid JSON array of strings, even for a single resource type
-- **Case Sensitivity**: Service and resource type names are case-sensitive and should be lowercase
-- **Performance**: Filtering by resource types can significantly improve query performance by reducing the number of resources scanned
-- **Reference**: For a complete list of valid service names and resource type names, refer to the [AWS Resource Groups Tagging API documentation](https://docs.aws.amazon.com/resourcegroupstagging/latest/APIReference/API_GetResources.html#API_GetResources_RequestParameters)
-- **Discovery**: Use the [`aws_resource_explorer_supported_resource_type`](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_resource_explorer_supported_resource_type) table to discover available resource types, though note that some supported services may not appear in that API response
+**Notes:**
+- Resource types must be specified as a JSON array, even for single values
+- Service and resource type names are case-sensitive and lowercase
+- For a complete list, see the [AWS Resource Groups Tagging API documentation](https://docs.aws.amazon.com/resourcegroupstagging/latest/APIReference/API_GetResources.html#API_GetResources_RequestParameters)
