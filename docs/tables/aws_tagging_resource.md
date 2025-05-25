@@ -118,10 +118,12 @@ where
 
 | Category | Resource Types |
 |----------|----------------|
-| Compute | `["ec2:instance", "lambda:function", "ecs:cluster"]` |
-| Storage | `["s3:bucket", "ec2:volume", "efs:file-system"]` |
+| Compute | `["ec2:instance", "lambda:function", "ecs:cluster", "eks:cluster"]` |
+| Storage | `["s3:bucket", "ec2:volume", "elasticfilesystem:file-system"]` |
 | Database | `["rds:db", "rds:cluster", "dynamodb:table"]` |
-| Network | `["ec2:vpc", "ec2:security-group", "elbv2:loadbalancer"]` |
+| Network | `["ec2:vpc", "ec2:subnet", "ec2:security-group", "elasticloadbalancing:loadbalancer"]` |
+| Security | `["iam:role", "iam:policy", "kms:key"]` |
+| Monitoring | `["logs:log-group", "cloudwatch:alarm", "cloudwatch:dashboard"]` |
 
 **Notes:**
 - Resource types must be specified as a JSON array, even for single values
