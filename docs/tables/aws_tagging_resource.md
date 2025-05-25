@@ -126,4 +126,5 @@ where
 **Notes:**
 - Resource types must be specified as a JSON array, even for single values
 - Service and resource type names are case-sensitive and lowercase
-- For a complete list, see the [AWS Resource Groups Tagging API documentation](https://docs.aws.amazon.com/resourcegroupstagging/latest/APIReference/API_GetResources.html#API_GetResources_RequestParameters)
+- For a complete list of supported services, see [AWS Resource Groups Tagging API supported services](https://docs.aws.amazon.com/resourcegroupstagging/latest/APIReference/supported-services.html)
+- You can also query the [`aws_resource_explorer_supported_resource_type`](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_resource_explorer_supported_resource_type) table to discover available resource types programmatically
