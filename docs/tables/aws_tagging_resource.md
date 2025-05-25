@@ -76,7 +76,7 @@ The filter uses the `resource_types` column, which accepts a JSON array of strin
 
 **Examples:**
 
-- To retrieve all EC2 instances, S3 buckets, and any RDS resource:
+- To retrieve all EC2 instances, S3 buckets, and any AWS Audit Manager resource:
 
 ```sql
 select
@@ -87,7 +87,7 @@ select
 from
   aws_tagging_resource
 where
-  resource_types = '["ec2:instance", "s3:bucket", "rds"]';
+  resource_types = '["ec2:instance", "s3:bucket", "auditmanager"]';
 ```
 
 - To filter by a single resource type, such as EC2 instances:
@@ -105,5 +105,4 @@ where
 ```
 
 **Note:**
-- The `resource_types` filter matches the exact strings in the array.
-- For a complete list of valid resource type names, refer to the [AWS documentation](https://docs.aws.amazon.com/resourcegroupstagging/latest/APIReference/API_GetResources.html#API_GetResources_RequestParameters).
+- For a complete list of valid service names and resource type names, refer to the [AWS documentation](https://docs.aws.amazon.com/resourcegroupstagging/latest/APIReference/API_GetResources.html#API_GetResources_RequestParameters). The [`aws_resource_explorer_supported_resource_type`](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_resource_explorer_supported_resource_type) can help provide a set of valid input values, but a couple of AWS services that are actually supported are not returned from that API.
