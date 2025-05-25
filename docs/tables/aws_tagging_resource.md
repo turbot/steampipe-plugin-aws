@@ -76,7 +76,19 @@ Filter results to retrieve only resources from specific AWS services or resource
 #### Examples
 
 **Get tags for EC2 instances only:**
-```sql
+```sql+postgres
+select
+  name,
+  arn,
+  tags,
+  region
+from
+  aws_tagging_resource
+where
+  resource_types = '["ec2:instance"]';
+```
+
+```sql+sqlite
 select
   name,
   arn,
@@ -89,7 +101,19 @@ where
 ```
 
 **Get tags for multiple resource types:**
-```sql
+```sql+postgres
+select
+  name,
+  arn,
+  tags,
+  region
+from
+  aws_tagging_resource
+where
+  resource_types = '["ec2:instance", "s3:bucket", "rds:db"]';
+```
+
+```sql+sqlite
 select
   name,
   arn,
@@ -102,7 +126,19 @@ where
 ```
 
 **Get tags for all resources in specific services:**
-```sql
+```sql+postgres
+select
+  name,
+  arn,
+  tags,
+  region
+from
+  aws_tagging_resource
+where
+  resource_types = '["lambda", "dynamodb"]';
+```
+
+```sql+sqlite
 select
   name,
   arn,
