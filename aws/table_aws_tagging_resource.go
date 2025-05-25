@@ -127,8 +127,8 @@ func listTaggingResources(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 		}
 	}
 
-	// Split resource types into batches that don't exceed 256 characters when comma-separated
-	resourceTypeBatches := splitResourceTypes(allResourceTypes, 256)
+	// Split resource types into batches that don't exceed 100 items per request
+	resourceTypeBatches := batchResourceTypes(allResourceTypes, 100)
 
 	// If no resource types specified, make a single request
 	if len(resourceTypeBatches) == 0 {
@@ -211,32 +211,25 @@ func fetchResourcesForBatch(ctx context.Context, d *plugin.QueryData, svc *resou
 	return nil
 }
 
-// splitResourceTypes splits resource types into batches that don't exceed maxLength when comma-separated
-func splitResourceTypes(resourceTypes []string, maxLength int) [][]string {
+// batchResourceTypes splits resource types into batches that don't exceed maxItems per request
+func batchResourceTypes(resourceTypes []string, maxItems int) [][]string {
 	if len(resourceTypes) == 0 {
 		return [][]string{}
 	}
 
 	var batches [][]string
 	var currentBatch []string
-	currentLength := 0
+	currentItems := 0
 
 	for _, resourceType := range resourceTypes {
-		// Calculate the length if we add this resource type
-		// Need to account for comma separator (except for first item)
-		additionalLength := len(resourceType)
-		if len(currentBatch) > 0 {
-			additionalLength += 1 // for comma
-		}
-
 		// If adding this would exceed the limit, start a new batch
-		if currentLength+additionalLength > maxLength && len(currentBatch) > 0 {
+		if currentItems+1 > maxItems {
 			batches = append(batches, currentBatch)
 			currentBatch = []string{resourceType}
-			currentLength = len(resourceType)
+			currentItems = 1
 		} else {
 			currentBatch = append(currentBatch, resourceType)
-			currentLength += additionalLength
+			currentItems++
 		}
 	}
 
