@@ -64,7 +64,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/elasticsearchservice v1.28.4
 	github.com/aws/aws-sdk-go-v2/service/emr v1.39.5
 	github.com/aws/aws-sdk-go-v2/service/eventbridge v1.30.4
-	github.com/aws/aws-sdk-go-v2/service/firehose v1.28.5
+	github.com/aws/aws-sdk-go-v2/service/firehose v1.37.4
 	github.com/aws/aws-sdk-go-v2/service/fms v1.31.4
 	github.com/aws/aws-sdk-go-v2/service/fsx v1.43.4
 	github.com/aws/aws-sdk-go-v2/service/glacier v1.22.4
