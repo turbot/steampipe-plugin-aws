@@ -484,6 +484,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_sagemaker_model":                                          tableAwsSageMakerModel(ctx),
 			"aws_sagemaker_notebook_instance":                              tableAwsSageMakerNotebookInstance(ctx),
 			"aws_sagemaker_training_job":                                   tableAwsSageMakerTrainingJob(ctx),
+			"aws_savings_plan":                                             tableAwsSavingsPlan(ctx),
 			"aws_scheduler_schedule":                                       tableAwsSchedulerSchedule(ctx),
 			"aws_secretsmanager_secret":                                    tableAwsSecretsManagerSecret(ctx),
 			"aws_securityhub_action_target":                                tableAwsSecurityHubActionTarget(ctx),
