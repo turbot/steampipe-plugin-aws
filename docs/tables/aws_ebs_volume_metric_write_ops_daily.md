@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_ebs_volume_metric_write_ops_daily - Query AWS EBS Volume Metrics using SQL"
 description: "Allows users to query AWS EBS Volume Metrics for daily write operations."
+folder: "EBS"
 ---
 
 # Table: aws_ebs_volume_metric_write_ops_daily - Query AWS EBS Volume Metrics using SQL

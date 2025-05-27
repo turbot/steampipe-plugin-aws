@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_route53_traffic_policy - Query AWS Route 53 Traffic Policies using SQL"
 description: "Allows users to query AWS Route 53 Traffic Policies to retrieve information about each policy's versions, including the policy identifier, name, type, and document. This table also provides data related to the policy's associated metadata."
+folder: "Route 53"
 ---
 
 # Table: aws_route53_traffic_policy - Query AWS Route 53 Traffic Policies using SQL

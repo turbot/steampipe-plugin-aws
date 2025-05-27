@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_vpc_eip - Query AWS VPC Elastic IP Addresses using SQL"
 description: "Allows users to query AWS VPC Elastic IP Addresses"
+folder: "VPC"
 ---
 
 # Table: aws_vpc_eip - Query AWS VPC Elastic IP Addresses using SQL

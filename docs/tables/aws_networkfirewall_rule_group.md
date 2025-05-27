@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_networkfirewall_rule_group - Query AWS Network Firewall Rule Group using SQL"
 description: "Allows users to query AWS Network Firewall Rule Group details, including rule group ARN, capacity, rule group name, and associated tags."
+folder: "Network Firewall"
 ---
 
 # Table: aws_networkfirewall_rule_group - Query AWS Network Firewall Rule Group using SQL

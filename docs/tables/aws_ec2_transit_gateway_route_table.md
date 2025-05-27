@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_ec2_transit_gateway_route_table - Query AWS EC2 Transit Gateway Route Tables using SQL"
 description: "Allows users to query AWS EC2 Transit Gateway Route Tables and retrieve detailed information about each route table, including its ID, state, transit gateway ID, and other associated metadata."
+folder: "EC2"
 ---
 
 # Table: aws_ec2_transit_gateway_route_table - Query AWS EC2 Transit Gateway Route Tables using SQL

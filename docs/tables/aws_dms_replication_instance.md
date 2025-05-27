@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_dms_replication_instance - Query AWS Database Migration Service Replication Instances using SQL"
 description: "Allows users to query AWS Database Migration Service Replication Instances and provides information about each replication instance in an AWS DMS (Database Migration Service)."
+folder: "DMS"
 ---
 
 # Table: aws_dms_replication_instance - Query AWS Database Migration Service Replication Instances using SQL

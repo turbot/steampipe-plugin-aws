@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_sagemaker_app - Query AWS SageMaker App using SQL"
 description: "Allows users to query AWS SageMaker App data, providing detailed insights into application configurations, user settings, and associated metadata."
+folder: "SageMaker"
 ---
 
 # Table: aws_sagemaker_app - Query AWS SageMaker App using SQL

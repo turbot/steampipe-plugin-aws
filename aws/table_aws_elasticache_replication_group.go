@@ -6,8 +6,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/elasticache"
 
-	elasticachev1 "github.com/aws/aws-sdk-go/service/elasticache"
-
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -31,7 +29,7 @@ func tableAwsElastiCacheReplicationGroup(_ context.Context) *plugin.Table {
 			Hydrate: listElastiCacheReplicationGroups,
 			Tags:    map[string]string{"service": "elasticache", "action": "DescribeReplicationGroups"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(elasticachev1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_ELASTICACHE_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "replication_group_id",

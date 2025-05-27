@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_fms_policy - Query AWS Firewall Manager Policies using SQL"
 description: "Allows users to query AWS Firewall Manager Policies using SQL. This table provides information about each AWS Firewall Manager (FMS) policy in an AWS account. It can be used to gain insights into policy details such as the policy name, ID, resource type, security service type, and more."
+folder: "Firewall Manager (FMS)"
 ---
 
 # Table: aws_fms_policy - Query AWS Firewall Manager Policies using SQL

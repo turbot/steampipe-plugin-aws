@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_docdb_cluster_snapshot - Query Amazon DocumentDB Cluster Snapshot using SQL"
 description: "Allows users to query Amazon DocumentDB Cluster Snapshots for detailed information about their configuration, status, and associated metadata."
+folder: "DocumentDB"
 ---
 
 # Table: aws_docdb_cluster_snapshot - Query Amazon DocumentDB Cluster Snapshots using SQL

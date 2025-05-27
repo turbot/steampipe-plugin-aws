@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_account_contact - Query AWS Account Contact using SQL"
 description: "Allows users to query AWS Account Contact details, including email, mobile, and address information associated with an AWS account."
+folder: "Account"
 ---
 
 # Table: aws_account_contact - Query AWS Account Contact using SQL

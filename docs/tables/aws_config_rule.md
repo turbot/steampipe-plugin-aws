@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_config_rule - Query AWS Config Rules using SQL"
 description: "Allows users to query Config Rules in AWS Config service. It provides information about each Config Rule, including its name, ARN, description, scope, and compliance status."
+folder: "Config"
 ---
 
 # Table: aws_config_rule - Query AWS Config Rules using SQL

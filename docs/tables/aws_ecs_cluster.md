@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_ecs_cluster - Query AWS ECS Clusters using SQL"
 description: "Allows users to query AWS ECS Clusters to retrieve detailed information about each cluster's configuration, status, and associated resources."
+folder: "ECS"
 ---
 
 # Table: aws_ecs_cluster - Query AWS ECS Clusters using SQL

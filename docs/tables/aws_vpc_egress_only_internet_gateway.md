@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_vpc_egress_only_internet_gateway - Query AWS VPC Egress Only Internet Gateways using SQL"
 description: "Allows users to query AWS VPC Egress Only Internet Gateways, which provide egress only access for IPv6 traffic from the VPC to the internet."
+folder: "VPC"
 ---
 
 # Table: aws_vpc_egress_only_internet_gateway - Query AWS VPC Egress Only Internet Gateways using SQL

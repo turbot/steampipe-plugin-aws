@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_shield_attack - Query attacks detected by AWS Shield Advanced in the past using SQL"
 description: "Allows users to query information about attacks AWS Shield Advanced was able to detect in the past and provide detailed information about the attack."
+folder: "Shield"
 ---
 
 # Table: aws_shield_attack - Query information about AWS Shield Advanced detect attacks using SQL

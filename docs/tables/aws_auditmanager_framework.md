@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_auditmanager_framework - Query AWS Audit Manager Framework using SQL"
 description: "Allows users to query AWS Audit Manager Frameworks"
+folder: "Audit Manager"
 ---
 
 # Table: aws_auditmanager_framework - Query AWS Audit Manager Framework using SQL

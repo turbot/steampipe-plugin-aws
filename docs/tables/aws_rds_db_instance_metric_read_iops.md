@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_rds_db_instance_metric_read_iops - Query AWS RDS DBInstanceMetricReadIops using SQL"
 description: "Allows users to query AWS RDS DBInstanceMetricReadIops to retrieve and monitor the read IOPS (Input/Output Operations Per Second) metrics for Amazon RDS DB instances."
+folder: "RDS"
 ---
 
 # Table: aws_rds_db_instance_metric_read_iops - Query AWS RDS DBInstanceMetricReadIops using SQL

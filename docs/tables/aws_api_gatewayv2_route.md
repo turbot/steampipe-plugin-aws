@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_api_gatewayv2_route - Query AWS API Gateway V2 Routes using SQL"
 description: "Allows users to query AWS API Gateway V2 Routes and obtain detailed information about each route, including the route key, route response selection expression, and target."
+folder: "API Gateway"
 ---
 
 # Table: aws_api_gatewayv2_route - Query AWS API Gateway V2 Routes using SQL

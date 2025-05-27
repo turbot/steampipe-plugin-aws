@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_oam_link - Query AWS OAM Links using SQL"
 description: "Allows users to query AWS OAM Links to gather information about the link between an AWS resource and an AWS OAM resource."
+folder: "OAM"
 ---
 
 # Table: aws_oam_link - Query AWS OAM Links using SQL

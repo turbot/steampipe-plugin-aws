@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_auditmanager_evidence_folder - Query AWS Audit Manager Evidence Folders using SQL"
 description: "Allows users to query AWS Audit Manager Evidence Folders to get comprehensive details about the evidence folders in the AWS Audit Manager service."
+folder: "Audit Manager"
 ---
 
 # Table: aws_auditmanager_evidence_folder - Query AWS Audit Manager Evidence Folders using SQL

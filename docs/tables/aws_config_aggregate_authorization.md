@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_config_aggregate_authorization - Query AWS Config Aggregate Authorizations using SQL"
 description: "Allows users to query AWS Config Aggregate Authorizations, providing vital information about AWS Config rules and their respective authorizations in an aggregated form."
+folder: "Config"
 ---
 
 # Table: aws_config_aggregate_authorization - Query AWS Config Aggregate Authorizations using SQL

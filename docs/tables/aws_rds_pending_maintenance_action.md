@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_rds_pending_maintenance_action - Query AWS RDS DB Maintenance Actions using SQL"
 description: "Allows users to query AWS RDS DB Maintenance Actions and retrieve valuable information about pending maintenance tasks for RDS DB instances and clusters."
+folder: "RDS"
 ---
 
 # Table: aws_rds_pending_maintenance_action - Query AWS RDS DB Maintenance Actions using SQL

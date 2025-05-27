@@ -7,8 +7,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 
-	ec2v1 "github.com/aws/aws-sdk-go/service/ec2"
-
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -16,7 +14,8 @@ import (
 
 func tableAwsEc2TransitGatewayVpcAttachment(_ context.Context) *plugin.Table {
 	return &plugin.Table{
-		Name: "aws_ec2_transit_gateway_vpc_attachment",
+		Name:        "aws_ec2_transit_gateway_vpc_attachment",
+		Description: "AWS EC2 Transit Gateway VPC Attachment",
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("transit_gateway_attachment_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
@@ -42,7 +41,7 @@ func tableAwsEc2TransitGatewayVpcAttachment(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidAction"}),
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(ec2v1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_EC2_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "transit_gateway_attachment_id",

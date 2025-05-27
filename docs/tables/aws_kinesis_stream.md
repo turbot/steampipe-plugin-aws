@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_kinesis_stream - Query AWS Kinesis Stream using SQL"
 description: "Allows users to query AWS Kinesis Stream data, including stream name, status, creation time, and associated tags."
+folder: "Kinesis"
 ---
 
 # Table: aws_kinesis_stream - Query AWS Kinesis Stream using SQL

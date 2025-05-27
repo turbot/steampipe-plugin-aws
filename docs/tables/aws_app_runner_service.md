@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_app_runner_service - Query AWS App Runner Services using SQL"
 description: "Allows users to query AWS App Runner services, providing detailed information on service configurations, scaling, and network settings."
+folder: "App Runner"
 ---
 
 # Table: aws_app_runner_service - Query AWS App Runner Services using SQL

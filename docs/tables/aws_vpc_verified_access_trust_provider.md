@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_vpc_verified_access_trust_provider - Query AWS VPC Verified Access Trust Providers using SQL"
 description: "Allows users to query AWS VPC Verified Access Trust Providers, providing information about the trust providers for VPC endpoints in AWS. This table can be used to gain insights into the trust relationships between VPC endpoints and the services they access."
+folder: "VPC"
 ---
 
 # Table: aws_vpc_verified_access_trust_provider - Query AWS VPC Verified Access Trust Providers using SQL

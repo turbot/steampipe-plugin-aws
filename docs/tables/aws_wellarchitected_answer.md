@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_wellarchitected_answer - Query AWS Well-Architected Tool Answer using SQL"
 description: "Allows users to query AWS Well-Architected Tool Answer data, including information about the workloads, lens, and questions associated with each answer."
+folder: "Well-Architected"
 ---
 
 # Table: aws_wellarchitected_answer - Query AWS Well-Architected Tool Answer using SQL

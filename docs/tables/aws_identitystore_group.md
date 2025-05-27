@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_identitystore_group - Query AWS Identity Store Groups using SQL"
 description: "Allows users to query AWS Identity Store Groups to obtain information about the identity and attributes of groups in AWS."
+folder: "Identity Store"
 ---
 
 # Table: aws_identitystore_group - Query AWS Identity Store Groups using SQL

@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_waf_rule - Query AWS WAF Rule using SQL"
 description: "Allows users to query AWS Web Application Firewall (WAF) rules."
+folder: "WAF"
 ---
 
 # Table: aws_waf_rule - Query AWS WAF Rule using SQL

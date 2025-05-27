@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_memorydb_cluster - Query AWS MemoryDB Clusters using SQL"
 description: "Allows users to query AWS MemoryDB clusters, providing detailed information on cluster configurations and statuses."
+folder: "MemoryDB"
 ---
 
 # Table: aws_memorydb_cluster - Query AWS MemoryDB Clusters using SQL

@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_ecr_registry_scanning_configuration - Query AWS ECR Registry Scanning Configuration using SQL"
 description: "Allows users to query AWS ECR Registry Scanning Configuration at the private registry level on a per-region basis."
+folder: "Config"
 ---
 
 # Table: aws_ecr_registry_scanning_configuration - Query AWS ECR Registry Scanning Configuration using SQL

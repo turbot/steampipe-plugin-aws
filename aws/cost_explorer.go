@@ -26,6 +26,32 @@ func AllCostMetrics() []string {
 	}
 }
 
+func getMetricsByQueryContext(qc *plugin.QueryContext) []string {
+	queryColumns := qc.Columns
+	var metrics []string
+
+	for _, c := range queryColumns {
+		switch c {
+		case "blended_cost_amount", "blended_cost_unit":
+			metrics = append(metrics, "BlendedCost")
+		case "unblended_cost_amount", "unblended_cost_unit":
+			metrics = append(metrics, "UnblendedCost")
+		case "net_unblended_cost_amount", "net_unblended_cost_unit":
+			metrics = append(metrics, "NetUnblendedCost")
+		case "amortized_cost_amount", "amortized_cost_unit":
+			metrics = append(metrics, "AmortizedCost")
+		case "net_amortized_cost_amount", "net_amortized_cost_unit":
+			metrics = append(metrics, "NetAmortizedCost")
+		case "usage_quantity_amount", "usage_quantity_unit":
+			metrics = append(metrics, "UsageQuantity")
+		case "normalized_usage_amount", "normalized_usage_unit":
+			metrics = append(metrics, "NormalizedUsageAmount")
+		}
+	}
+
+	return removeDuplicates(metrics)
+}
+
 var costExplorerColumnDefs = []*plugin.Column{
 
 	{
@@ -274,6 +300,7 @@ type CEQuals struct {
 	// Quals stuff
 	SearchStartTime *timestamp.Timestamp
 	SearchEndTime   *timestamp.Timestamp
+	Metrics         string
 	Granularity     string
 	DimensionType1  string
 	DimensionType2  string

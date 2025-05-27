@@ -8,8 +8,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/docdb"
 	"github.com/aws/aws-sdk-go-v2/service/docdb/types"
 
-	docdbv1 "github.com/aws/aws-sdk-go/service/docdb"
-
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -39,7 +37,7 @@ func tableAwsDocDBClusterInstance(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "docdb", "action": "ListTagsForResource"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(docdbv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_DOCDB_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "db_instance_identifier",

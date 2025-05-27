@@ -89,6 +89,20 @@ func getLastPathElement(path string) string {
 	return pathItems[len(pathItems)-1]
 }
 
+// removeDuplicates removes duplicates from a slice of strings.
+func removeDuplicates(strings []string) []string {
+	seen := make(map[string]bool)
+	result := []string{}
+
+	for _, s := range strings {
+		if _, ok := seen[s]; !ok {
+			seen[s] = true
+			result = append(result, s)
+		}
+	}
+	return result
+}
+
 func lastPathElement(_ context.Context, d *transform.TransformData) (interface{}, error) {
 	return getLastPathElement(types.SafeString(d.Value)), nil
 }
@@ -165,9 +179,9 @@ func getQualsValueByColumn(equalQuals plugin.KeyColumnQualMap, columnName string
 		if dataType == "boolean" {
 			switch q.Operator {
 			case "<>":
-				value = "false"
+				value = !q.Value.GetBoolValue()
 			case "=":
-				value = "true"
+				value = q.Value.GetBoolValue()
 			}
 		}
 		if dataType == "int64" {

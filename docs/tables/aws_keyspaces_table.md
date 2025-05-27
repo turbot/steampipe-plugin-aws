@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_keyspaces_table - Query AWS Keyspaces Tables using SQL"
 description: "Allows users to query AWS Keyspaces tables, providing detailed information on table configurations, throughput capacity, encryption, and more."
+folder: "Keyspaces"
 ---
 
 # Table: aws_keyspaces_table - Query AWS Keyspaces Tables using SQL

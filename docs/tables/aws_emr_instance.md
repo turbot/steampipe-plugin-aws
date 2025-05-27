@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_emr_instance - Query AWS EMR Instances using SQL"
 description: "Allows users to query AWS EMR Instances for detailed information about the status, configuration, and other metadata of each instance."
+folder: "EMR"
 ---
 
 # Table: aws_emr_instance - Query AWS EMR Instances using SQL

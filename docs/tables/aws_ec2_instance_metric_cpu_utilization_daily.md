@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_ec2_instance_metric_cpu_utilization_daily - Query AWS EC2 Instances using SQL"
 description: "Allows users to query daily CPU utilization metrics of AWS EC2 instances."
+folder: "EC2"
 ---
 
 # Table: aws_ec2_instance_metric_cpu_utilization_daily - Query AWS EC2 Instances using SQL

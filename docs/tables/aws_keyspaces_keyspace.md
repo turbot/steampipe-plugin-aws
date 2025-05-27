@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_keyspaces_keyspace - Query AWS Keyspaces Keyspaces using SQL"
 description: "Allows users to query AWS Keyspaces keyspaces, providing detailed information on replication strategies, creation timestamps, and regions."
+folder: "Keyspaces"
 ---
 
 # Table: aws_keyspaces_keyspace - Query AWS Keyspaces Keyspaces using SQL

@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_cloudwatch_log_metric_filter - Query AWS CloudWatch log metric filters using SQL"
 description: "Allows users to query AWS CloudWatch log metric filters to obtain detailed information about each filter, including its name, creation date, associated log group, filter pattern, metric transformations and more."
+folder: "CloudWatch"
 ---
 
 # Table: aws_cloudwatch_log_metric_filter - Query AWS CloudWatch log metric filters using SQL

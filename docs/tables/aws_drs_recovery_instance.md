@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_drs_recovery_instance - Query AWS Disaster Recovery Service Recovery Instances using SQL"
 description: "Allows users to query AWS Disaster Recovery Service Recovery Instances to retrieve information about recovery instances, including instance type, recovery instance ARN, and associated tags."
+folder: "Elastic Disaster Recovery (DRS)"
 ---
 
 # Table: aws_drs_recovery_instance - Query AWS Disaster Recovery Service Recovery Instances using SQL

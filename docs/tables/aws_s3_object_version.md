@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_s3_object_version - Query AWS S3 Object Versions"
 description: "Allows querying information about versions of objects stored in Amazon S3 buckets. This table provides details such as bucket name, delimiter, encoding type, version ID marker, prefix, whether the results are truncated, common prefixes, delete markers, and version information."
+folder: "S3"
 ---
 
 # Table: aws_s3_object_version - Query AWS S3 Object Versions

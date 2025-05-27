@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_ec2_application_load_balancer_metric_request_count_daily - Query AWS EC2 Application Load Balancer using SQL"
 description: "Allows users to query daily request count metrics of the AWS EC2 Application Load Balancer."
+folder: "EC2"
 ---
 
 # Table: aws_ec2_application_load_balancer_metric_request_count_daily - Query AWS EC2 Application Load Balancer using SQL

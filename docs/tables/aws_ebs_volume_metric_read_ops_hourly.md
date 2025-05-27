@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_ebs_volume_metric_read_ops_hourly - Query Amazon EC2 EBS Volume using SQL"
 description: "Allows users to query Amazon EC2 EBS Volume Read Operations metrics on an hourly basis."
+folder: "EBS"
 ---
 
 # Table: aws_ebs_volume_metric_read_ops_hourly - Query Amazon EC2 EBS Volume using SQL

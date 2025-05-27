@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_region - Query AWS Region using SQL"
 description: "Allows users to query AWS Region to retrieve details about AWS regions including their names, descriptions, and statuses."
+folder: "Region"
 ---
 
 # Table: aws_region - Query AWS Region using SQL

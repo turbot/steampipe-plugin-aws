@@ -9,8 +9,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/lambda"
 	"github.com/aws/aws-sdk-go-v2/service/lambda/types"
 
-	lambdav1 "github.com/aws/aws-sdk-go/service/lambda"
-
 	"github.com/aws/smithy-go"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
@@ -31,7 +29,7 @@ func tableAwsLambdaFunction(_ context.Context) *plugin.Table {
 			Hydrate: listAwsLambdaFunctions,
 			Tags:    map[string]string{"service": "lambda", "action": "ListFunctions"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(lambdav1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_LAMBDA_SERVICE_ID),
 		HydrateConfig: []plugin.HydrateConfig{
 			{
 				Func: getAwsLambdaFunction,
@@ -221,6 +219,12 @@ func tableAwsLambdaFunction(_ context.Context) *plugin.Table {
 				Description: "Connection settings for an Amazon EFS file system.",
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("Configuration.FileSystemConfigs", "FileSystemConfigs"),
+			},
+			{
+				Name:        "ephemeral_storage",
+				Description: "The size of the function's /tmp directory in MB. The default value is 512, but can be any whole number between 512 and 10,240 MB.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("Configuration.EphemeralStorage", "EphemeralStorage"),
 			},
 			{
 				Name:        "policy",

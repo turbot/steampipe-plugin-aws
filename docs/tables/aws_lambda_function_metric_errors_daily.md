@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_lambda_function_metric_errors_daily - Query AWS Lambda Function using SQL"
 description: "Allows users to query AWS Lambda Function error metrics on a daily basis."
+folder: "Lambda"
 ---
 
 # Table: aws_lambda_function_metric_errors_daily - Query AWS Lambda Function using SQL

@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_iot_thing_group - Query AWS IoT Thing Group using SQL"
 description: "Allows users to query AWS IoT Thing Group to gain insights into each group's configuration, including ARN, creation date, version of the group, and parent of the groups."
+folder: "IoT Core"
 ---
 
 # Table: aws_iot_thing_group - Query AWS IoT Thing Groups using SQL

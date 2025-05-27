@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_ec2_launch_configuration - Query AWS EC2 Launch Configurations using SQL"
 description: "Allows users to query AWS EC2 Launch Configurations to gain insights into their configurations, metadata, and associated instances."
+folder: "Config"
 ---
 
 # Table: aws_ec2_launch_configuration - Query AWS EC2 Launch Configurations using SQL

@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_redshiftserverless_namespace - Query AWS Redshift Serverless Namespace using SQL"
 description: "Allows users to query AWS Redshift Serverless Namespace data. This table provides information about each namespace within an AWS Redshift Serverless cluster. It allows DevOps engineers to query namespace-specific details, including the namespace ARN, creation date, and associated metadata."
+folder: "Redshift"
 ---
 
 # Table: aws_redshiftserverless_namespace - Query AWS Redshift Serverless Namespace using SQL

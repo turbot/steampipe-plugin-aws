@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_elasticache_update_action - Query Amazon ElastiCache Update Actions using SQL"
 description: "Allows users to query Amazon ElastiCache Update Actions, providing information about service updates for ElastiCache clusters and nodes within the AWS account."
+folder: "ElastiCache"
 ---
 
 # Table: aws_elasticache_update_action - Query Amazon ElastiCache Update Actions using SQL

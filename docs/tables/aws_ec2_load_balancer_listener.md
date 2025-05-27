@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_ec2_load_balancer_listener - Query AWS EC2 Load Balancer Listeners using SQL"
 description: "Allows users to query AWS EC2 Load Balancer Listener data, which provides information about listeners for an Application Load Balancer or Network Load Balancer."
+folder: "ELB"
 ---
 
 # Table: aws_ec2_load_balancer_listener - Query AWS EC2 Load Balancer Listeners using SQL

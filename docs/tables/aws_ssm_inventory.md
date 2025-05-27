@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_ssm_inventory - Query AWS Systems Manager Inventory using SQL"
 description: "Allows users to query AWS Systems Manager Inventory, providing information about managed instances in AWS Systems Manager."
+folder: "Systems Manager (SSM)"
 ---
 
 # Table: aws_ssm_inventory - Query AWS Systems Manager Inventory using SQL

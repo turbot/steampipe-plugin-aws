@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_cost_by_record_type_daily - Query AWS Cost and Usage Report using SQL"
 description: "Allows users to query daily AWS cost data by record type. This table provides information about AWS costs incurred per record type on a daily basis."
+folder: "Cost Explorer"
 ---
 
 # Table: aws_cost_by_record_type_daily - Query AWS Cost and Usage Report using SQL
@@ -11,10 +12,13 @@ The AWS Cost and Usage Report is a comprehensive resource that provides detailed
 
 The `aws_cost_by_record_type_daily` table in Steampipe provides you with information about AWS costs incurred per record type on a daily basis. This table allows you as a financial analyst, DevOps engineer, or other professional to query cost-specific details, including the linked account, service, usage type, and operation. You can utilize this table to gather insights on cost distribution, such as costs associated with different services, usage types, and operations. The schema outlines the various attributes of the cost record, including the record id, record type, billing period start date, and cost.
 
-Amazon Cost Explorer helps you visualize, understand, and manage your AWS costs and usage.  The `aws_cost_by_record_type_daily` table provides a simplified view of cost for your account (or all linked accounts when run against the organization master) as per record types (fees, usage, costs, tax refunds, and credits), summarized by day, for the last year.  
+Amazon Cost Explorer helps you visualize, understand, and manage your AWS costs and usage.  The `aws_cost_by_record_type_daily` table provides a simplified view of cost for your account (or all linked accounts when run against the organization master) as per record types (fees, usage, costs, tax refunds, and credits), summarized by day, for the last year.
 
 **Important Notes**
 - The [pricing for the Cost Explorer API](https://aws.amazon.com/aws-cost-management/pricing/) is per API request - Each request you make will incur a cost of $0.01.
+- This table supports optional quals. Queries with optional quals are optimised to reduce query time and cost. Optional quals are supported for the following columns:
+  - `period_start` with supported operators `=`, `>=`, `>`, `<=`, and `<`.
+  - `period_end` with supported operators `=`, `>=`, `>`, `<=`, and `<`.
 
 ## Examples
 
@@ -31,7 +35,7 @@ select
   amortized_cost_amount::numeric::money,
   net_unblended_cost_amount::numeric::money,
   net_amortized_cost_amount::numeric::money
-from 
+from
   aws_cost_by_record_type_daily
 order by
   linked_account_id,
@@ -48,7 +52,7 @@ select
   CAST(amortized_cost_amount AS REAL) AS amortized_cost_amount,
   CAST(net_unblended_cost_amount AS REAL) AS net_unblended_cost_amount,
   CAST(net_amortized_cost_amount AS REAL) AS net_amortized_cost_amount
-from 
+from
   aws_cost_by_record_type_daily
 order by
   linked_account_id,
@@ -65,7 +69,7 @@ select
   min(unblended_cost_amount)::numeric::money as min,
   max(unblended_cost_amount)::numeric::money as max,
   avg(unblended_cost_amount)::numeric::money as average
-from 
+from
   aws_cost_by_record_type_daily
 group by
   linked_account_id,
@@ -81,7 +85,7 @@ select
   min(unblended_cost_amount) as min,
   max(unblended_cost_amount) as max,
   avg(unblended_cost_amount) as average
-from 
+from
   aws_cost_by_record_type_daily
 group by
   linked_account_id,
@@ -101,7 +105,7 @@ with ranked_costs as (
     period_start,
     unblended_cost_amount::numeric::money,
     rank() over(partition by linked_account_id, record_type order by unblended_cost_amount desc)
-  from 
+  from
     aws_cost_by_record_type_daily
 )
 select * from ranked_costs where rank <= 10;
@@ -109,4 +113,39 @@ select * from ranked_costs where rank <= 10;
 
 ```sql+sqlite
 Error: SQLite does not support the rank window function.
+```
+
+### Get only daily amortized cost details by account and record type within a custom time frame
+Focusing on amortized costs by account and record type, organizations can achieve a clearer, more detailed understanding of their spending patterns.
+
+```sql+postgres
+select
+  linked_account_id,
+  record_type,
+  period_start,
+  amortized_cost_amount::numeric::money
+from
+  aws_cost_by_record_type_daily
+where
+  period_start = '2023-05-01T05:30:00+05:30'
+  and period_end = '2023-05-05T05:30:00+05:30'
+order by
+  linked_account_id,
+  period_start;
+```
+
+```sql+sqlite
+select
+  linked_account_id,
+  record_type,
+  period_start,
+  case(amortized_cost_amount as real) as amortized_cost_amount
+from
+  aws_cost_by_record_type_daily
+where
+  period_start = '2023-05-01T05:30:00+05:30'
+  and period_end = '2023-05-05T05:30:00+05:30'
+order by
+  linked_account_id,
+  period_start;
 ```

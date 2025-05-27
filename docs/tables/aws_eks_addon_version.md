@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_eks_addon_version - Query AWS EKS Add-On Versions using SQL"
 description: "Allows users to query AWS EKS Add-On Versions."
+folder: "EKS"
 ---
 
 # Table: aws_eks_addon_version - Query AWS EKS Add-On Versions using SQL

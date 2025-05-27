@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_pricing_product - Query AWS Pricing Product using SQL"
 description: "Allows users to query AWS Pricing Product details such as the product's description, pricing details, and associated attributes."
+folder: "Pricing"
 ---
 
 # Table: aws_pricing_product - Query AWS Pricing Product using SQL

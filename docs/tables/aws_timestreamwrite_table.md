@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_timestreamwrite_table - Query AWS Timestream Tables using SQL"
 description: "Allows users to query AWS Timestream tables, providing detailed information on table configurations, statuses, and retention properties."
+folder: "Timestream"
 ---
 
 # Table: aws_timestreamwrite_table - Query AWS Timestream Tables using SQL

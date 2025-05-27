@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_ebs_volume_metric_write_ops - Query AWS Elastic Block Store (EBS) using SQL"
 description: "Allows users to query AWS Elastic Block Store (EBS) volume write operations metrics."
+folder: "EBS"
 ---
 
 # Table: aws_ebs_volume_metric_write_ops - Query AWS Elastic Block Store (EBS) using SQL

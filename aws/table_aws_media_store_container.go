@@ -9,8 +9,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/mediastore"
 	"github.com/aws/aws-sdk-go-v2/service/mediastore/types"
 
-	mediastorev1 "github.com/aws/aws-sdk-go/service/mediastore"
-
 	"github.com/aws/smithy-go"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
@@ -47,7 +45,7 @@ func tableAwsMediaStoreContainer(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "mediastore", "action": "ListTagsForResource"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(mediastorev1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_MEDIASTORE_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

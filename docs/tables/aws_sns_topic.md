@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_sns_topic - Query AWS SNS Topics using SQL"
 description: "Allows users to query AWS SNS Topics to gather information about each topic, including its name, owner, ARN, and other related data."
+folder: "SNS"
 ---
 
 # Table: aws_sns_topic - Query AWS SNS Topics using SQL

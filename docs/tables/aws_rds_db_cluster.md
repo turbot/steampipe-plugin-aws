@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_rds_db_cluster - Query AWS RDS DB Clusters using SQL"
 description: "Allows users to query AWS RDS DB Clusters and retrieve valuable information about the status, configuration, and security settings of each DB cluster."
+folder: "RDS"
 ---
 
 # Table: aws_rds_db_cluster - Query AWS RDS DB Clusters using SQL

@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_ssm_patch_baseline - Query AWS SSM Patch Baseline using SQL"
 description: "Allows users to query AWS SSM Patch Baseline data to retrieve information about each patch baseline in your AWS account."
+folder: "Systems Manager (SSM)"
 ---
 
 # Table: aws_ssm_patch_baseline - Query AWS SSM Patch Baseline using SQL

@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_ec2_transit_gateway_route - Query AWS EC2 Transit Gateway Routes using SQL"
 description: "Allows users to query AWS EC2 Transit Gateway Routes for detailed information about each route, including the destination CIDR block, the route's current state, and the transit gateway attachments."
+folder: "EC2"
 ---
 
 # Table: aws_ec2_transit_gateway_route - Query AWS EC2 Transit Gateway Routes using SQL

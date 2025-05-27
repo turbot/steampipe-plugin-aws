@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_networkfirewall_firewall - Query AWS Network Firewall using SQL"
 description: "Allows users to query AWS Network Firewalls for detailed information about each firewall's properties and settings."
+folder: "Network Firewall"
 ---
 
 # Table: aws_networkfirewall_firewall - Query AWS Network Firewall using SQL

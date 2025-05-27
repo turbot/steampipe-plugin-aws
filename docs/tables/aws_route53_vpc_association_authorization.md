@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_route53_vpc_association_authorization - Query AWS Route53 for other-account VPCs."
 description: "Gets a list of the VPCs that were created by other accounts and that can be associated with a specified hosted zone because you've submitted one or more `CreateVPCAssociationAuthorization` requests."
+folder: "Route 53"
 ---
 
 # Table: aws_route53_vpc_association_authorization - Query AWS Route53 for other-account VPCs using SQL

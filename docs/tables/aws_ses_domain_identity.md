@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_ses_domain_identity - Query Amazon Simple Email Service Domain Identities using SQL"
 description: "Allows users to query Amazon Simple Email Service Domain Identities. The aws_ses_domain_identity table in Steampipe provides information about domain identities within Amazon Simple Email Service (SES). This table allows DevOps engineers to query domain-specific details, including verification status, DKIM attributes, and associated metadata. Users can utilize this table to gather insights on domain identities, such as verification status, DKIM tokens, and more. The schema outlines the various attributes of the SES domain identity, including the identity name, verification status, DKIM enabled status, and DKIM tokens."
+folder: "Simple Email Service (SES)"
 ---
 
 # Table: aws_ses_domain_identity - Query Amazon Simple Email Service Domain Identities using SQL

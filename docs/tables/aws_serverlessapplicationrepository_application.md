@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_serverlessapplicationrepository_application - Query AWS Serverless Application Repository Applications using SQL"
 description: "Allows users to query AWS Serverless Application Repository Applications to fetch details like application name, status, author, description, labels, license URL, creation time, and more."
+folder: "Serverless Application Repository"
 ---
 
 # Table: aws_serverlessapplicationrepository_application - Query AWS Serverless Application Repository Applications using SQL

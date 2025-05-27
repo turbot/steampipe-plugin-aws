@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_iam_open_id_connect_provider - Query AWS IAM OpenID Connect Providers using SQL"
 description: "Allows users to query AWS IAM OpenID Connect Providers and retrieve details about the OpenID Connect (OIDC) identity providers in their AWS account."
+folder: "IAM"
 ---
 
 # Table: aws_iam_open_id_connect_provider - Query AWS IAM OpenID Connect Providers using SQL

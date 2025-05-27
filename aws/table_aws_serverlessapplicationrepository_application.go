@@ -8,8 +8,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/serverlessapplicationrepository"
 	"github.com/aws/aws-sdk-go-v2/service/serverlessapplicationrepository/types"
 
-	serverlessapplicationrepositoryv1 "github.com/aws/aws-sdk-go/service/serverlessapplicationrepository"
-
 	"github.com/aws/smithy-go"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
@@ -43,7 +41,7 @@ func tableAwsServerlessApplicationRepositoryApplication(_ context.Context) *plug
 				Tags: map[string]string{"service": "serverlessrepo", "action": "GetApplication"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(serverlessapplicationrepositoryv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_SERVERLESSREPO_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",

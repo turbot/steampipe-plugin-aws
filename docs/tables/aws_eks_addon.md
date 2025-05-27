@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_eks_addon - Query AWS EKS Add-Ons using SQL"
 description: "Allows users to query AWS EKS Add-Ons to retrieve information about add-ons associated with each Amazon EKS cluster."
+folder: "EKS"
 ---
 
 # Table: aws_eks_addon - Query AWS EKS Add-Ons using SQL

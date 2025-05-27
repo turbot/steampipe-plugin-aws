@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_vpc_verified_access_group - Query AWS VPC Verified Access Groups using SQL"
 description: "Allows users to query VPC Verified Access Groups within AWS Virtual Private Cloud (VPC). This table provides information about each verified access group within a VPC, including details such as group ID, group name, and the VPC ID it is associated with."
+folder: "VPC"
 ---
 
 # Table: aws_vpc_verified_access_group - Query AWS VPC Verified Access Groups using SQL

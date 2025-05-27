@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_auditmanager_evidence - Query AWS Audit Manager Evidence using SQL"
 description: "Allows users to query AWS Audit Manager Evidence, providing detailed information about evidence resources associated with assessments in AWS Audit Manager."
+folder: "Audit Manager"
 ---
 
 # Table: aws_auditmanager_evidence - Query AWS Audit Manager Evidence using SQL

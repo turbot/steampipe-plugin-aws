@@ -9,7 +9,6 @@ import (
 
 	turbot_types "github.com/turbot/go-kit/types"
 
-	codestarv1 "github.com/aws/aws-sdk-go/service/codestarnotifications"
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -40,7 +39,7 @@ func tableAwsCodestarNotificationRule(_ context.Context) *plugin.Table {
 			},
 			Tags: map[string]string{"service": "codestar-notifications", "action": "ListNotificationRules"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(codestarv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_CODESTAR_NOTIFICATIONS_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "arn",

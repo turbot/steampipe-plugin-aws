@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_securityhub_member - Query AWS Security Hub Members using SQL"
 description: "Allows users to query AWS Security Hub Members for detailed information about each member's account, including its ID, email, status, and more."
+folder: "Security Hub"
 ---
 
 # Table: aws_securityhub_member - Query AWS Security Hub Members using SQL

@@ -1,6 +1,7 @@
 ---
 title: "Steampipe Table: aws_iam_account_summary - Query AWS Identity and Access Management (IAM) Account Summary using SQL"
 description: "Allows users to query AWS IAM Account Summary to get a detailed overview of the account's IAM usage and resource consumption."
+folder: "IAM"
 ---
 
 # Table: aws_iam_account_summary - Query AWS Identity and Access Management (IAM) Account Summary using SQL

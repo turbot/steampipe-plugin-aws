@@ -2,9 +2,9 @@ package aws
 
 import (
 	"context"
+
 	"github.com/aws/aws-sdk-go-v2/service/rds"
 	"github.com/aws/aws-sdk-go-v2/service/rds/types"
-	rdsv1 "github.com/aws/aws-sdk-go/service/rds"
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -15,7 +15,7 @@ import (
 func tableAwsRDSPendingMaintenanceAction(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_rds_pending_maintenance_action",
-		Description: "Lists pending maintenance actions for Amazon RDS instances and clusters.",
+		Description: "AWS RDS Pending Maintenance Action",
 		List: &plugin.ListConfig{
 			Hydrate: listRDSMaintenanceActions,
 			Tags:    map[string]string{"service": "rds", "action": "DescribePendingMaintenanceActions"},
@@ -26,7 +26,7 @@ func tableAwsRDSPendingMaintenanceAction(_ context.Context) *plugin.Table {
 				},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(rdsv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_RDS_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "resource_identifier",
