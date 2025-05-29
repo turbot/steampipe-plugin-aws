@@ -11,12 +11,12 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v5/query_cache"
 )
 
-func tableAwsCostByResourceDaily(_ context.Context) *plugin.Table {
+func tableAwsCostByResourceHourly(_ context.Context) *plugin.Table {
 	return &plugin.Table{
-		Name:        "aws_cost_by_resource_daily",
-		Description: "AWS Cost Explorer - Cost by Resource (Daily)",
+		Name:        "aws_cost_by_resource_hourly",
+		Description: "AWS Cost Explorer - Cost by Resource (Hourly)",
 		List: &plugin.ListConfig{
-			Hydrate: listCostByResourceDaily,
+			Hydrate: listCostByResourceHourly,
 			Tags:    map[string]string{"service": "ce", "action": "GetCostAndUsageWithResources"},
 			KeyColumns: plugin.KeyColumnSlice{
 				{
@@ -75,7 +75,7 @@ func tableAwsCostByResourceDaily(_ context.Context) *plugin.Table {
 	}
 }
 
-func listCostByResourceDaily(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listCostByResourceHourly(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create session
 	svc, err := CostExplorerClient(ctx, d)
 	if err != nil {
@@ -83,7 +83,7 @@ func listCostByResourceDaily(ctx context.Context, d *plugin.QueryData, h *plugin
 		return nil, err
 	}
 
-	params := buildCostByResourceInput("DAILY", d)
+	params := buildCostByResourceInput("HOURLY", d)
 
 	// We must have to provide a single filter value to make the API call
 	if params.Filter == nil {
@@ -94,8 +94,6 @@ func listCostByResourceDaily(ctx context.Context, d *plugin.QueryData, h *plugin
 		}
 		params.Filter = defaultFilter
 	}
-
-	plugin.Logger(ctx).Error("Here ====>>>", *params.Filter.Dimensions)
 
 	// List call
 	for {
