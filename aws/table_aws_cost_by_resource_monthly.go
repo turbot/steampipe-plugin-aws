@@ -80,12 +80,6 @@ func tableAwsCostByResourceMonthly(_ context.Context) *plugin.Table {
 }
 
 func listCostByResourceMonthly(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	// Create session
-	svc, err := CostExplorerClient(ctx, d)
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_cost_by_resource_monthly.listCostByResourceMonthly", "client_error", err)
-		return nil, err
-	}
 
 	params := buildCostByResourceInput("MONTHLY", d)
 
@@ -100,31 +94,7 @@ func listCostByResourceMonthly(ctx context.Context, d *plugin.QueryData, h *plug
 		params.Filter = defaultFilter
 	}
 
-	// List call
-	for {
-		output, err := svc.GetCostAndUsageWithResources(ctx, params)
-		if err != nil {
-			plugin.Logger(ctx).Error("aws_cost_by_resource_monthly.listCostByResourceMonthly", "api_error", err)
-			return nil, err
-		}
-
-		// Stream the results
-		for _, row := range buildCEMetricRows(ctx, (*costexplorer.GetCostAndUsageOutput)(output), nil) {
-			d.StreamListItem(ctx, row)
-
-			if d.RowsRemaining(ctx) == 0 {
-				return nil, nil
-			}
-		}
-
-		// Get more pages if there are any
-		if output.NextPageToken == nil {
-			break
-		}
-		params.NextPageToken = output.NextPageToken
-	}
-
-	return nil, nil
+  return streamCostAndUsageByResource(ctx, d, params)
 }
 
 //// Common Functions used by aws_cost_by_resource_* tables ////
@@ -241,4 +211,40 @@ func getDefaultFilterValue(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	}
 
 	return filter, nil
+}
+
+func streamCostAndUsageByResource(ctx context.Context, d *plugin.QueryData, params *costexplorer.GetCostAndUsageWithResourcesInput) (interface{}, error) {
+  // Create session
+	svc, err := CostExplorerClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("streamCostAndUsageByResource", "client_error", err)
+		return nil, err
+	}
+
+  	// List call
+	for {
+		output, err := svc.GetCostAndUsageWithResources(ctx, params)
+		if err != nil {
+			plugin.Logger(ctx).Error("streamCostAndUsageByResource", "api_error", err)
+			return nil, err
+		}
+
+		// Stream the results
+		for _, row := range buildCEMetricRows(ctx, (*costexplorer.GetCostAndUsageOutput)(output), nil) {
+			d.StreamListItem(ctx, row)
+
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
+		}
+
+		// Get more pages if there are any
+		if output.NextPageToken == nil {
+			break
+		}
+		params.NextPageToken = output.NextPageToken
+	}
+
+	return nil, nil
+
 }

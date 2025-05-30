@@ -3,8 +3,6 @@ package aws
 import (
 	"context"
 
-	"github.com/aws/aws-sdk-go-v2/service/costexplorer"
-
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -76,12 +74,6 @@ func tableAwsCostByResourceDaily(_ context.Context) *plugin.Table {
 }
 
 func listCostByResourceDaily(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	// Create session
-	svc, err := CostExplorerClient(ctx, d)
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_cost_by_resource_daily.listCostByResourceDaily", "client_error", err)
-		return nil, err
-	}
 
 	params := buildCostByResourceInput("DAILY", d)
 
@@ -96,30 +88,5 @@ func listCostByResourceDaily(ctx context.Context, d *plugin.QueryData, h *plugin
 		params.Filter = defaultFilter
 	}
 
-	// List call
-	for {
-		output, err := svc.GetCostAndUsageWithResources(ctx, params)
-		if err != nil {
-			plugin.Logger(ctx).Error("aws_cost_by_resource_daily.listCostByResourceDaily", "api_error", err)
-			return nil, err
-		}
-
-		// Stream the results
-		for _, row := range buildCEMetricRows(ctx, (*costexplorer.GetCostAndUsageOutput)(output), nil) {
-			d.StreamListItem(ctx, row)
-
-			if d.RowsRemaining(ctx) == 0 {
-				return nil, nil
-			}
-		}
-
-		// Get more pages if there are any
-		if output.NextPageToken == nil {
-			break
-		}
-		params.NextPageToken = output.NextPageToken
-	}
-
-	return nil, nil
+	return streamCostAndUsageByResource(ctx, d, params)
 }
-
