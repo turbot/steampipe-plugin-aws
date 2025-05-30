@@ -79,7 +79,7 @@ func listCostByResourceDaily(ctx context.Context, d *plugin.QueryData, h *plugin
 	// Create session
 	svc, err := CostExplorerClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("listCostByResourceDaily", "client_error", err)
+		plugin.Logger(ctx).Error("aws_cost_by_resource_daily.listCostByResourceDaily", "client_error", err)
 		return nil, err
 	}
 
@@ -90,18 +90,17 @@ func listCostByResourceDaily(ctx context.Context, d *plugin.QueryData, h *plugin
 		// default filter value
 		defaultFilter, err := getDefaultFilterValue(ctx, d, h)
 		if err != nil {
+			plugin.Logger(ctx).Error("aws_cost_by_resource_daily.listCostByResourceDaily", "getDefaultFilterValue", err)
 			return nil, err
 		}
 		params.Filter = defaultFilter
 	}
 
-	plugin.Logger(ctx).Error("Here ====>>>", *params.Filter.Dimensions)
-
 	// List call
 	for {
 		output, err := svc.GetCostAndUsageWithResources(ctx, params)
 		if err != nil {
-			plugin.Logger(ctx).Error("listCostByResourceDaily", "api_error", err)
+			plugin.Logger(ctx).Error("aws_cost_by_resource_daily.listCostByResourceDaily", "api_error", err)
 			return nil, err
 		}
 

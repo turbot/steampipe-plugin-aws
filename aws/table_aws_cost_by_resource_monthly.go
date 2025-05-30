@@ -71,7 +71,8 @@ func tableAwsCostByResourceMonthly(_ context.Context) *plugin.Table {
 					Name:        "dimension_value",
 					Description: "The value of the dimension key.",
 					Type:        proto.ColumnType_STRING,
-					Transform:   transform.FromField("dimension_value"),
+					Hydrate:     getDimensionValue,
+					Transform:   transform.FromValue(),
 				},
 			}),
 		),
@@ -82,7 +83,7 @@ func listCostByResourceMonthly(ctx context.Context, d *plugin.QueryData, h *plug
 	// Create session
 	svc, err := CostExplorerClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("listCostByResourceMonthly", "client_error", err)
+		plugin.Logger(ctx).Error("aws_cost_by_resource_monthly.listCostByResourceMonthly", "client_error", err)
 		return nil, err
 	}
 
@@ -93,6 +94,7 @@ func listCostByResourceMonthly(ctx context.Context, d *plugin.QueryData, h *plug
 		// default filter value
 		defaultFilter, err := getDefaultFilterValue(ctx, d, h)
 		if err != nil {
+			plugin.Logger(ctx).Error("aws_cost_by_resource_monthly.listCostByResourceMonthly", "getDefaultFilterValue", err)
 			return nil, err
 		}
 		params.Filter = defaultFilter
@@ -102,7 +104,7 @@ func listCostByResourceMonthly(ctx context.Context, d *plugin.QueryData, h *plug
 	for {
 		output, err := svc.GetCostAndUsageWithResources(ctx, params)
 		if err != nil {
-			plugin.Logger(ctx).Error("listCostByResourceMonthly", "api_error", err)
+			plugin.Logger(ctx).Error("aws_cost_by_resource_monthly.listCostByResourceMonthly", "api_error", err)
 			return nil, err
 		}
 
@@ -125,6 +127,8 @@ func listCostByResourceMonthly(ctx context.Context, d *plugin.QueryData, h *plug
 	return nil, nil
 }
 
+//// Common Functions used by aws_cost_by_resource_* tables ////
+
 // dimension_value is not available in the response, so we need to get it from the query data else the default dimension value(caller account id) will be used.
 func getDimensionValue(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	dimensionValue := d.EqualsQualString("dimension_value")
@@ -133,7 +137,7 @@ func getDimensionValue(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 		return dimensionValue, nil
 	}
 
-  commonData, err := getCommonColumns(ctx, d, h)
+	commonData, err := getCommonColumns(ctx, d, h)
 	if err != nil {
 		return nil, err
 	}
@@ -207,48 +211,6 @@ func buildCostByResourceInput(granularity string, d *plugin.QueryData) *costexpl
 		}
 		filters = append(filters, filter)
 	}
-
-	// Only process key columns if they exist
-	// if d.Table != nil && d.Table.List != nil && d.Table.List.KeyColumns != nil {
-	// 	for _, keyQual := range d.Table.List.KeyColumns {
-	// 		if keyQual.Name == "" || (keyQual.Name == "resource_id" && d.Quals["resource_id"] != nil) {
-	// 			continue
-	// 		}
-
-	// 		filterQual := d.Quals[keyQual.Name]
-	// 		if filterQual == nil {
-	// 			continue
-	// 		}
-
-	// 		for _, qual := range filterQual.Quals {
-	// 			if qual == nil || qual.Value == nil {
-	// 				continue
-	// 			}
-
-	// 			value := qual.Value
-	// 			switch qual.Operator {
-	// 			case "=":
-	// 				filter := types.Expression{
-	// 					Dimensions: &types.DimensionValues{
-	// 						Key:    types.Dimension(strings.ToUpper(keyQual.Name)),
-	// 						Values: []string{value.GetStringValue()},
-	// 					},
-	// 				}
-	// 				filters = append(filters, filter)
-	// 			case "<>":
-	// 				filter := types.Expression{
-	// 					Not: &types.Expression{
-	// 						Dimensions: &types.DimensionValues{
-	// 							Key:    types.Dimension(strings.ToUpper(keyQual.Name)),
-	// 							Values: []string{value.GetStringValue()},
-	// 						},
-	// 					},
-	// 				}
-	// 				filters = append(filters, filter)
-	// 			}
-	// 		}
-	// 	}
-	// }
 
 	// Add filters to params if we have any
 	if len(filters) > 1 {
