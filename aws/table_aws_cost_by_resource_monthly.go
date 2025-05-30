@@ -194,7 +194,7 @@ func buildCostByResourceInput(granularity string, d *plugin.QueryData) *costexpl
 	return params
 }
 
-// Get default filter value wilt Dimension "REGION" and value is the current account ID
+// Get default filter value with Dimension "LinkedAccount" and value is the current account ID
 func getDefaultFilterValue(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (*types.Expression, error) {
 
 	commonData, err := getCommonColumns(ctx, d, h)
