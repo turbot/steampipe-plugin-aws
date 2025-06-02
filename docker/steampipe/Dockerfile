@@ -44,6 +44,9 @@ ENV STEAMPIPE_LOG_LEVEL=TRACE
 # Install the Steampipe engine
 RUN sudo /bin/sh -c "$(curl -fsSL https://steampipe.io/install/steampipe.sh)"
 
+# Install the csv pluginm its used to testing purposes
+RUN steampipe plugin install csv
+
 # Define plugin installation path
 ENV PLUGIN_DIR=/home/steampipe/.steampipe/plugins/hub.steampipe.io/plugins/turbot/aws@latest
 
