@@ -333,8 +333,8 @@ github.com/aws/aws-sdk-go-v2/service/emr v1.39.5 h1:ni+E9GfbQ8CzjYSlJ+WbNYX7SAsL
 github.com/aws/aws-sdk-go-v2/service/emr v1.39.5/go.mod h1:7WusX+O5pwTnx2yobUO/P1C5HlBibmrQb5gKEPFjTYM=
 github.com/aws/aws-sdk-go-v2/service/eventbridge v1.30.4 h1:Vz4ilZcVXCR9yatX5yfMrkBldYggtkih3h7woHvzu5Q=
 github.com/aws/aws-sdk-go-v2/service/eventbridge v1.30.4/go.mod h1:aIINXlt2xXhMeRsyCsLDUDohI8AdDm92gY9nIB6pv0M=
-github.com/aws/aws-sdk-go-v2/service/firehose v1.28.5 h1:7h4RJRnBULtax1Tk6iSYsIPuBcV5mTWhWbK1/qfyGj0=
-github.com/aws/aws-sdk-go-v2/service/firehose v1.28.5/go.mod h1:78F+4pVJf6Qlg7a34oR2I2SpM/v0EUSAL/htTZ9trg4=
+github.com/aws/aws-sdk-go-v2/service/firehose v1.37.4 h1:n4Txba4IeWG8b/OeylAasWWCemjrULcwMGXM1ES2n3E=
+github.com/aws/aws-sdk-go-v2/service/firehose v1.37.4/go.mod h1:6i3MXkR7cPgCVGgtCwxl7NEmdgkYgNRUmGGONMo9ehc=
 github.com/aws/aws-sdk-go-v2/service/fms v1.31.4 h1:gY+Dp2QdphY6m5IVkETmsNauYztd62piL9az5B6rVtQ=
 github.com/aws/aws-sdk-go-v2/service/fms v1.31.4/go.mod h1:X4DjA4sm8cobhR9DtHn947+dLYxU1oWq3zwRZUmFSLo=
 github.com/aws/aws-sdk-go-v2/service/fsx v1.43.4 h1:PzDEW/yt1NfRDIsRsUiNNbYZFdlyPBUyxtrKmpw6vv4=
