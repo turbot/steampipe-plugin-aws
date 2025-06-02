@@ -65,3 +65,104 @@ from
 where
   compliance_status is not null;
 ```
+
+### Filter Resources by Resource Types
+
+Filter results to retrieve only resources from specific AWS services or resource types. The `resource_types` column accepts a JSON array of strings in two formats:
+
+- `service` — All resources from a service (e.g., `"ec2"`)
+- `service:resourceType` — Specific resource type (e.g., `"ec2:instance"`)
+
+#### Examples
+
+**Get tags for EC2 instances only:**
+```sql+postgres
+select
+  name,
+  arn,
+  tags,
+  region
+from
+  aws_tagging_resource
+where
+  resource_types = '["ec2:instance"]';
+```
+
+```sql+sqlite
+select
+  name,
+  arn,
+  tags,
+  region
+from
+  aws_tagging_resource
+where
+  resource_types = '["ec2:instance"]';
+```
+
+**Get tags for multiple resource types:**
+```sql+postgres
+select
+  name,
+  arn,
+  tags,
+  region
+from
+  aws_tagging_resource
+where
+  resource_types = '["ec2:instance", "s3:bucket", "rds:db"]';
+```
+
+```sql+sqlite
+select
+  name,
+  arn,
+  tags,
+  region
+from
+  aws_tagging_resource
+where
+  resource_types = '["ec2:instance", "s3:bucket", "rds:db"]';
+```
+
+**Get tags for all resources in specific services:**
+```sql+postgres
+select
+  name,
+  arn,
+  tags,
+  region
+from
+  aws_tagging_resource
+where
+  resource_types = '["lambda", "dynamodb"]';
+```
+
+```sql+sqlite
+select
+  name,
+  arn,
+  tags,
+  region
+from
+  aws_tagging_resource
+where
+  resource_types = '["lambda", "dynamodb"]';
+```
+
+#### Common Resource Types
+
+| Category | Resource Types |
+|----------|----------------|
+| Compute | `["ec2:instance", "lambda:function", "ecs:cluster", "eks:cluster"]` |
+| Storage | `["s3:bucket", "ec2:volume", "elasticfilesystem:file-system"]` |
+| Database | `["rds:db", "rds:cluster", "dynamodb:table"]` |
+| Network | `["ec2:vpc", "ec2:subnet", "ec2:security-group", "elasticloadbalancing:loadbalancer"]` |
+| Security | `["iam:role", "iam:policy", "kms:key"]` |
+| Monitoring | `["logs:log-group", "cloudwatch:alarm", "cloudwatch:dashboard"]` |
+
+**Notes:**
+- Resource types must be specified as a JSON array, even for single values
+- Service and resource type names are case-sensitive and lowercase
+- For a complete list of supported services, see [AWS Resource Groups Tagging API supported services](https://docs.aws.amazon.com/resourcegroupstagging/latest/APIReference/supported-services.html)
+- You can also query the [`aws_resource_explorer_supported_resource_type`](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_resource_explorer_supported_resource_type) table to discover available resource types programmatically
