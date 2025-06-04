@@ -464,6 +464,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_redshiftserverless_workgroup":                             tableAwsRedshiftServerlessWorkgroup(ctx),
 			"aws_region":                                                   tableAwsRegion(ctx),
 			"aws_resource_explorer_index":                                  tableAWSResourceExplorerIndex(ctx),
+			"aws_resource_explorer_resource":                               tableAwsResourceExplorerResource(ctx),
 			"aws_resource_explorer_search":                                 tableAWSResourceExplorerSearch(ctx),
 			"aws_resource_explorer_supported_resource_type":                tableAWSResourceExplorerSupportedResourceType(ctx),
 			"aws_rolesanywhere_profile":                                    tableAwsRolesAnywhereProfile(ctx),
