@@ -48,10 +48,9 @@ func tableAwsResourceExplorerResource(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 			},
 			{
-				Name:        "resource_region",
+				Name:        "region",
 				Description: "The AWS Region in which the resource was created and exists.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("Region"),
 			},
 			{
 				Name:        "resource_type",
