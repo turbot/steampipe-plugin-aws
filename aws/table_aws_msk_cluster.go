@@ -2,6 +2,8 @@ package aws
 
 import (
 	"context"
+	"strings"
+	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/kafka"
@@ -101,12 +103,14 @@ func tableAwsMSKCluster(_ context.Context) *plugin.Table {
 				Description: "A string containing one or more hostname:port pairs of Kafka brokers suitable for use with Apache Kafka clients.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getKafkaClusterBootstrapBrokers,
+				Transform:   transform.FromField("BootstrapBrokerString"),
 			},
 			{
 				Name:        "bootstrap_broker_string_tls",
 				Description: "A string containing one or more hostname:port pairs of Kafka brokers suitable for TLS authentication.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getKafkaClusterBootstrapBrokers,
+				Transform:   transform.FromField("BootstrapBrokerStringTls"),
 			},
 			{
 				Name:        "provisioned",
@@ -342,15 +346,71 @@ func getKafkaClusterBootstrapBrokers(ctx context.Context, d *plugin.QueryData, h
 		return nil, nil
 	}
 
-	params := &kafka.GetBootstrapBrokersInput{
+	describeParams := &kafka.DescribeClusterV2Input{
 		ClusterArn: &clusterArn,
 	}
-
-	op, err := svc.GetBootstrapBrokers(ctx, params)
+	describeResp, err := svc.DescribeClusterV2(ctx, describeParams)
 	if err != nil {
-		logger.Error("aws_msk_cluster.getKafkaClusterBootstrapBrokers", "api_error", err)
+		logger.Error("aws_msk_cluster.getKafkaClusterBootstrapBrokers", "describe_cluster_api_error", err)
+		return nil, err
+	}
+	brokerCount := int(*describeResp.ClusterInfo.Provisioned.NumberOfBrokerNodes)
+
+	bootstrapParams := &kafka.GetBootstrapBrokersInput{
+		ClusterArn: &clusterArn,
+	}
+	bootstrapResp, err := svc,GetBootstrapBrokers(ctx, bootstrapParams)
+	if err != nil {
+		logger.Error("aws_msk_cluster.getKafkaClusterBootstrapBrokers", "get_bootstrap_api_error", err)
 		return nil, err
 	}
 
-	return op, nil
+	samplingBroker := ""
+	if bootstrapResp.BootstrapBrokerString != nil {
+		parts := strings.Split(*bootstrapResp.BootstrapBrokerString, ",")
+		if len(parts) > 0 {
+			samplingBroker = parts[0]
+		}
+	}
+	if samplingBroker == "" {
+		return bootstrapResp, nil
+	}
+
+	var plainPort = "9092"
+	var tlsPort = "9094"
+	if bootstrapResp.BootstrapBrokerString != nil {
+		if parts := strings.Split(*bootstrapResp.BootstrapBrokerString, ":"); len(parts) == 2 {
+			plainPort = parts[1]
+		}
+	}
+	if bootstrapResp.BootstrapBrokerStringTls != nil {
+		if parts := strings.Split(*bootstrapResp.BootstrapBrokerStringTls, ":"); len(parts) == 2 {
+			tlsPort = parts[1]
+		}
+	}
+
+	hostOnly := strings.Split(samplingBroker, ":")[0]
+	dotParts := strings.Split(hostOnly, ".", 2)
+	if len(dotParts) != 2 {
+		logger.Warn("aws_msk_cluster.getKafkaClusterBootstrapBrokers", "invalid_hostname", samplingBroker)
+		return nil, nil
+	}
+	suffix := dotParts[1]
+
+	plainBrokers := make([]string, brokerCount)
+	tlsBrokers := make([]string, brokerCount)
+	for i := 1; i <= brokerCount; i++ {
+		plainBrokers[i-1] = fmt.Sprintf("b-%d.%s:%s", i, suffix, plainPort)
+		tlsBrokers[i-1] = fmt.Sprintf("b-%d.%s:%s", i, suffix, tlsPort)
+	}
+
+	result := struct {
+		BootstrapBrokerString string
+		BootstrapBrokerStringTls string
+	}{
+		BootstrapBrokerString: strings.Join(plainBrokers, ","),
+		BootstrapBrokerStringTls: strings.Join(tlsBrokers, ","),
+	}
+
+	return result, nil
 }
