@@ -17,7 +17,7 @@ func tableAwsResourceExplorerResource(_ context.Context) *plugin.Table {
 		Description: "AWS Resource Explorer Resource provides information about resources across regions in your AWS account.",
 		List: &plugin.ListConfig{
 			Hydrate:    listResourceExplorerResources,
-			Tags:       map[string]string{"service": "resource-explorer-2", "action": "Search"},
+			Tags:       map[string]string{"service": "resource-explorer-2", "action": "ListResources"},
 			KeyColumns: plugin.OptionalColumns([]string{"filter"}),
 		},
 		Columns: []*plugin.Column{
@@ -38,7 +38,7 @@ func tableAwsResourceExplorerResource(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "filter",
-				Description: "The AWS account that owns the resource.",
+				Description: "The string that contains the search keywords, prefixes, and operators to control the results that can be returned by a Searchoperation.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromQual("filter"),
 			},
