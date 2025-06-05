@@ -359,7 +359,7 @@ func getKafkaClusterBootstrapBrokers(ctx context.Context, d *plugin.QueryData, h
 	bootstrapParams := &kafka.GetBootstrapBrokersInput{
 		ClusterArn: &clusterArn,
 	}
-	bootstrapResp, err := svc,GetBootstrapBrokers(ctx, bootstrapParams)
+	bootstrapResp, err := svc.GetBootstrapBrokers(ctx, bootstrapParams)
 	if err != nil {
 		logger.Error("aws_msk_cluster.getKafkaClusterBootstrapBrokers", "get_bootstrap_api_error", err)
 		return nil, err
@@ -390,7 +390,7 @@ func getKafkaClusterBootstrapBrokers(ctx context.Context, d *plugin.QueryData, h
 	}
 
 	hostOnly := strings.Split(samplingBroker, ":")[0]
-	dotParts := strings.Split(hostOnly, ".", 2)
+	dotParts := strings.SplitN(hostOnly, ".", 2)
 	if len(dotParts) != 2 {
 		logger.Warn("aws_msk_cluster.getKafkaClusterBootstrapBrokers", "invalid_hostname", samplingBroker)
 		return nil, nil
