@@ -12,15 +12,9 @@ AWS Resource Explorer is a resource search and discovery service that helps you 
 
 The `aws_resource_explorer_resource` table provides insights into resources indexed by AWS Resource Explorer. As a cloud administrator or DevOps engineer, you can use this table to explore and discover resources across your AWS account, helping with tasks such as:
 
-- Identifying resources by type, region, or tags
-- Auditing resource metadata and properties
-- Finding resources with specific configurations or attributes
-- Cross-region resource discovery and management
-
 ## Examples
 
 ### Basic info
-
 Get a simple overview of resources with essential fields.
 
 ```sql+postgres
@@ -48,7 +42,6 @@ limit 10;
 ```
 
 ### List all EC2 instances
-
 Find all EC2 instances across regions in your account.
 
 ```sql+postgres
@@ -82,7 +75,6 @@ order by
 ```
 
 ### Find resources by tag
-
 Locate resources that have specific tags.
 
 ```sql+postgres
@@ -112,7 +104,6 @@ where
 ```
 
 ### Count resources by type and region
-
 Get a summary of resource distribution across types and regions.
 
 ```sql+postgres
