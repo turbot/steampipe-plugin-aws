@@ -38,7 +38,7 @@ func tableAwsResourceExplorerResource(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "filter",
-				Description: "The string that contains the search keywords, prefixes, and operators to control the results that can be returned by a Searchoperation.",
+				Description: "The string that contains the search keywords, prefixes, and operators to control the results that can be returned by a Search operation.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromQual("filter"),
 			},
