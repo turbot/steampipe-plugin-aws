@@ -128,7 +128,8 @@ func buildCostByResourceInput(granularity string, d *plugin.QueryData) *costexpl
 
 	now := time.Now()
 	endTime := now.Format(timeFormat)
-	startDate := getCEStartDateForGranularityWithResources(granularity)
+  // default to last 14 days
+	startDate := getCEStartDateForGranularity("")
 
 	startTime := startDate.Format(timeFormat)
 
