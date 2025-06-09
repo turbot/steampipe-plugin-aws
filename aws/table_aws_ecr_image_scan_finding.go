@@ -29,7 +29,7 @@ func tableAwsEcrImageScanFinding(_ context.Context) *plugin.Table {
 			},
 			// Ideally image_tag and image_digest could both be used as optional
 			// key columns, but the query planner only works with required key
-			// columns when there are multiple. We chose image_tag instead of
+			// columns when there are multiple. We choose image_tag instead of
 			// image_digest as it's more common/friendly to use.
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "repository_name", Require: plugin.Required},
@@ -130,10 +130,6 @@ func listAwsEcrImageScanFindings(ctx context.Context, d *plugin.QueryData, h *pl
 	imageDigest := d.EqualsQuals["image_digest"]
 	repositoryName := d.EqualsQuals["repository_name"]
 
-	if imageTag == nil && imageDigest == nil {
-		return nil, errors.New("image_tag or image_digest must be provided")
-	}
-	
 	// Limiting the results
 	maxLimit := int32(1000)
 	if d.QueryContext.Limit != nil {
