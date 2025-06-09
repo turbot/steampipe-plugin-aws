@@ -368,12 +368,6 @@ func doGetBucketRegion(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	return bucketRegion, nil
 }
 
-func getBucketRegion(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	bucketName := h.Item.(types.Bucket).Name
-
-	return doGetBucketRegion(ctx, d, h, *bucketName)
-}
-
 func getS3BucketEventNotificationConfigurations(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	bucket := h.Item.(types.Bucket)
 	bucketName := bucket.Name
