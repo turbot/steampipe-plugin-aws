@@ -7,8 +7,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs"
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs/types"
 
-	cloudwatchlogsv1 "github.com/aws/aws-sdk-go/service/cloudwatchlogs"
-
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -48,7 +46,7 @@ func tableAwsCloudwatchLogMetricFilter(_ context.Context) *plugin.Table {
 				},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(cloudwatchlogsv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_LOGS_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -236,11 +234,12 @@ func logMetricTransformationsData(ctx context.Context, d *transform.TransformDat
 	metricFilterData := d.HydrateItem.(types.MetricFilter)
 
 	if len(metricFilterData.MetricTransformations) > 0 {
-		if d.Param.(string) == "MetricName" {
+		switch param := d.Param.(string); param {
+		case "MetricName":
 			return metricFilterData.MetricTransformations[0].MetricName, nil
-		} else if d.Param.(string) == "MetricNamespace" {
+		case "MetricNamespace":
 			return metricFilterData.MetricTransformations[0].MetricNamespace, nil
-		} else {
+		case "MetricValue":
 			return metricFilterData.MetricTransformations[0].MetricValue, nil
 		}
 	}

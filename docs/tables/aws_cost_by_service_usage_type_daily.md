@@ -12,10 +12,13 @@ The AWS Cost Explorer Service usage type daily is a feature of AWS Cost Manageme
 
 The `aws_cost_by_service_usage_type_daily` table in Steampipe provides you with information about daily usage type and costs for each AWS service within AWS Cost Explorer. This table allows you, as a DevOps engineer, financial analyst, or cloud architect, to query daily-specific details, including usage amount, usage unit, and the corresponding service cost. You can utilize this table to gather insights on daily usage and costs, such as identifying high-cost services, tracking usage patterns, and managing your AWS expenses. The schema outlines the various attributes of the AWS service cost, including the service name, usage type, usage amount, usage start and end dates, and the unblended cost.
 
-Amazon Cost Explorer helps you visualize, understand, and manage your AWS costs and usage.  The `aws_cost_by_service_usage_type_daily` table provides you with a simplified view of cost for services in your account (or all linked accounts when run against the organization master), summarized by day, for the last year.  
+Amazon Cost Explorer helps you visualize, understand, and manage your AWS costs and usage.  The `aws_cost_by_service_usage_type_daily` table provides you with a simplified view of cost for services in your account (or all linked accounts when run against the organization master), summarized by day, for the last year.
 
 **Important Notes**
 - The [pricing for the Cost Explorer API](https://aws.amazon.com/aws-cost-management/pricing/) is per API request - Each request you make will incur a cost of $0.01.
+- This table supports optional quals. Queries with optional quals are optimised to reduce query time and cost. Optional quals are supported for the following columns:
+  - `period_start` with supported operators `=`, `>=`, `>`, `<=`, and `<`.
+  - `period_end` with supported operators `=`, `>=`, `>`, `<=`, and `<`.
 
 ## Examples
 
@@ -32,7 +35,7 @@ select
   amortized_cost_amount::numeric::money,
   net_unblended_cost_amount::numeric::money,
   net_amortized_cost_amount::numeric::money
-from 
+from
   aws_cost_by_service_usage_type_daily
 order by
   service,
@@ -49,7 +52,7 @@ select
   CAST(amortized_cost_amount AS NUMERIC) AS amortized_cost_amount,
   CAST(net_unblended_cost_amount AS NUMERIC) AS net_unblended_cost_amount,
   CAST(net_amortized_cost_amount AS NUMERIC) AS net_amortized_cost_amount
-from 
+from
   aws_cost_by_service_usage_type_daily
 order by
   service,
@@ -68,7 +71,7 @@ select
   min(unblended_cost_amount)::numeric::money as min,
   max(unblended_cost_amount)::numeric::money as max,
   avg(unblended_cost_amount)::numeric::money as average
-from 
+from
   aws_cost_by_service_usage_type_daily
 group by
   service,
@@ -85,7 +88,7 @@ select
   min(unblended_cost_amount) as min,
   max(unblended_cost_amount) as max,
   avg(unblended_cost_amount) as average
-from 
+from
   aws_cost_by_service_usage_type_daily
 group by
   service,
@@ -104,7 +107,7 @@ select
   usage_type,
   sum(unblended_cost_amount)::numeric::money as sum,
   avg(unblended_cost_amount)::numeric::money as average
-from 
+from
   aws_cost_by_service_usage_type_daily
 group by
   service,
@@ -120,7 +123,7 @@ select
   usage_type,
   sum(unblended_cost_amount) as sum,
   avg(unblended_cost_amount) as average
-from 
+from
   aws_cost_by_service_usage_type_daily
 group by
   service,
@@ -140,7 +143,7 @@ select
   usage_type,
   sum(unblended_cost_amount)::numeric::money as sum,
   avg(unblended_cost_amount)::numeric::money as average
-from 
+from
   aws_cost_by_service_usage_type_daily
 group by
   service,
@@ -156,7 +159,7 @@ select
   usage_type,
   sum(unblended_cost_amount) as sum,
   avg(unblended_cost_amount) as average
-from 
+from
   aws_cost_by_service_usage_type_daily
 group by
   service,
@@ -164,4 +167,47 @@ group by
 order by
   sum desc
 limit 10;
+```
+
+### Min, Max, and average daily blended_cost_amount by service and usage type for a specific time range
+Gain insights into your AWS service usage by evaluating the minimum, maximum, and average monthly blended costs associated with each service and usage type.
+
+```sql+postgres
+select
+  service,
+  usage_type,
+  min(blended_cost_amount)::numeric::money as min,
+  max(blended_cost_amount)::numeric::money as max,
+  avg(blended_cost_amount)::numeric::money as average
+from
+  aws_cost_by_service_usage_type_daily
+where
+  period_start = '2023-05-01T05:30:00+05:30'
+  and period_end = '2023-05-05T05:30:00+05:30'
+group by
+  service,
+  usage_type
+order by
+  service,
+  usage_type;
+```
+
+```sql+sqlite
+select
+  service,
+  usage_type,
+  min(cast(blended_cost_amount as numeric)) as min,
+  max(cast(blended_cost_amount as numeric)) as max,
+  avg(cast(blended_cost_amount as numeric)) as average
+from
+  aws_cost_by_service_usage_type_daily
+where
+  period_start = '2023-05-01T05:30:00+05:30'
+  and period_end = '2023-05-05T05:30:00+05:30'
+group by
+  service,
+  usage_type
+order by
+  service,
+  usage_type;
 ```

@@ -10,8 +10,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/kms"
 	"github.com/aws/aws-sdk-go-v2/service/kms/types"
 
-	kmsv1 "github.com/aws/aws-sdk-go/service/kms"
-
 	"github.com/aws/smithy-go"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
@@ -37,7 +35,7 @@ func tableAwsKmsKey(ctx context.Context) *plugin.Table {
 			Hydrate: listKmsKeys,
 			Tags:    map[string]string{"service": "kms", "action": "ListKeys"},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(kmsv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_KMS_SERVICE_ID),
 		HydrateConfig: []plugin.HydrateConfig{
 			{
 				Func: getAwsKmsKeyData,

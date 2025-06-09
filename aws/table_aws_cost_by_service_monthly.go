@@ -12,6 +12,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/query_cache"
 )
 
 func tableAwsCostByServiceMonthly(_ context.Context) *plugin.Table {
@@ -22,7 +23,23 @@ func tableAwsCostByServiceMonthly(_ context.Context) *plugin.Table {
 			Hydrate: listCostByServiceMonthly,
 			Tags:    map[string]string{"service": "ce", "action": "GetCostAndUsage"},
 			KeyColumns: plugin.KeyColumnSlice{
-				{Name: "service", Operators: []string{"=", "<>"}, Require: plugin.Optional},
+				{
+					Name:      "service",
+					Operators: []string{"=", "<>"},
+					Require:   plugin.Optional,
+				},
+				{
+					Name:       "period_start",
+					Require:    plugin.Optional,
+					Operators:  []string{">", ">=", "=", "<", "<="},
+					CacheMatch: query_cache.CacheMatchExact,
+				},
+				{
+					Name:       "period_end",
+					Require:    plugin.Optional,
+					Operators:  []string{">", ">=", "=", "<", "<="},
+					CacheMatch: query_cache.CacheMatchExact,
+				},
 			},
 		},
 		Columns: awsGlobalRegionColumns(
@@ -53,13 +70,26 @@ func buildCostByServiceInput(granularity string, d *plugin.QueryData) *costexplo
 	endTime := time.Now().Format(timeFormat)
 	startTime := getCEStartDateForGranularity(granularity).Format(timeFormat)
 
+	st, et := getSearchStartTimeAndSearchEndTime(d, granularity)
+	if st != "" {
+		startTime = st
+	}
+	if et != "" {
+		endTime = et
+	}
+
+	selectedMetrics := AllCostMetrics()
+	if len(getMetricsByQueryContext(d.QueryContext)) > 0 {
+		selectedMetrics = getMetricsByQueryContext(d.QueryContext)
+	}
+
 	params := &costexplorer.GetCostAndUsageInput{
 		TimePeriod: &types.DateInterval{
 			Start: aws.String(startTime),
 			End:   aws.String(endTime),
 		},
 		Granularity: types.Granularity(granularity),
-		Metrics:     AllCostMetrics(),
+		Metrics:     selectedMetrics,
 		GroupBy: []types.GroupDefinition{
 			{
 				Type: types.GroupDefinitionType("DIMENSION"),
@@ -72,7 +102,7 @@ func buildCostByServiceInput(granularity string, d *plugin.QueryData) *costexplo
 
 	for _, keyQual := range d.Table.List.KeyColumns {
 		filterQual := d.Quals[keyQual.Name]
-		if filterQual == nil {
+		if filterQual == nil || keyQual.Name != "service" {
 			continue
 		}
 		for _, qual := range filterQual.Quals {

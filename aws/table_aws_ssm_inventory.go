@@ -8,8 +8,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	"github.com/aws/aws-sdk-go-v2/service/ssm/types"
 
-	ssmv1 "github.com/aws/aws-sdk-go/service/ssm"
-
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -65,7 +63,7 @@ func tableAwsSSMInventory(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "ssm", "action": "GetInventorySchema"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(ssmv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_SSM_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "id",
@@ -433,12 +431,11 @@ func buildSSMInventoryFilter(ctx context.Context, quals *plugin.QueryData) ssm.G
 
 	shouldFilterKeyValueApplied := quals.EqualsQualString("filter_key") != "" && quals.EqualsQualString("filter_value") != ""
 
-	var filterValue, filterOperator = "", ""
+	var filterValue = ""
 
 	if quals.EqualsQualString("filter_value") != "" {
 		for _, q := range quals.Quals["filter_value"].Quals {
 			filterValue = q.Value.GetStringValue()
-			filterOperator = q.Operator
 		}
 	}
 
@@ -451,9 +448,10 @@ func buildSSMInventoryFilter(ctx context.Context, quals *plugin.QueryData) ssm.G
 					Values: []string{quals.EqualsQualString("instance_id")},
 				},
 			}
-			if q.Operator == "=" {
+			switch q.Operator {
+			case "=":
 				input.Filters[0].Type = types.InventoryQueryOperatorTypeEqual
-			} else if q.Operator == "<>" {
+			case "<>":
 				input.Filters[0].Type = types.InventoryQueryOperatorTypeNotEqual
 			}
 		}
@@ -492,9 +490,10 @@ func buildSSMInventoryFilter(ctx context.Context, quals *plugin.QueryData) ssm.G
 							Values: []string{value.(string)},
 						},
 					}
-					if q.Operator == "=" {
+					switch q.Operator {
+					case "=":
 						input.Filters[0].Type = types.InventoryQueryOperatorTypeEqual
-					} else if q.Operator == "<>" {
+					case "<>":
 						input.Filters[0].Type = types.InventoryQueryOperatorTypeNotEqual
 					}
 					input.Filters = append(input.Filters, inventoryFilter)
@@ -504,13 +503,18 @@ func buildSSMInventoryFilter(ctx context.Context, quals *plugin.QueryData) ssm.G
 					if shouldFilterKeyValueApplied {
 						inventoryFilter.Key = aws.String(value.(string))
 						inventoryFilter.Values = []string{filterValue}
-						if filterOperator == "=" {
+						switch q.Operator {
+						case "=":
 							inventoryFilter.Type = types.InventoryQueryOperatorTypeEqual
-						} else if filterOperator == "<>" {
+						case "<>":
 							inventoryFilter.Type = types.InventoryQueryOperatorTypeNotEqual
-						} else if filterOperator == "<" || filterOperator == "<=" {
+						case "<":
 							inventoryFilter.Type = types.InventoryQueryOperatorTypeLessThan
-						} else if filterOperator == ">" || filterOperator == ">=" {
+						case "<=":
+							inventoryFilter.Type = types.InventoryQueryOperatorTypeLessThan
+						case ">":
+							inventoryFilter.Type = types.InventoryQueryOperatorTypeGreaterThan
+						case ">=":
 							inventoryFilter.Type = types.InventoryQueryOperatorTypeGreaterThan
 						}
 						input.Filters = append(input.Filters, inventoryFilter)
@@ -519,9 +523,12 @@ func buildSSMInventoryFilter(ctx context.Context, quals *plugin.QueryData) ssm.G
 				// Supported type names are: AWS:InstanceInformation, AWS:PatchSummary. Default result type name is AWS:InstanceInformation.Supported pattern is ^(AWS|Custom):.*$
 				// https://docs.aws.amazon.com/systems-manager/latest/APIReference/API_ResultAttribute.html
 				case "type_name":
-					if q.Operator == "=" && quals.Table.Name == "aws_ssm_inventory" {
-						if value.(string) == "AWS:InstanceInformation" || value.(string) == "AWS:PatchSummary" || strings.HasPrefix(value.(string), "Custom:") {
-							input.ResultAttributes = []types.ResultAttribute{{TypeName: aws.String(value.(string))}}
+					switch q.Operator {
+					case "=":
+						if quals.Table.Name == "aws_ssm_inventory" {
+							if value.(string) == "AWS:InstanceInformation" || value.(string) == "AWS:PatchSummary" || strings.HasPrefix(value.(string), "Custom:") {
+								input.ResultAttributes = []types.ResultAttribute{{TypeName: aws.String(value.(string))}}
+							}
 						}
 					}
 				}
@@ -594,7 +601,8 @@ func getFilterKeyWithOperator(ctx context.Context, d *transform.TransformData) (
 	param := d.Param.(string)
 	data := d.KeyColumnQuals[param]
 	for _, q := range data {
-		if q.Operator == "=" {
+		switch q.Operator {
+		case "=":
 			return q.Value.GetStringValue(), nil
 		}
 	}

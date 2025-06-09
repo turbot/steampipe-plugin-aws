@@ -7,7 +7,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
-	ec2v1 "github.com/aws/aws-sdk-go/service/ec2"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -70,7 +69,7 @@ func tableAwsEc2LaunchTemplateVersion(_ context.Context) *plugin.Table {
 				},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(ec2v1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_EC2_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "launch_template_name",
@@ -225,7 +224,7 @@ func listEc2LaunchTemplateVersions(ctx context.Context, d *plugin.QueryData, h *
 	}
 
 	if launchTemplateName != "" && launchTemplateId != "" {
-		return nil, fmt.Errorf("Both LaunchtemplateName and LaunchTemplateId cannot be passed in the where clause")
+		return nil, fmt.Errorf("both 'LaunchtemplateName' and 'LaunchTemplateId' cannot be passed in the where clause")
 	}
 
 	// The aws_ec2_launch_template table is used as the parent hydrate because the LaunchTemplateId is not specified in the input parameter, and it will return only the latest and default version launch templates.

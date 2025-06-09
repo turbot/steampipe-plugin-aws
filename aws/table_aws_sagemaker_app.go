@@ -9,8 +9,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/sagemaker"
 	"github.com/aws/aws-sdk-go-v2/service/sagemaker/types"
 
-	sagemakerv1 "github.com/aws/aws-sdk-go/service/sagemaker"
-
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -25,7 +23,7 @@ func tableAwsSageMakerApp(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"name", "app_type", "domain_id", "user_profile_name"}),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ValidationException", "NotFoundException", "ResourceNotFound"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ValidationException", "NotFoundException", "ResourceNotFound", "UnknownOperationException"}),
 			},
 			Hydrate: getSageMakerApp,
 			Tags:    map[string]string{"service": "sagemaker", "action": "DescribeApp"},
@@ -45,7 +43,7 @@ func tableAwsSageMakerApp(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "sagemaker", "action": "DescribeApp"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(sagemakerv1.EndpointsID),
+		GetMatrixItemFunc: SupportedRegionMatrix(AWS_API_SAGEMAKER_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -191,6 +189,7 @@ func listSageMakerApps(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
+
 			plugin.Logger(ctx).Error("aws_sagemaker_app.listSageMakerApps", "api_error", err)
 			return nil, err
 		}

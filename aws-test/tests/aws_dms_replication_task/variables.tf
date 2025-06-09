@@ -91,7 +91,7 @@ resource "aws_dms_replication_instance" "named_test_resource" {
   multi_az                     = false
   preferred_maintenance_window = "sun:10:30-sun:14:30"
   publicly_accessible          = false
-  replication_instance_class   = "dms.t2.micro"
+  replication_instance_class   = "dms.t3.small"
   replication_instance_id      = var.resource_name
   replication_subnet_group_id  = aws_dms_replication_subnet_group.named_test_resource.id
   tags = {

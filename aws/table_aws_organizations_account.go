@@ -288,7 +288,7 @@ func listAllOusByParent(ctx context.Context, d *plugin.QueryData, svc *organizat
 		}
 
 		for _, unit := range output.OrganizationalUnits {
-			ouPath := strings.Replace(currentPath, "-", "_", -1) + "." + strings.Replace(*unit.Id, "-", "_", -1)
+			ouPath := strings.ReplaceAll(currentPath, "-", "_") + "." + strings.ReplaceAll(*unit.Id, "-", "_")
 			units = append(units, unit)
 
 			// Recursively list units for this child

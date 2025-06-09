@@ -16,6 +16,9 @@ Amazon Cost Explorer helps you visualize, understand, and manage your AWS costs 
 
 **Important Notes**
 - The [pricing for the Cost Explorer API](https://aws.amazon.com/aws-cost-management/pricing/) is per API request - Each request you make will incur a cost of $0.01.
+- This table supports optional quals. Queries with optional quals are optimised to reduce query time and cost. Optional quals are supported for the following columns:
+  - `period_start` with supported operators `=`, `>=`, `>`, `<=`, and `<`.
+  - `period_end` with supported operators `=`, `>=`, `>`, `<=`, and `<`.
 
 ## Examples
 
@@ -31,7 +34,7 @@ select
   amortized_cost_amount::numeric::money,
   net_unblended_cost_amount::numeric::money,
   net_amortized_cost_amount::numeric::money
-from 
+from
   aws_cost_by_account_daily
 order by
   linked_account_id,
@@ -47,7 +50,7 @@ select
   CAST(amortized_cost_amount AS REAL) AS amortized_cost_amount,
   CAST(net_unblended_cost_amount AS REAL) AS net_unblended_cost_amount,
   CAST(net_amortized_cost_amount AS REAL) AS net_amortized_cost_amount
-from 
+from
   aws_cost_by_account_daily
 order by
   linked_account_id,
@@ -63,7 +66,7 @@ select
   min(unblended_cost_amount)::numeric::money as min,
   max(unblended_cost_amount)::numeric::money as max,
   avg(unblended_cost_amount)::numeric::money as average
-from 
+from
   aws_cost_by_account_daily
 group by
   linked_account_id
@@ -77,7 +80,7 @@ select
   min(unblended_cost_amount) as min,
   max(unblended_cost_amount) as max,
   avg(unblended_cost_amount) as average
-from 
+from
   aws_cost_by_account_daily
 group by
   linked_account_id
@@ -96,7 +99,7 @@ with ranked_costs as (
     period_start,
     unblended_cost_amount::numeric::money,
     rank() over(partition by linked_account_id order by unblended_cost_amount desc)
-  from 
+  from
     aws_cost_by_account_daily
 )
 select * from ranked_costs where rank <= 10;
@@ -104,4 +107,45 @@ select * from ranked_costs where rank <= 10;
 
 ```sql+sqlite
 Error: SQLite does not support the rank window function.
+```
+
+### Get the specific costs within a given time frame
+Analyze your AWS accounts' daily specific expenditure to identify the minimum, maximum, and average costs whin a given time frame.
+
+```sql+postgres
+select
+  linked_account_id,
+  period_start,
+  blended_cost_amount::numeric::money,
+  unblended_cost_amount::numeric::money,
+  amortized_cost_amount::numeric::money,
+  net_unblended_cost_amount::numeric::money,
+  net_amortized_cost_amount::numeric::money
+from
+  aws_cost_by_account_daily
+where
+  period_start = '2023-05-01T05:30:00+05:30'
+  and period_end = '2023-05-05T05:30:00+05:30'
+order by
+  linked_account_id,
+  period_start;
+```
+
+```sql+sqlite
+select
+  linked_account_id,
+  period_start,
+  blended_cost_amount::numeric::money,
+  unblended_cost_amount::numeric::money,
+  amortized_cost_amount::numeric::money,
+  net_unblended_cost_amount::numeric::money,
+  net_amortized_cost_amount::numeric::money
+from
+  aws_cost_by_account_daily
+where
+  period_start = '2023-05-01T05:30:00+05:30'
+  and period_end = '2023-05-05T05:30:00+05:30'
+order by
+  linked_account_id,
+  period_start;
 ```
