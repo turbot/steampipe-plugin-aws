@@ -376,18 +376,8 @@ func getKafkaClusterBootstrapBrokers(ctx context.Context, d *plugin.QueryData, h
 		return bootstrapResp, nil
 	}
 
-	var plainPort = "9092"
-	var tlsPort = "9094"
-	if bootstrapResp.BootstrapBrokerString != nil {
-		if parts := strings.Split(*bootstrapResp.BootstrapBrokerString, ":"); len(parts) == 2 {
-			plainPort = parts[1]
-		}
-	}
-	if bootstrapResp.BootstrapBrokerStringTls != nil {
-		if parts := strings.Split(*bootstrapResp.BootstrapBrokerStringTls, ":"); len(parts) == 2 {
-			tlsPort = parts[1]
-		}
-	}
+	var plainPort = parsePort(bootstrapResp.BootstrapBrokerString, "9092")
+	var tlsPort = parsePort(bootstrapResp.BootstrapBrokerString, "9094")
 
 	hostOnly := strings.Split(samplingBroker, ":")[0]
 	dotParts := strings.SplitN(hostOnly, ".", 2)
@@ -395,13 +385,18 @@ func getKafkaClusterBootstrapBrokers(ctx context.Context, d *plugin.QueryData, h
 		logger.Warn("aws_msk_cluster.getKafkaClusterBootstrapBrokers", "invalid_hostname", samplingBroker)
 		return nil, nil
 	}
-	suffix := dotParts[1]
+	brokerDomainSuffix := dotParts[1]
 
 	plainBrokers := make([]string, brokerCount)
 	tlsBrokers := make([]string, brokerCount)
+
+	// Broker URL pattern (e.g. b-1.blahblah.kafka.ap-northeast-2.amazonaws.com:9092)
+	// Port 9092 is used for plaintext connections, 9094 for TLS within VPC
+	// Public TLS endpoints may use port 9194
+	// https://docs.aws.amazon.com/cli/latest/reference/kafka/get-bootstrap-brokers.html
 	for i := 1; i <= brokerCount; i++ {
-		plainBrokers[i-1] = fmt.Sprintf("b-%d.%s:%s", i, suffix, plainPort)
-		tlsBrokers[i-1] = fmt.Sprintf("b-%d.%s:%s", i, suffix, tlsPort)
+		plainBrokers[i-1] = fmt.Sprintf("b-%d.%s:%s", i, brokerDomainSuffix, plainPort)
+		tlsBrokers[i-1] = fmt.Sprintf("b-%d.%s:%s", i, brokerDomainSuffix, tlsPort)
 	}
 
 	result := struct {
@@ -413,4 +408,13 @@ func getKafkaClusterBootstrapBrokers(ctx context.Context, d *plugin.QueryData, h
 	}
 
 	return result, nil
+}
+
+func parsePort(brokerString *string, defaultPort string) string {
+	if brokerString != nil {
+		if parts := strings.Split(*brokerString, ":"); len(parts) == 2 {
+			return parts[1]
+		}
+	}
+	return defaultPort
 }
