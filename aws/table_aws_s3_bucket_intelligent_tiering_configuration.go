@@ -34,7 +34,6 @@ func tableAwsS3BucketIntelligentTieringConfiguration(_ context.Context) *plugin.
 			},
 		},
 		// We need to use `GetMatrixItemFunc` here because `aws_s3_bucket` is its parent and already uses `GetMatrixItemFunc`.
-
 		GetMatrixItemFunc: SupportedRegionMatrix(AWS_S3_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
