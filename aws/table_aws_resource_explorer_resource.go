@@ -9,6 +9,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/query_cache"
 )
 
 func tableAwsResourceExplorerResource(_ context.Context) *plugin.Table {
@@ -16,14 +17,22 @@ func tableAwsResourceExplorerResource(_ context.Context) *plugin.Table {
 		Name:        "aws_resource_explorer_resource",
 		Description: "AWS Resource Explorer Resource provides information about resources across regions in your AWS account.",
 		List: &plugin.ListConfig{
-			Hydrate:    listResourceExplorerResources,
-			Tags:       map[string]string{"service": "resource-explorer-2", "action": "ListResources"},
-			KeyColumns: plugin.OptionalColumns([]string{"filter"}),
+			Hydrate: listResourceExplorerResources,
+			Tags:    map[string]string{"service": "resource-explorer-2", "action": "ListResources"},
+			KeyColumns: plugin.KeyColumnSlice{
+				{Name: "view_arn", Require: plugin.Optional},
+				{Name: "filter", Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
+			},
 		},
 		Columns: []*plugin.Column{
 			{
 				Name:        "arn",
 				Description: "The Amazon Resource Name (ARN) of the resource.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "view_arn",
+				Description: "The Amazon resource name (ARN) of the view that this operation used to perform the search.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -62,13 +71,8 @@ func tableAwsResourceExplorerResource(_ context.Context) *plugin.Table {
 				Description: "The AWS service that owns the resource and is responsible for creating and updating it.",
 				Type:        proto.ColumnType_STRING,
 			},
-			// Common columns
-			{
-				Name:        "tags",
-				Description: "The tags associated with the resource.",
-				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Properties.Tags"),
-			},
+
+			// Steampipe common columns
 			{
 				Name:        "title",
 				Description: "Title of the resource.",
@@ -77,6 +81,11 @@ func tableAwsResourceExplorerResource(_ context.Context) *plugin.Table {
 			},
 		},
 	}
+}
+
+type resourceInfo struct {
+	types.Resource
+	ViewArn *string
 }
 
 func listResourceExplorerResources(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
@@ -114,6 +123,11 @@ func listResourceExplorerResources(ctx context.Context, d *plugin.QueryData, h *
 		}
 	}
 
+	viewArn := d.EqualsQualString("view_arn")
+	if viewArn != "" {
+		input.ViewArn = aws.String(viewArn)
+	}
+
 	// Get call
 	paginator := resourceexplorer2.NewListResourcesPaginator(svc, input)
 	for paginator.HasMorePages() {
@@ -127,7 +141,12 @@ func listResourceExplorerResources(ctx context.Context, d *plugin.QueryData, h *
 		}
 
 		for _, resource := range output.Resources {
-			d.StreamListItem(ctx, resource)
+			d.StreamListItem(ctx, &resourceInfo{resource, output.ViewArn})
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
 		}
 	}
 
