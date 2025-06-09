@@ -94,9 +94,18 @@ func listResourceExplorerResources(ctx context.Context, d *plugin.QueryData, h *
 
 	filter := d.EqualsQualString("filter")
 
+	// Limiting the results
+	maxLimit := int32(100)
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			maxLimit = limit
+		}
+	}
+
 	// Build the params
 	input := &resourceexplorer2.ListResourcesInput{
-		MaxResults: aws.Int32(100),
+		MaxResults: aws.Int32(maxLimit),
 	}
 
 	if filter != "" {
