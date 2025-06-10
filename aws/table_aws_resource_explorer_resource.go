@@ -15,7 +15,7 @@ import (
 func tableAwsResourceExplorerResource(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_resource_explorer_resource",
-		Description: "AWS Resource Explorer Resource provides information about resources across regions in your AWS account.",
+		Description: "AWS Resource Explorer Resource.",
 		List: &plugin.ListConfig{
 			Hydrate: listResourceExplorerResources,
 			Tags:    map[string]string{"service": "resource-explorer-2", "action": "ListResources"},
@@ -91,6 +91,7 @@ type resourceInfo struct {
 func listResourceExplorerResources(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	region, err := getDefaultRegion(ctx, d, h)
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_resource_explorer_resource.listResourceExplorerResources", "getDefaultRegionError", err)
 		return nil, err
 	}
 
