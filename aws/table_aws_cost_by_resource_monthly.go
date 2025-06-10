@@ -94,7 +94,7 @@ func listCostByResourceMonthly(ctx context.Context, d *plugin.QueryData, h *plug
 		params.Filter = defaultFilter
 	}
 
-  return streamCostAndUsageByResource(ctx, d, params)
+	return streamCostAndUsageByResource(ctx, d, params)
 }
 
 //// Common Functions used by aws_cost_by_resource_* tables ////
@@ -128,12 +128,30 @@ func buildCostByResourceInput(granularity string, d *plugin.QueryData) *costexpl
 
 	now := time.Now()
 	endTime := now.Format(timeFormat)
-  // default to last 14 days
-	startDate := getCEStartDateForGranularity("")
 
-	startTime := startDate.Format(timeFormat)
+	// Set the default start time to 14 days ago.
+	//
+	// AWS Cost Explorer supports resource-level cost data with the following granularities:
+	//
+	// DAILY:
+	//   - Available for the most recent 14 days only.
+	//   - There is no option to extend this retention period.
+	//   - Enables fine-grained cost visibility, but within a short timeframe.
+	//
+	// MONTHLY:
+	//   - Also defaults to 14 days of data unless historical resource-level export is enabled.
+	//   - With historical export enabled, monthly data can be retained for up to 38 months.
+	//
+	// HOURLY:
+	//   - Always limited to the past 14 days.
+	//   - Incurs additional cost when enabled.
+	//   - Retention cannot be extended beyond 14 days.
+	//
+	// These restrictions apply specifically to resource-level cost data.
+	// Non-resource-level cost data has broader retention: up to 12 months (daily) and 38 months (monthly).
+	startTime := time.Now().AddDate(0, 0, -13).Format(timeFormat)
 
-	// In the AWS account we may also enable the historical cost by resource data for which we can provide the start and end time more than 14 days.
+	// Get `period_start` and `period_end` from the quals if provided.
 	st, et := getSearchStartTimeAndSearchEndTime(d, granularity)
 	if st != "" {
 		startTime = st
@@ -215,14 +233,14 @@ func getDefaultFilterValue(ctx context.Context, d *plugin.QueryData, h *plugin.H
 }
 
 func streamCostAndUsageByResource(ctx context.Context, d *plugin.QueryData, params *costexplorer.GetCostAndUsageWithResourcesInput) (interface{}, error) {
-  // Create session
+	// Create session
 	svc, err := CostExplorerClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("streamCostAndUsageByResource", "client_error", err)
 		return nil, err
 	}
 
-  	// List call
+	// List call
 	for {
 		output, err := svc.GetCostAndUsageWithResources(ctx, params)
 		if err != nil {
