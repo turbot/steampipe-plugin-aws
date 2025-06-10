@@ -13,7 +13,7 @@ AWS Resource Explorer is a resource search and discovery service that helps you 
 The `aws_resource_explorer_resource` table provides insights into resources indexed by AWS Resource Explorer. As a cloud administrator or DevOps engineer, you can use this table to explore and discover resources across your AWS account, helping with tasks such as:
 
 **Important Notes**
-- For improved performance, it is advised that you use the optional qual `filter` to limit the result set to a specific time period. For information about the supported syntax, see [Search query reference for Resource Explorer](https://docs.aws.amazon.com/resource-explorer/latest/userguide/using-search-query-syntax.html) in the AWS Resource Explorer User Guide.
+- For improved performance, it is advised that you use the optional qual `filter` to limit the result set. For information about the supported syntax, see [Search query reference for Resource Explorer](https://docs.aws.amazon.com/resource-explorer/latest/userguide/using-search-query-syntax.html) in the AWS Resource Explorer User Guide.
 - This table supports optional quals. Queries with optional quals are optimised. Optional quals are supported for the following columns:
   - `filter`
   - `view_arn`
