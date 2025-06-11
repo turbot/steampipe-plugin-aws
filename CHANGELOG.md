@@ -1,3 +1,23 @@
+## v1.15.0 [2025-06-11]
+
+_What's new?_
+
+- New tables added
+  - [aws_cost_by_resource_daily](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_cost_by_resource_daily) ([#2510](https://github.com/turbot/steampipe-plugin-aws/pull/2510))
+  - [aws_cost_by_resource_hourly](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_cost_by_resource_hourly) ([#2510](https://github.com/turbot/steampipe-plugin-aws/pull/2510))
+  - [aws_cost_by_resource_monthly](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_cost_by_resource_monthly) ([#2510](https://github.com/turbot/steampipe-plugin-aws/pull/2510))
+  - [aws_resource_explorer_resource](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_resource_explorer_resource) ([#2516](https://github.com/turbot/steampipe-plugin-aws/pull/2516))
+
+_Enhancements_
+
+- Optimized the `aws_ecr_image_scan_finding` table to reduce the query timing by removing the `listAwsEcrImageTags` parent hydrate and by adding the `image_tag` as an optional qual. ([#2492](https://github.com/turbot/steampipe-plugin-aws/pull/2492))
+- Added column `ephemeral_storage` to `aws_lambda_function` table. ([#2505](https://github.com/turbot/steampipe-plugin-aws/pull/2505))
+- Added `max_concurrency`, `fill_rate` and `bucket_size` flags to the plugin's Export tool. 
+
+_Dependencies_
+
+- Recompiled plugin with [steampipe-plugin-sdk v5.11.7](https://github.com/turbot/steampipe-plugin-sdk/blob/develop/CHANGELOG.md#v5117-2025-06-04) that fixes an issue where rate limiters not working for hydrate functions. ([#2522](https://github.com/turbot/steampipe-plugin-aws/pull/2522))
+
 ## v1.14.1 [2025-05-22]
 
 _Bug fixes_
