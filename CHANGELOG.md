@@ -12,11 +12,11 @@ _Enhancements_
 
 - Optimized the `aws_ecr_image_scan_finding` table to reduce the query timing by removing the `listAwsEcrImageTags` parent hydrate and by adding the `image_tag` as an optional qual. ([#2492](https://github.com/turbot/steampipe-plugin-aws/pull/2492))
 - Added column `ephemeral_storage` to `aws_lambda_function` table. ([#2505](https://github.com/turbot/steampipe-plugin-aws/pull/2505))
-- Added `max_concurrency`, `fill_rate` and `bucket_size` flags to the plugin's Export tool. 
+- Added `connection` and `config-dir` flags to the plugin's Export tool. 
 
 _Dependencies_
 
-- Recompiled plugin with [steampipe-plugin-sdk v5.11.7](https://github.com/turbot/steampipe-plugin-sdk/blob/develop/CHANGELOG.md#v5117-2025-06-04) that fixes an issue where rate limiters not working for hydrate functions. ([#2522](https://github.com/turbot/steampipe-plugin-aws/pull/2522))
+- Recompiled plugin with [steampipe-plugin-sdk v5.11.7](https://github.com/turbot/steampipe-plugin-sdk/blob/develop/CHANGELOG.md#v5117-2025-06-04) which resolves an issue where rate limiters were not being applied to hydrate functions correctly. ([#2522](https://github.com/turbot/steampipe-plugin-aws/pull/2522))
 
 ## v1.14.1 [2025-05-22]
 
