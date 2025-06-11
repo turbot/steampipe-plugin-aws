@@ -126,9 +126,9 @@ func listAwsEcrImageScanFindings(ctx context.Context, d *plugin.QueryData, h *pl
 		return nil, err
 	}
 
-	imageTag := d.EqualsQuals["image_tag"]
-	imageDigest := d.EqualsQuals["image_digest"]
-	repositoryName := d.EqualsQuals["repository_name"]
+	imageTag := d.EqualsQuals["image_tag"].GetStringValue()
+	imageDigest := d.EqualsQuals["image_digest"].GetStringValue()
+	repositoryName := d.EqualsQuals["repository_name"].GetStringValue()
 
 	// Limiting the results
 	maxLimit := int32(1000)
@@ -141,27 +141,15 @@ func listAwsEcrImageScanFindings(ctx context.Context, d *plugin.QueryData, h *pl
 
 	input := &ecr.DescribeImageScanFindingsInput{
 		MaxResults:     aws.Int32(maxLimit),
-		RepositoryName: aws.String(repositoryName.GetStringValue()),
+		RepositoryName: aws.String(repositoryName),
 	}
 
-	imageInfo := &types.ImageIdentifier{
-		ImageTag: aws.String(imageTag.GetStringValue()),
+	imageInfo := &types.ImageIdentifier{}
+	if imageTag != "" {
+		imageInfo.ImageTag = aws.String(imageTag)
 	}
-
-	// Ideally, both image_tag and image_digest could be used.
-	// However, they cannot be passed together simultaneously.
-	// 1. If ImageTag is provided, it takes precedence and is used as the input parameter.
-	// 2. If both ImageTag and ImageDigest are provided, ImageTag will be prioritized to keep the existing table behavior unchanged.
-	// 3. If only ImageDigest is provided, the ImageDigest value will be used as the input parameter.
-	if imageTag != nil {
-		imageInfo.ImageTag = aws.String(imageTag.GetStringValue())
-	}
-	if imageTag != nil && imageDigest != nil {
-		imageInfo.ImageTag = aws.String(imageTag.GetStringValue())
-	}
-	if imageTag == nil && imageDigest != nil {
-		imageInfo.ImageDigest = aws.String(imageDigest.GetStringValue())
-		imageInfo.ImageTag = nil
+	if imageDigest != "" {
+		imageInfo.ImageDigest = aws.String(imageDigest)
 	}
 
 	input.ImageId = imageInfo
