@@ -14,6 +14,7 @@ The `aws_ecr_image_scan_finding` table in Steampipe provides you with informatio
 
 **Important Notes**
 - You or your roles that have the AWS managed `ReadOnlyAccess` policy attached also need to attach the AWS managed `AmazonInspector2ReadOnlyAccess` policy to query this table.
+- You must specify a `repository_name` and either `image_tag` or `image_digest` in a `where` or `join` clause to query this table.
 
 ## Examples
 
