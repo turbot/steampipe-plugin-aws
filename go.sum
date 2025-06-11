@@ -333,8 +333,8 @@ github.com/aws/aws-sdk-go-v2/service/emr v1.39.5 h1:ni+E9GfbQ8CzjYSlJ+WbNYX7SAsL
 github.com/aws/aws-sdk-go-v2/service/emr v1.39.5/go.mod h1:7WusX+O5pwTnx2yobUO/P1C5HlBibmrQb5gKEPFjTYM=
 github.com/aws/aws-sdk-go-v2/service/eventbridge v1.30.4 h1:Vz4ilZcVXCR9yatX5yfMrkBldYggtkih3h7woHvzu5Q=
 github.com/aws/aws-sdk-go-v2/service/eventbridge v1.30.4/go.mod h1:aIINXlt2xXhMeRsyCsLDUDohI8AdDm92gY9nIB6pv0M=
-github.com/aws/aws-sdk-go-v2/service/firehose v1.28.5 h1:7h4RJRnBULtax1Tk6iSYsIPuBcV5mTWhWbK1/qfyGj0=
-github.com/aws/aws-sdk-go-v2/service/firehose v1.28.5/go.mod h1:78F+4pVJf6Qlg7a34oR2I2SpM/v0EUSAL/htTZ9trg4=
+github.com/aws/aws-sdk-go-v2/service/firehose v1.37.4 h1:n4Txba4IeWG8b/OeylAasWWCemjrULcwMGXM1ES2n3E=
+github.com/aws/aws-sdk-go-v2/service/firehose v1.37.4/go.mod h1:6i3MXkR7cPgCVGgtCwxl7NEmdgkYgNRUmGGONMo9ehc=
 github.com/aws/aws-sdk-go-v2/service/fms v1.31.4 h1:gY+Dp2QdphY6m5IVkETmsNauYztd62piL9az5B6rVtQ=
 github.com/aws/aws-sdk-go-v2/service/fms v1.31.4/go.mod h1:X4DjA4sm8cobhR9DtHn947+dLYxU1oWq3zwRZUmFSLo=
 github.com/aws/aws-sdk-go-v2/service/fsx v1.43.4 h1:PzDEW/yt1NfRDIsRsUiNNbYZFdlyPBUyxtrKmpw6vv4=
@@ -425,6 +425,8 @@ github.com/aws/aws-sdk-go-v2/service/redshiftserverless v1.17.4 h1:aCgDTg7NalOIb
 github.com/aws/aws-sdk-go-v2/service/redshiftserverless v1.17.4/go.mod h1:XIPGtb7MKsA/uAfS9pngCspt+NfjDxlIAg1hSwvtQQs=
 github.com/aws/aws-sdk-go-v2/service/resourceexplorer2 v1.10.5 h1:jZRmSjW91mFQ6BNUu9wTZ41ZBtEwWH7HNCGLjus2uos=
 github.com/aws/aws-sdk-go-v2/service/resourceexplorer2 v1.10.5/go.mod h1:tZurYgz9ed3t1LNo2QL6cRTWYoYVOf4wPniYaY3Y5sc=
+github.com/aws/aws-sdk-go-v2/service/resourceexplorer2 v1.17.4 h1:c+JJu+m/FoXVVaRj82+ef+cpMI4VMZbg92M2bg014Vs=
+github.com/aws/aws-sdk-go-v2/service/resourceexplorer2 v1.17.4/go.mod h1:E9gRM9YBkYKE1AjYGcQRjYUyEIB52+cSMihMQBjB/FE=
 github.com/aws/aws-sdk-go-v2/service/resourcegroupstaggingapi v1.21.4 h1:c1jtPWZSmgMmPkCgwv67GE0ugdEgnLVo/BHR1wl3Dm0=
 github.com/aws/aws-sdk-go-v2/service/resourcegroupstaggingapi v1.21.4/go.mod h1:FWw+Jnx+SlpsrU/NQ/f7f+1RdixTApZiU2o9FOubiDQ=
 github.com/aws/aws-sdk-go-v2/service/rolesanywhere v1.11.4 h1:xys/w/7znK4kfRTNpNuSlo3f2FW5RiD96VpofHcvHkU=
@@ -869,8 +871,8 @@ github.com/tkrajina/go-reflector v0.5.6 h1:hKQ0gyocG7vgMD2M3dRlYN6WBBOmdoOzJ6njQ
 github.com/tkrajina/go-reflector v0.5.6/go.mod h1:ECbqLgccecY5kPmPmXg1MrHW585yMcDkVl6IvJe64T4=
 github.com/turbot/go-kit v1.1.0 h1:2gW+MFDJD+mN41GcvhAajTrwR8HgN9KKJ8HnYwPGTV0=
 github.com/turbot/go-kit v1.1.0/go.mod h1:1xmRuQ0cn/10QUMNLNOAFIqN8P6Rz5s3VLT8mkN3nF8=
-github.com/turbot/steampipe-plugin-sdk/v5 v5.11.5 h1:UajvoicpQDIAJdFM3A5Fn0UCVzt/V0TdszU+gHE+xBo=
-github.com/turbot/steampipe-plugin-sdk/v5 v5.11.5/go.mod h1:nkFtL7PKNzKEJ7L+q88CL/b5mM059oegCoYinMvxfJI=
+github.com/turbot/steampipe-plugin-sdk/v5 v5.11.7 h1:imNeaO3aJ/1aBu80cBPiikYIAApql/HuXrAjZdy4nGk=
+github.com/turbot/steampipe-plugin-sdk/v5 v5.11.7/go.mod h1:kkkm+Xb7r+WwKsn8tGVAaLtS6cPzqCpNK060N1xUmMQ=
 github.com/ulikunitz/xz v0.5.10 h1:t92gobL9l3HE202wg3rlk19F6X+JOxl9BBrCCMYEYd8=
 github.com/ulikunitz/xz v0.5.10/go.mod h1:nbz6k7qbPmH4IRqmfOplQw/tblSgqTqBwxkY0oWt/14=
 github.com/yuin/goldmark v1.1.25/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=

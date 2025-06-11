@@ -64,7 +64,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/elasticsearchservice v1.28.4
 	github.com/aws/aws-sdk-go-v2/service/emr v1.39.5
 	github.com/aws/aws-sdk-go-v2/service/eventbridge v1.30.4
-	github.com/aws/aws-sdk-go-v2/service/firehose v1.28.5
+	github.com/aws/aws-sdk-go-v2/service/firehose v1.37.4
 	github.com/aws/aws-sdk-go-v2/service/fms v1.31.4
 	github.com/aws/aws-sdk-go-v2/service/fsx v1.43.4
 	github.com/aws/aws-sdk-go-v2/service/glacier v1.22.4
@@ -104,7 +104,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/rds v1.77.0
 	github.com/aws/aws-sdk-go-v2/service/redshift v1.43.5
 	github.com/aws/aws-sdk-go-v2/service/redshiftserverless v1.17.4
-	github.com/aws/aws-sdk-go-v2/service/resourceexplorer2 v1.10.5
+	github.com/aws/aws-sdk-go-v2/service/resourceexplorer2 v1.17.4
 	github.com/aws/aws-sdk-go-v2/service/resourcegroupstaggingapi v1.21.4
 	github.com/aws/aws-sdk-go-v2/service/rolesanywhere v1.11.4
 	github.com/aws/aws-sdk-go-v2/service/route53 v1.40.4
@@ -146,7 +146,7 @@ require (
 	github.com/hashicorp/go-hclog v1.6.3
 	github.com/rs/dnscache v0.0.0-20230804202142-fc85eb664529
 	github.com/turbot/go-kit v1.1.0
-	github.com/turbot/steampipe-plugin-sdk/v5 v5.11.5
+	github.com/turbot/steampipe-plugin-sdk/v5 v5.11.7
 	golang.org/x/sync v0.12.0
 	golang.org/x/text v0.23.0
 )
