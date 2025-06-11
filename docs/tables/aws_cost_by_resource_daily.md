@@ -1,5 +1,5 @@
 ---
-title: "Steampipe Table: aws_cost_by_resource_daily - Query AWS Cost Explorer Resource Costs using SQL"
+title: "Steampipe Table: aws_cost_by_resource_daily - Query Daily AWS Cost Explorer Resource Costs using SQL"
 description: "Allows users to query AWS Cost Explorer Resource Costs on a daily basis, providing detailed cost information for individual AWS resources."
 folder: "Cost Explorer"
 ---
@@ -63,7 +63,6 @@ order by
 ```
 
 ### Daily cost for a specific EC2 instance in a region
-
 Explore the daily costs associated with a particular EC2 instance in a specific region to track its financial impact over time.
 
 ```sql+postgres
@@ -121,7 +120,6 @@ order by
 ```
 
 ### Top 10 most expensive resources yesterday by region
-
 Identify the resources that generated the highest costs yesterday in a specific region to focus cost optimization efforts.
 
 ```sql+postgres
@@ -175,7 +173,6 @@ limit 10;
 ```
 
 ### Daily costs for a specific resource by linked account
-
 Analyze how costs for a particular resource are distributed across different linked accounts.
 
 ```sql+postgres

@@ -1,5 +1,5 @@
 ---
-title: "Steampipe Table: aws_cost_by_resource_monthly - Query AWS Cost Explorer Resource Costs using SQL"
+title: "Steampipe Table: aws_cost_by_resource_monthly - Query Monthly AWS Cost Explorer Resource Costs using SQL"
 description: "Allows users to query AWS Cost Explorer Resource Costs on a monthly basis, providing detailed cost information for individual AWS resources."
 folder: "Cost Explorer"
 ---

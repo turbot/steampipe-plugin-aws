@@ -1,5 +1,5 @@
 ---
-title: "Steampipe Table: aws_cost_by_resource_hourly - Query AWS Cost Explorer Resource Costs using SQL"
+title: "Steampipe Table: aws_cost_by_resource_hourly - Query Hourly AWS Cost Explorer Resource Costs using SQL"
 description: "Allows users to query AWS Cost Explorer Resource Costs on an hourly basis, providing detailed cost information for individual AWS resources."
 folder: "Cost Explorer"
 ---
@@ -63,7 +63,6 @@ order by
 ```
 
 ### Hourly cost for a specific EC2 instance in a region today
-
 Explore the hour-by-hour costs of a particular EC2 instance in a specific region to track its financial impact throughout the day.
 
 ```sql+postgres
@@ -121,7 +120,6 @@ order by
 ```
 
 ### Peak cost hours for resources by service
-
 Identify the hours when resources generate their highest costs within a specific service to optimize scheduling and usage patterns.
 
 ```sql+postgres
@@ -177,7 +175,6 @@ limit 10;
 ```
 
 ### Average hourly costs by hour of day for a linked account
-
 Analyze cost patterns across different hours of the day for a specific linked account to identify peak usage times and potential cost optimization opportunities.
 
 ```sql+postgres
