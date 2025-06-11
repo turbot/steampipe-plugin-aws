@@ -15,7 +15,7 @@ The `aws_cost_by_resource_hourly` table provides insights into resource-level co
 **Important Notes**
 
 - The [pricing for the Cost Explorer API](https://aws.amazon.com/aws-cost-management/pricing/) is per API request - Each request you make will incur a cost of $0.01.
-- By default, the table shows resource-level data with `dimension_key = 'LINKED_ACCOUNT'` and `dimension_value` set to the caller's AWS account ID for the last 14 days. For historical data beyond 14 days, you need to enable the hourly cost allocation data in your AWS Cost Explorer settings.
+- By default, the table shows resource-level data with `dimension_key = 'LINKED_ACCOUNT'` and `dimension_value` set to the caller's AWS account ID for the last 14 days. Even if hourly cost allocation data is enabled in AWS Cost Explorer, resource-level data remains limited to the most recent **14 days only** and **cannot be extended beyond that**.
 - This table supports optional quals. Queries with optional quals are optimised to reduce query time and cost. Optional quals are supported for the following columns:
   - `resource_id` with supported operators `=` and `<>`.
   - `dimension_key` with supported operator `=`.
