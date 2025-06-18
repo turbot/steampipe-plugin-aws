@@ -20,6 +20,7 @@ func tableAwsMSKCluster(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_msk_cluster",
 		Description: "AWS Managed Streaming for Apache Kafka",
+		DefaultTransform: transform.FromCamel()
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("arn"),
 			Hydrate:    getKafkaCluster(string(types.ClusterTypeProvisioned)),
@@ -103,14 +104,12 @@ func tableAwsMSKCluster(_ context.Context) *plugin.Table {
 				Description: "A string containing one or more hostname:port pairs of Kafka brokers suitable for use with Apache Kafka clients.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getKafkaClusterBootstrapBrokers,
-				DefaultTransform: transform.FromCamel(),
 			},
 			{
 				Name:        "bootstrap_broker_string_tls",
 				Description: "A string containing one or more hostname:port pairs of Kafka brokers suitable for TLS authentication.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getKafkaClusterBootstrapBrokers,
-				DefaultTransform: transform.FromCamel(),
 			},
 			{
 				Name:        "provisioned",
