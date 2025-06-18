@@ -103,14 +103,14 @@ func tableAwsMSKCluster(_ context.Context) *plugin.Table {
 				Description: "A string containing one or more hostname:port pairs of Kafka brokers suitable for use with Apache Kafka clients.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getKafkaClusterBootstrapBrokers,
-				Transform:   transform.FromField("BootstrapBrokerString"),
+				DefaultTransform: transform.FromCamel(),
 			},
 			{
 				Name:        "bootstrap_broker_string_tls",
 				Description: "A string containing one or more hostname:port pairs of Kafka brokers suitable for TLS authentication.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getKafkaClusterBootstrapBrokers,
-				Transform:   transform.FromField("BootstrapBrokerStringTls"),
+				DefaultTransform: transform.FromCamel(),
 			},
 			{
 				Name:        "provisioned",
@@ -349,12 +349,8 @@ func getKafkaClusterBootstrapBrokers(ctx context.Context, d *plugin.QueryData, h
 	describeParams := &kafka.DescribeClusterV2Input{
 		ClusterArn: &clusterArn,
 	}
-	describeResp, err := svc.DescribeClusterV2(ctx, describeParams)
-	if err != nil {
-		logger.Error("aws_msk_cluster.getKafkaClusterBootstrapBrokers", "describe_cluster_api_error", err)
-		return nil, err
-	}
-	brokerCount := int(*describeResp.ClusterInfo.Provisioned.NumberOfBrokerNodes)
+
+	brokerCount := int(*cluster.Provisioned.NumberOfBrokerNodes)
 
 	bootstrapParams := &kafka.GetBootstrapBrokersInput{
 		ClusterArn: &clusterArn,
@@ -393,7 +389,7 @@ func getKafkaClusterBootstrapBrokers(ctx context.Context, d *plugin.QueryData, h
 	// Broker URL pattern (e.g. b-1.blahblah.kafka.ap-northeast-2.amazonaws.com:9092)
 	// Port 9092 is used for plaintext connections, 9094 for TLS within VPC
 	// Public TLS endpoints may use port 9194
-	// https://docs.aws.amazon.com/cli/latest/reference/kafka/get-bootstrap-brokers.html
+	// https://awscli.amazonaws.com/v2/documentation/api/2.0.33/reference/kafka/get-bootstrap-brokers.html
 	for i := 1; i <= brokerCount; i++ {
 		plainBrokers[i-1] = fmt.Sprintf("b-%d.%s:%s", i, brokerDomainSuffix, plainPort)
 		tlsBrokers[i-1] = fmt.Sprintf("b-%d.%s:%s", i, brokerDomainSuffix, tlsPort)
