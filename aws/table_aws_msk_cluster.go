@@ -20,7 +20,7 @@ func tableAwsMSKCluster(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_msk_cluster",
 		Description: "AWS Managed Streaming for Apache Kafka",
-		DefaultTransform: transform.FromCamel()
+		DefaultTransform: transform.FromCamel(),
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("arn"),
 			Hydrate:    getKafkaCluster(string(types.ClusterTypeProvisioned)),
