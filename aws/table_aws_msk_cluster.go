@@ -345,10 +345,6 @@ func getKafkaClusterBootstrapBrokers(ctx context.Context, d *plugin.QueryData, h
 		return nil, nil
 	}
 
-	describeParams := &kafka.DescribeClusterV2Input{
-		ClusterArn: &clusterArn,
-	}
-
 	brokerCount := int(*cluster.Provisioned.NumberOfBrokerNodes)
 
 	bootstrapParams := &kafka.GetBootstrapBrokersInput{
