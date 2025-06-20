@@ -146,7 +146,7 @@ require (
 	github.com/hashicorp/go-hclog v1.6.3
 	github.com/rs/dnscache v0.0.0-20230804202142-fc85eb664529
 	github.com/turbot/go-kit v1.1.0
-	github.com/turbot/steampipe-plugin-sdk/v5 v5.11.7
+	github.com/turbot/steampipe-plugin-sdk/v5 v5.12.0
 	golang.org/x/sync v0.12.0
 	golang.org/x/text v0.23.0
 )
