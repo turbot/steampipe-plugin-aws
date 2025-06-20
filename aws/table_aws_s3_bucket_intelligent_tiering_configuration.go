@@ -34,7 +34,7 @@ func tableAwsS3BucketIntelligentTieringConfiguration(_ context.Context) *plugin.
 			},
 		},
 		// We need to use `GetMatrixItemFunc` here because `aws_s3_bucket` is its parent and already uses `GetMatrixItemFunc`.
-		GetMatrixItemFunc: SupportedRegionMatrix(AWS_S3_SERVICE_ID),
+		GetMatrixItemFunc: getS3SupportedRegions,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "bucket_name",
@@ -144,7 +144,7 @@ func getBucketIntelligentTieringConfiguration(ctx context.Context, d *plugin.Que
 		return nil, err
 	}
 
-	// Avoid error: Error: get call returned 32 results - the key column is not globally unique 
+	// Avoid error: Error: get call returned 32 results - the key column is not globally unique
 	if bucketRegion != "" && bucketRegion != region {
 		return nil, nil
 	}

@@ -183,6 +183,24 @@ func SupportedRegionMatrixWithExclusions(serviceID string, excludeRegions []stri
 	}
 }
 
+// Based on the AWS CLI behavior "aws s3 ls", it always return the buckets for all regions.
+// Steampipe should also return the buckets for all regions regardless of the regions configured in connection config.
+func getS3SupportedRegions(ctx context.Context, d *plugin.QueryData) []map[string]interface{} {
+	regions, err := listRegionsForServiceWithExclusions(ctx, d, AWS_S3_SERVICE_ID, []string{})
+	if err != nil {
+		plugin.Logger(ctx).Error("getS3SupportedRegions", "error", err)
+		return []map[string]interface{}{}
+	}
+
+	matrix := []map[string]interface{}{}
+	for _, region := range regions {
+		obj := map[string]interface{}{matrixKeyRegion: region}
+		matrix = append(matrix, obj)
+	}
+
+	return matrix
+}
+
 // Calculate the regions that the user has requested to query for this
 // connection.  Basically, we generate a possible list of regions (enabled
 // regions for the account, or all regions for the partition) and then filter it

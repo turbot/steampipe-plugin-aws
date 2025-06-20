@@ -90,7 +90,7 @@ func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 				Tags: map[string]string{"service": "s3", "action": "GetBucketWebsite"},
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(AWS_S3_SERVICE_ID),
+		GetMatrixItemFunc: getS3SupportedRegions,
 		Columns: awsAccountColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -276,6 +276,8 @@ func listS3Buckets(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 
 	region := d.EqualsQualString(matrixKeyRegion)
 
+	plugin.Logger(ctx).Debug("listS3Buckets ===>>>>", "region", region)
+
 	svc, err := S3Client(ctx, d, region)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_s3_bucket.listS3Buckets", "get_client_error", err, "region", region)
@@ -326,7 +328,7 @@ func listS3Buckets(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 // Several tables require this functionality since they operate on individual buckets
 // where bucket_name is a required qualifier. The following tables depend on this function:
 //   - aws_s3_bucket_intelligent_tiering_configuration
-//   - aws_s3_multipart_upload 
+//   - aws_s3_multipart_upload
 //   - aws_s3_object
 //   - aws_s3_object_version
 func doGetBucketRegion(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData, bucket string) (string, error) {
