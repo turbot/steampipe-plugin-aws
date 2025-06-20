@@ -34,80 +34,63 @@ func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 		// using IgnoreConfig results in a slower execution time of 87.2 seconds, while handling errors manually reduces the time to 25.0 seconds.
 		HydrateConfig: []plugin.HydrateConfig{
 			{
-				Func: getBucketRegion,
-				Tags: map[string]string{"service": "s3", "action": "HeadBucket"},
+				Func: getBucketIsPublic,
+				Tags: map[string]string{"service": "s3", "action": "GetBucketPolicyStatus"},
 			},
 			{
-				Func:    getBucketIsPublic,
-				Depends: []plugin.HydrateFunc{getBucketRegion},
-				Tags:    map[string]string{"service": "s3", "action": "GetBucketPolicyStatus"},
+				Func: getBucketVersioning,
+				Tags: map[string]string{"service": "s3", "action": "GetBucketVersioning"},
 			},
 			{
-				Func:    getBucketVersioning,
-				Depends: []plugin.HydrateFunc{getBucketRegion},
-				Tags:    map[string]string{"service": "s3", "action": "GetBucketVersioning"},
+				Func: getBucketEncryption,
+				Tags: map[string]string{"service": "s3", "action": "GetBucketEncryption"},
 			},
 			{
-				Func:    getBucketEncryption,
-				Depends: []plugin.HydrateFunc{getBucketRegion},
-				Tags:    map[string]string{"service": "s3", "action": "GetBucketEncryption"},
+				Func: getBucketPublicAccessBlock,
+				Tags: map[string]string{"service": "s3", "action": "GetPublicAccessBlock"},
 			},
 			{
-				Func:    getBucketPublicAccessBlock,
-				Depends: []plugin.HydrateFunc{getBucketRegion},
-				Tags:    map[string]string{"service": "s3", "action": "GetPublicAccessBlock"},
+				Func: getBucketACL,
+				Tags: map[string]string{"service": "s3", "action": "GetBucketAcl"},
 			},
 			{
-				Func:    getBucketACL,
-				Depends: []plugin.HydrateFunc{getBucketRegion},
-				Tags:    map[string]string{"service": "s3", "action": "GetBucketAcl"},
+				Func: getBucketLifecycle,
+				Tags: map[string]string{"service": "s3", "action": "GetLifecycleConfiguration"},
 			},
 			{
-				Func:    getBucketLifecycle,
-				Depends: []plugin.HydrateFunc{getBucketRegion},
-				Tags:    map[string]string{"service": "s3", "action": "GetLifecycleConfiguration"},
+				Func: getBucketLogging,
+				Tags: map[string]string{"service": "s3", "action": "GetBucketLogging"},
 			},
 			{
-				Func:    getBucketLogging,
-				Depends: []plugin.HydrateFunc{getBucketRegion},
-				Tags:    map[string]string{"service": "s3", "action": "GetBucketLogging"},
+				Func: getBucketPolicy,
+				Tags: map[string]string{"service": "s3", "action": "GetBucketPolicy"},
 			},
 			{
-				Func:    getBucketPolicy,
-				Depends: []plugin.HydrateFunc{getBucketRegion},
-				Tags:    map[string]string{"service": "s3", "action": "GetBucketPolicy"},
+				Func: getBucketReplication,
+				Tags: map[string]string{"service": "s3", "action": "GetBucketReplication"},
 			},
 			{
-				Func:    getBucketReplication,
-				Depends: []plugin.HydrateFunc{getBucketRegion},
-				Tags:    map[string]string{"service": "s3", "action": "GetBucketReplication"},
+				Func: getBucketTagging,
+				Tags: map[string]string{"service": "s3", "action": "GetBucketTagging"},
 			},
 			{
-				Func:    getBucketTagging,
-				Depends: []plugin.HydrateFunc{getBucketRegion},
-				Tags:    map[string]string{"service": "s3", "action": "GetBucketTagging"},
+				Func: getObjectLockConfiguration,
+				Tags: map[string]string{"service": "s3", "action": "GetObjectLockConfiguration"},
 			},
 			{
-				Func:    getObjectLockConfiguration,
-				Depends: []plugin.HydrateFunc{getBucketRegion},
-				Tags:    map[string]string{"service": "s3", "action": "GetObjectLockConfiguration"},
+				Func: getS3BucketEventNotificationConfigurations,
+				Tags: map[string]string{"service": "s3", "action": "GetBucketNotificationConfiguration"},
 			},
 			{
-				Func:    getS3BucketEventNotificationConfigurations,
-				Depends: []plugin.HydrateFunc{getBucketRegion},
-				Tags:    map[string]string{"service": "s3", "action": "GetBucketNotificationConfiguration"},
+				Func: getS3BucketObjectOwnershipControl,
+				Tags: map[string]string{"service": "s3", "action": "GetBucketOwnershipControls"},
 			},
 			{
-				Func:    getS3BucketObjectOwnershipControl,
-				Depends: []plugin.HydrateFunc{getBucketRegion},
-				Tags:    map[string]string{"service": "s3", "action": "GetBucketOwnershipControls"},
-			},
-			{
-				Func:    getBucketWebsite,
-				Depends: []plugin.HydrateFunc{getBucketRegion},
-				Tags:    map[string]string{"service": "s3", "action": "GetBucketWebsite"},
+				Func: getBucketWebsite,
+				Tags: map[string]string{"service": "s3", "action": "GetBucketWebsite"},
 			},
 		},
+		GetMatrixItemFunc: getS3SupportedRegions,
 		Columns: awsAccountColumns([]*plugin.Column{
 			{
 				Name:        "name",
@@ -283,8 +266,7 @@ func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 				Name:        "region",
 				Description: "The AWS Region in which the resource is located.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getBucketRegion,
-				Transform:   transform.FromValue(),
+				Transform:   transform.FromQual("region"),
 			},
 		}),
 	}
@@ -292,40 +274,61 @@ func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 
 func listS3Buckets(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
-	// Unlike most services, S3 buckets are a global list. They can be retrieved
-	// from any single region.  We must list buckets from the default region to
-	// get the actual creation_time of the bucket, in all other regions the list
-	// returns the time when the bucket was last modified. See
-	// https://www.marksayson.com/blog/s3-bucket-creation-dates-s3-master-regions/
-	defaultRegion, err := getLastResortRegion(ctx, d, h)
+	region := d.EqualsQualString(matrixKeyRegion)
+
+	svc, err := S3Client(ctx, d, region)
 	if err != nil {
-		return nil, err
-	}
-	svc, err := S3Client(ctx, d, defaultRegion)
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_s3_bucket.listS3Buckets", "get_client_error", err, "defaultRegion", defaultRegion)
+		plugin.Logger(ctx).Error("aws_s3_bucket.listS3Buckets", "get_client_error", err, "region", region)
 		return nil, err
 	}
 
 	// execute list call
-	input := &s3.ListBucketsInput{}
-	bucketsResult, err := svc.ListBuckets(ctx, input)
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_s3_bucket.listS3Buckets", "api_error", err, "defaultRegion", defaultRegion)
-		return nil, err
+	input := &s3.ListBucketsInput{
+		BucketRegion: aws.String(region),
 	}
 
-	for _, bucket := range bucketsResult.Buckets {
-		d.StreamListItem(ctx, bucket)
-		// Context may get cancelled due to manual cancellation or if the limit has been reached
-		if d.RowsRemaining(ctx) == 0 {
-			return nil, nil
+	maxLimit := int32(10000)
+	// Reduce the basic request limit down if the user has only requested a small number of rows
+	limit := d.QueryContext.Limit
+	if d.QueryContext.Limit != nil {
+		if *limit < int64(maxLimit) {
+			maxLimit = int32(*limit)
+		}
+	}
+	input.MaxBuckets = aws.Int32(maxLimit)
+
+	// List call
+	paginator := s3.NewListBucketsPaginator(svc, input, func(o *s3.ListBucketsPaginatorOptions) {
+		o.Limit = *input.MaxBuckets
+		o.StopOnDuplicateToken = true
+	})
+
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_s3_bucket.listS3Buckets", "api_error", err, "defaultRegion", region)
+			return nil, err
+		}
+
+		for _, bucket := range output.Buckets {
+			d.StreamListItem(ctx, bucket)
+			// Context may get cancelled due to manual cancellation or if the limit has been reached
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
 		}
 	}
 
 	return nil, nil
 }
 
+// This function is used to determine the AWS region for a specific S3 bucket.
+// Several tables require this functionality since they operate on individual buckets
+// where bucket_name is a required qualifier. The following tables depend on this function:
+//   - aws_s3_bucket_intelligent_tiering_configuration
+//   - aws_s3_multipart_upload
+//   - aws_s3_object
+//   - aws_s3_object_version
 func doGetBucketRegion(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData, bucket string) (string, error) {
 	// Have we already resolved and cached the bucket name?
 	c, err := getCommonColumns(ctx, d, h)
@@ -365,15 +368,10 @@ func doGetBucketRegion(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	return bucketRegion, nil
 }
 
-func getBucketRegion(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	bucketName := h.Item.(types.Bucket).Name
-
-	return doGetBucketRegion(ctx, d, h, *bucketName)
-}
-
 func getS3BucketEventNotificationConfigurations(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	bucketName := h.Item.(types.Bucket).Name
-	bucketRegion := h.HydrateResults["getBucketRegion"].(string)
+	bucket := h.Item.(types.Bucket)
+	bucketName := bucket.Name
+	bucketRegion := *bucket.BucketRegion
 
 	// Create client
 	svc, err := S3Client(ctx, d, bucketRegion)
@@ -404,8 +402,9 @@ func getS3BucketEventNotificationConfigurations(ctx context.Context, d *plugin.Q
 }
 
 func getS3BucketObjectOwnershipControl(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	bucketName := h.Item.(types.Bucket).Name
-	bucketRegion := h.HydrateResults["getBucketRegion"].(string)
+	bucket := h.Item.(types.Bucket)
+	bucketName := bucket.Name
+	bucketRegion := *bucket.BucketRegion
 
 	// Create client
 	svc, err := S3Client(ctx, d, bucketRegion)
@@ -438,8 +437,9 @@ func getS3BucketObjectOwnershipControl(ctx context.Context, d *plugin.QueryData,
 }
 
 func getBucketIsPublic(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	bucketName := h.Item.(types.Bucket).Name
-	bucketRegion := h.HydrateResults["getBucketRegion"].(string)
+	bucket := h.Item.(types.Bucket)
+	bucketName := bucket.Name
+	bucketRegion := *bucket.BucketRegion
 
 	// Create client
 	svc, err := S3Client(ctx, d, bucketRegion)
@@ -465,8 +465,9 @@ func getBucketIsPublic(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 }
 
 func getBucketVersioning(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	bucketName := h.Item.(types.Bucket).Name
-	bucketRegion := h.HydrateResults["getBucketRegion"].(string)
+	bucket := h.Item.(types.Bucket)
+	bucketName := bucket.Name
+	bucketRegion := *bucket.BucketRegion
 
 	// Create client
 	svc, err := S3Client(ctx, d, bucketRegion)
@@ -486,8 +487,9 @@ func getBucketVersioning(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 }
 
 func getBucketEncryption(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	bucketName := h.Item.(types.Bucket).Name
-	bucketRegion := h.HydrateResults["getBucketRegion"].(string)
+	bucket := h.Item.(types.Bucket)
+	bucketName := bucket.Name
+	bucketRegion := *bucket.BucketRegion
 
 	// Create client
 	svc, err := S3Client(ctx, d, bucketRegion)
@@ -514,8 +516,9 @@ func getBucketEncryption(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 }
 
 func getBucketPublicAccessBlock(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	bucketName := h.Item.(types.Bucket).Name
-	bucketRegion := h.HydrateResults["getBucketRegion"].(string)
+	bucket := h.Item.(types.Bucket)
+	bucketName := bucket.Name
+	bucketRegion := *bucket.BucketRegion
 
 	// Create client
 	svc, err := S3Client(ctx, d, bucketRegion)
@@ -550,8 +553,9 @@ func getBucketPublicAccessBlock(ctx context.Context, d *plugin.QueryData, h *plu
 }
 
 func getBucketACL(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	bucketName := h.Item.(types.Bucket).Name
-	bucketRegion := h.HydrateResults["getBucketRegion"].(string)
+	bucket := h.Item.(types.Bucket)
+	bucketName := bucket.Name
+	bucketRegion := *bucket.BucketRegion
 
 	// Create client
 	svc, err := S3Client(ctx, d, bucketRegion)
@@ -579,8 +583,9 @@ func getBucketACL(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 }
 
 func getBucketLifecycle(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	bucketName := h.Item.(types.Bucket).Name
-	bucketRegion := h.HydrateResults["getBucketRegion"].(string)
+	bucket := h.Item.(types.Bucket)
+	bucketName := bucket.Name
+	bucketRegion := *bucket.BucketRegion
 
 	// Create client
 	svc, err := S3Client(ctx, d, bucketRegion)
@@ -607,8 +612,9 @@ func getBucketLifecycle(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 }
 
 func getBucketLogging(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	bucketName := h.Item.(types.Bucket).Name
-	bucketRegion := h.HydrateResults["getBucketRegion"].(string)
+	bucket := h.Item.(types.Bucket)
+	bucketName := bucket.Name
+	bucketRegion := *bucket.BucketRegion
 
 	// Create client
 	svc, err := S3Client(ctx, d, bucketRegion)
@@ -627,8 +633,9 @@ func getBucketLogging(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 }
 
 func getBucketPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	bucketName := h.Item.(types.Bucket).Name
-	bucketRegion := h.HydrateResults["getBucketRegion"].(string)
+	bucket := h.Item.(types.Bucket)
+	bucketName := bucket.Name
+	bucketRegion := *bucket.BucketRegion
 
 	// Create client
 	svc, err := S3Client(ctx, d, bucketRegion)
@@ -656,8 +663,9 @@ func getBucketPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 }
 
 func getBucketReplication(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	bucketName := h.Item.(types.Bucket).Name
-	bucketRegion := h.HydrateResults["getBucketRegion"].(string)
+	bucket := h.Item.(types.Bucket)
+	bucketName := bucket.Name
+	bucketRegion := *bucket.BucketRegion
 
 	// Create client
 	svc, err := S3Client(ctx, d, bucketRegion)
@@ -683,8 +691,9 @@ func getBucketReplication(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 }
 
 func getBucketTagging(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	bucketName := h.Item.(types.Bucket).Name
-	bucketRegion := h.HydrateResults["getBucketRegion"].(string)
+	bucket := h.Item.(types.Bucket)
+	bucketName := bucket.Name
+	bucketRegion := *bucket.BucketRegion
 
 	// Create client
 	svc, err := S3Client(ctx, d, bucketRegion)
@@ -711,8 +720,9 @@ func getBucketTagging(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 }
 
 func getBucketWebsite(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	bucketName := h.Item.(types.Bucket).Name
-	bucketRegion := h.HydrateResults["getBucketRegion"].(string)
+	bucket := h.Item.(types.Bucket)
+	bucketName := bucket.Name
+	bucketRegion := *bucket.BucketRegion
 
 	// Create client
 	svc, err := S3Client(ctx, d, bucketRegion)
@@ -754,8 +764,9 @@ func getBucketARN(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDat
 }
 
 func getObjectLockConfiguration(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	bucketName := h.Item.(types.Bucket).Name
-	bucketRegion := h.HydrateResults["getBucketRegion"].(string)
+	bucket := h.Item.(types.Bucket)
+	bucketName := bucket.Name
+	bucketRegion := *bucket.BucketRegion
 
 	// Create client
 	svc, err := S3Client(ctx, d, bucketRegion)
