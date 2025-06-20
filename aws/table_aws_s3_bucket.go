@@ -276,8 +276,6 @@ func listS3Buckets(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 
 	region := d.EqualsQualString(matrixKeyRegion)
 
-	plugin.Logger(ctx).Debug("listS3Buckets ===>>>>", "region", region)
-
 	svc, err := S3Client(ctx, d, region)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_s3_bucket.listS3Buckets", "get_client_error", err, "region", region)
