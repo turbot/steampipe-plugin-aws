@@ -118,7 +118,7 @@ func tableAwsIamPolicy(_ context.Context) *plugin.Table {
 				Description: "Contains the details about the policy.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getPolicyVersion,
-				Transform:   transform.FromField("PolicyVersion.Document").Transform(transform.UnmarshalYAML),
+				Transform:   transform.FromField("PolicyVersion.Document").Transform(transform.UnmarshalJSON),
 			},
 			{
 				Name:        "policy_std",
