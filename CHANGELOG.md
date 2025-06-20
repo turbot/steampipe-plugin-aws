@@ -1,3 +1,17 @@
+## v1.16.0 [2025-06-20]
+
+_Enhancements_
+
+- Optimized the `aws_s3_*` tables to reduce query time by improving how bucket regions are handled. ([#2519](https://github.com/turbot/steampipe-plugin-aws/pull/2519))
+
+_Bug fixes_
+
+- Fixed the `policy` column of `aws_iam_policy` table to correctly return data instead of an error when the policy document contains trailing tab characters. ([#2529](https://github.com/turbot/steampipe-plugin-aws/pull/2529))
+
+_Dependencies_
+
+- Recompiled plugin with [steampipe-plugin-sdk v5.12.0](https://github.com/turbot/steampipe-plugin-sdk/blob/v5.12.0/CHANGELOG.md#v5120-2025-06-20), which introduces support for the `UnmarshalJSON` transform function, ensuring robust handling of IAM policy JSON columns. ([#2529](https://github.com/turbot/steampipe-plugin-aws/pull/2529))
+
 ## v1.15.0 [2025-06-11]
 
 _What's new?_
