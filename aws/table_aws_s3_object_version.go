@@ -110,12 +110,7 @@ func tableAwsS3ObjectVersion(_ context.Context) *plugin.Table {
 
 func listS3ObjectVersions(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	bucketName := d.EqualsQuals["bucket_name"].GetStringValue()
-	bucketRegion, err := doGetBucketRegion(ctx, d, h, bucketName)
-	if err != nil {
-		return nil, err
-	} else if bucketRegion == "" {
-		return nil, nil
-	}
+	bucketRegion := h.HydrateResults["getBucketRegionForObjects"].(string)
 
 	svc, err := S3Client(ctx, d, bucketRegion)
 	if err != nil {
