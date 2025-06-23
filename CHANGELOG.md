@@ -1,5 +1,7 @@
 ## v1.16.1 [2025-06-23]
 
+_Bug fixes_
+
 - Reverted the optimization of `aws_s3_*` tables introduced in [#2519](https://github.com/turbot/steampipe-plugin-aws/pull/2519) due to `InvalidToken` errors while executing S3 queries. ([#2536](https://github.com/turbot/steampipe-plugin-aws/pull/2536))
 
 ## v1.16.0 [2025-06-20]
