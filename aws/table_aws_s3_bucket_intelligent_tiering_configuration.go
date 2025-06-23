@@ -33,8 +33,6 @@ func tableAwsS3BucketIntelligentTieringConfiguration(_ context.Context) *plugin.
 				{Name: "bucket_name", Require: plugin.Optional, CacheMatch: "exact"},
 			},
 		},
-		// We need to use `GetMatrixItemFunc` here because `aws_s3_bucket` is its parent and already uses `GetMatrixItemFunc`.
-		GetMatrixItemFunc: getS3SupportedRegions,
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "bucket_name",
@@ -86,8 +84,13 @@ func listBucketIntelligentTieringConfigurations(ctx context.Context, d *plugin.Q
 		return nil, nil
 	}
 
+	bucketRegion, err := doGetBucketRegion(ctx, d, h, *bucket.Name)
+	if err != nil {
+		return nil, err
+	}
+
 	// Create client
-	svc, err := S3Client(ctx, d, *bucket.BucketRegion)
+	svc, err := S3Client(ctx, d, bucketRegion)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_s3_bucket_intelligent_tiering_configuration.listBucketIntelligentTieringConfigurations", "client_error", err)
 		return nil, err
@@ -133,8 +136,6 @@ func getBucketIntelligentTieringConfiguration(ctx context.Context, d *plugin.Que
 	bucketName := d.EqualsQualString("bucket_name")
 	id := d.EqualsQualString("id")
 
-	region := d.EqualsQualString(matrixKeyRegion)
-
 	if bucketName == "" || id == "" {
 		return nil, nil
 	}
@@ -142,11 +143,6 @@ func getBucketIntelligentTieringConfiguration(ctx context.Context, d *plugin.Que
 	bucketRegion, err := doGetBucketRegion(ctx, d, h, bucketName)
 	if err != nil {
 		return nil, err
-	}
-
-	// Avoid error: Error: get call returned 32 results - the key column is not globally unique
-	if bucketRegion != "" && bucketRegion != region {
-		return nil, nil
 	}
 
 	// Create client
