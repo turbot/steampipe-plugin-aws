@@ -142,6 +142,7 @@ require (
 	github.com/goccy/go-yaml v1.11.3
 	github.com/golang/protobuf v1.5.4
 	github.com/hashicorp/go-hclog v1.6.3
+	github.com/pganalyze/pg_query_go/v6 v6.1.0
 	github.com/rs/dnscache v0.0.0-20230804202142-fc85eb664529
 	github.com/stretchr/testify v1.10.0
 	github.com/turbot/go-kit v1.1.0
