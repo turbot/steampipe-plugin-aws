@@ -2,6 +2,8 @@ package aws
 
 import (
 	"context"
+	"strings"
+	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/kafka"
@@ -18,6 +20,7 @@ func tableAwsMSKCluster(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_msk_cluster",
 		Description: "AWS Managed Streaming for Apache Kafka",
+		DefaultTransform: transform.FromCamel(),
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("arn"),
 			Hydrate:    getKafkaCluster(string(types.ClusterTypeProvisioned)),
@@ -342,15 +345,67 @@ func getKafkaClusterBootstrapBrokers(ctx context.Context, d *plugin.QueryData, h
 		return nil, nil
 	}
 
-	params := &kafka.GetBootstrapBrokersInput{
+	brokerCount := int(*cluster.Provisioned.NumberOfBrokerNodes)
+
+	bootstrapParams := &kafka.GetBootstrapBrokersInput{
 		ClusterArn: &clusterArn,
 	}
-
-	op, err := svc.GetBootstrapBrokers(ctx, params)
+	bootstrapResp, err := svc.GetBootstrapBrokers(ctx, bootstrapParams)
 	if err != nil {
-		logger.Error("aws_msk_cluster.getKafkaClusterBootstrapBrokers", "api_error", err)
+		logger.Error("aws_msk_cluster.getKafkaClusterBootstrapBrokers", "get_bootstrap_api_error", err)
 		return nil, err
 	}
 
-	return op, nil
+	samplingBroker := ""
+	if bootstrapResp.BootstrapBrokerString != nil {
+		parts := strings.Split(*bootstrapResp.BootstrapBrokerString, ",")
+		if len(parts) > 0 {
+			samplingBroker = parts[0]
+		}
+	}
+	if samplingBroker == "" {
+		return bootstrapResp, nil
+	}
+
+	var plainPort = parsePort(bootstrapResp.BootstrapBrokerString, "9092")
+	var tlsPort = parsePort(bootstrapResp.BootstrapBrokerString, "9094")
+
+	hostOnly := strings.Split(samplingBroker, ":")[0]
+	dotParts := strings.SplitN(hostOnly, ".", 2)
+	if len(dotParts) != 2 {
+		logger.Warn("aws_msk_cluster.getKafkaClusterBootstrapBrokers", "invalid_hostname", samplingBroker)
+		return nil, nil
+	}
+	brokerDomainSuffix := dotParts[1]
+
+	plainBrokers := make([]string, brokerCount)
+	tlsBrokers := make([]string, brokerCount)
+
+	// Broker URL pattern (e.g. b-1.blahblah.kafka.ap-northeast-2.amazonaws.com:9092)
+	// Port 9092 is used for plaintext connections, 9094 for TLS within VPC
+	// Public TLS endpoints may use port 9194
+	// https://awscli.amazonaws.com/v2/documentation/api/2.0.33/reference/kafka/get-bootstrap-brokers.html
+	for i := 1; i <= brokerCount; i++ {
+		plainBrokers[i-1] = fmt.Sprintf("b-%d.%s:%s", i, brokerDomainSuffix, plainPort)
+		tlsBrokers[i-1] = fmt.Sprintf("b-%d.%s:%s", i, brokerDomainSuffix, tlsPort)
+	}
+
+	result := struct {
+		BootstrapBrokerString string
+		BootstrapBrokerStringTls string
+	}{
+		BootstrapBrokerString: strings.Join(plainBrokers, ","),
+		BootstrapBrokerStringTls: strings.Join(tlsBrokers, ","),
+	}
+
+	return result, nil
+}
+
+func parsePort(brokerString *string, defaultPort string) string {
+	if brokerString != nil {
+		if parts := strings.Split(*brokerString, ":"); len(parts) == 2 {
+			return parts[1]
+		}
+	}
+	return defaultPort
 }
