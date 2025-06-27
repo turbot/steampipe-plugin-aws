@@ -3,48 +3,16 @@ package aws
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/savingsplans"
+	"github.com/aws/aws-sdk-go-v2/service/savingsplans/types"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
-
-// https://github.com/turbot/steampipe-plugin-aws/issues/2500
-// https://docs.aws.amazon.com/savingsplans/latest/APIReference/API_DescribeSavingsPlans.html
-// https://docs.aws.amazon.com/savingsplans/latest/APIReference/API_DescribeSavingsPlansOfferings.html
-//// TABLE DEFINITION
-//
-// {
-// 	"nextToken": "string",
-// 	"savingsPlans": [
-// 	   {
-// 		  "commitment": "string",
-// 		  "currency": "string",
-// 		  "description": "string",
-// 		  "ec2InstanceFamily": "string",
-// 		  "end": "string",
-// 		  "offeringId": "string",
-// 		  "paymentOption": "string",
-// 		  "productTypes": [ "string" ],
-// 		  "recurringPaymentAmount": "string",
-// 		  "region": "string",
-// 		  "returnableUntil": "string",
-// 		  "savingsPlanArn": "string",
-// 		  "savingsPlanId": "string",
-// 		  "savingsPlanType": "string",
-// 		  "start": "string",
-// 		  "state": "string",
-// 		  "tags": {
-// 			 "string" : "string"
-// 		  },
-// 		  "termDurationInSeconds": number,
-// 		  "upfrontPaymentAmount": "string"
-// 	   }
-// 	]
-//  }
 
 func tableAwsSavingsPlan(_ context.Context) *plugin.Table {
 	return &plugin.Table{
@@ -53,22 +21,26 @@ func tableAwsSavingsPlan(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("savings_plan_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				// ????
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameterValue"}),
 			},
 			Hydrate: getSavingsPlan,
-			Tags:    map[string]string{"service": "savingsplans", "action": "DescribeSavingsPlan"},
+			Tags:    map[string]string{"service": "savingsplans", "action": "DescribeSavingsPlans"},
 		},
 		List: &plugin.ListConfig{
-			Hydrate: listSavingsPlan,
+			Hydrate: listSavingsPlans,
 			Tags:    map[string]string{"service": "savingsplans", "action": "DescribeSavingsPlans"},
 			KeyColumns: []*plugin.KeyColumn{
-				{Name: "savings_plan_type", Require: plugin.Optional},
-				// {Name: "state", Require: plugin.Optional},
-				// {Name: "payment_option", Require: plugin.Optional},
+				{Name: "state", Require: plugin.Optional},
+				{Name: "region", Require: plugin.Optional, Operators: []string{"="}},
+				{Name: "ec2_instance_family", Require: plugin.Optional, Operators: []string{"="}},
+				{Name: "commitment", Require: plugin.Optional, Operators: []string{"="}},
+				{Name: "term_duration_in_seconds", Require: plugin.Optional, Operators: []string{"="}},
+				{Name: "savings_plan_type", Require: plugin.Optional, Operators: []string{"="}},
+				{Name: "payment_option", Require: plugin.Optional, Operators: []string{"="}},
+				{Name: "start", Require: plugin.Optional, Operators: []string{"="}},
+				{Name: "end", Require: plugin.Optional, Operators: []string{"="}},
 			},
 			IgnoreConfig: &plugin.IgnoreConfig{
-				// TODO ???
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameterValue"}),
 			},
 		},
@@ -156,24 +128,18 @@ func tableAwsSavingsPlan(_ context.Context) *plugin.Table {
 				Description: "The instance family of the EC2 Savings Plan.",
 				Type:        proto.ColumnType_STRING,
 			},
-			// {
-			// 	Name:        "region",
-			// 	Description: "The AWS Region for the Savings Plan.",
-			// 	Type:        proto.ColumnType_STRING,
-			// },
 			{
 				Name:        "product_types",
 				Description: "The product types supported by the Savings Plan.",
 				Type:        proto.ColumnType_JSON,
 			},
-			{
-				Name:        "tags_src",
-				Description: "A list of tags associated with the Savings Plan.",
-				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Tags"),
-			},
 
 			// Steampipe standard columns
+			{
+				Name:        "tags",
+				Description: "A list of tags associated with the Savings Plan.",
+				Type:        proto.ColumnType_JSON,
+			},
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
@@ -192,13 +158,11 @@ func tableAwsSavingsPlan(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listSavingsPlan(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listSavingsPlans(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	// Create Session
 	svc, err := SavingsPlansClient(ctx, d)
-
-	fmt.Println("svc", svc)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_savings_plan.listSavingsPlan", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_savings_plan.listSavingsPlans", "connection_error", err)
 		return nil, err
 	}
 
@@ -219,22 +183,46 @@ func listSavingsPlan(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 		MaxResults: aws.Int32(maxLimit),
 	}
 
-	// API doesn't support aws-go-sdk-v2 paginator as of date
-
-	output, err := svc.DescribeSavingsPlans(ctx, input)
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_savings_plan.listSavingsPlan", "api_error", err)
-		return nil, err
+	// Add filters based on optional key columns
+	if d.EqualsQuals["state"] != nil {
+		input.States = []types.SavingsPlanState{types.SavingsPlanState(d.EqualsQuals["state"].GetStringValue())}
 	}
 
-	plugin.Logger(ctx).Info("aws_savings_plan.output", output)
+	filters := getSavingsPlanFilter(d)
+	if len(filters) > 0 {
+		input.Filters = filters
+	}
 
-	for _, item := range output.SavingsPlans {
-		d.StreamListItem(ctx, item)
-		fmt.Println("item", item)
-		if d.RowsRemaining(ctx) == 0 {
-			return nil, nil
+	// Handle pagination manually since AWS SDK v2 doesn't have paginator for this API
+	var nextToken *string
+	for {
+		if nextToken != nil {
+			input.NextToken = nextToken
 		}
+
+		// Apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
+		output, err := svc.DescribeSavingsPlans(ctx, input)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_savings_plan.listSavingsPlans", "api_error", err)
+			return nil, err
+		}
+
+		for _, item := range output.SavingsPlans {
+			d.StreamListItem(ctx, item)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
+		}
+
+		// Check if there are more pages
+		if output.NextToken == nil {
+			break
+		}
+		nextToken = output.NextToken
 	}
 
 	return nil, nil
@@ -242,32 +230,76 @@ func listSavingsPlan(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 
 //// HYDRATE FUNCTIONS
 
-func getSavingsPlan(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getSavingsPlan(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	savingsPlanId := d.EqualsQuals["savings_plan_id"].GetStringValue()
+
+	// Create service
+	svc, err := SavingsPlansClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_savings_plan.getSavingsPlan", "connection_error", err)
+		return nil, err
+	}
+
+	params := &savingsplans.DescribeSavingsPlansInput{
+		SavingsPlanIds: []string{savingsPlanId},
+	}
+
+	op, err := svc.DescribeSavingsPlans(ctx, params)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_savings_plan.getSavingsPlan", "api_error", err)
+		return nil, err
+	}
+
+	if len(op.SavingsPlans) > 0 {
+		return op.SavingsPlans[0], nil
+	}
 	return nil, nil
 }
 
-// func getRDSReservedDBInstance(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-// 	dbInstanceIdentifier := d.EqualsQuals["reserved_db_instance_id"].GetStringValue()
+//// UTILITY FUNCTIONS
 
-// 	// Create service
-// 	svc, err := RDSClient(ctx, d)
-// 	if err != nil {
-// 		plugin.Logger(ctx).Error("aws_rds_reserved_db_instance.getRDSReservedDBInstance", "connection_error", err)
-// 		return nil, err
-// 	}
+func getSavingsPlanFilter(d *plugin.QueryData) []types.SavingsPlanFilter {
+	savingsPlanFilters := make([]types.SavingsPlanFilter, 0)
 
-// 	params := &rds.DescribeReservedDBInstancesInput{
-// 		ReservedDBInstanceId: aws.String(dbInstanceIdentifier),
-// 	}
+	for q, v := range d.EqualsQuals {
+		savingPlan := &types.SavingsPlanFilter{}
+		addFilter := true
 
-// 	op, err := svc.DescribeReservedDBInstances(ctx, params)
-// 	if err != nil {
-// 		plugin.Logger(ctx).Error("aws_rds_reserved_db_instance.getRDSReservedDBInstance", "api_error", err)
-// 		return nil, err
-// 	}
+		switch q {
+		case "region":
+			savingPlan.Name = types.SavingsPlansFilterNameRegion
+			savingPlan.Values = []string{v.GetStringValue()}
+		case "ec2_instance_family":
+			savingPlan.Name = types.SavingsPlansFilterNameEc2InstanceFamily
+			savingPlan.Values = []string{v.GetStringValue()}
+		case "commitment":
+			savingPlan.Name = types.SavingsPlansFilterNameCommitment
+			savingPlan.Values = []string{v.GetStringValue()}
+		case "payment_option":
+			savingPlan.Name = types.SavingsPlansFilterNamePaymentOption
+			savingPlan.Values = []string{v.GetStringValue()}
+		case "term_duration_in_seconds":
+			savingPlan.Name = types.SavingsPlansFilterNameTerm
+			savingPlan.Values = []string{fmt.Sprint(v.GetInt64Value())}
+		case "start":
+			savingPlan.Name = types.SavingsPlansFilterNameStart
+			val := v.GetTimestampValue().AsTime()
+			savingPlan.Values = []string{val.Format(time.RFC3339)}
+		case "end":
+			savingPlan.Name = types.SavingsPlansFilterNameEnd
+			val := v.GetTimestampValue().AsTime()
+			savingPlan.Values = []string{val.Format(time.RFC3339)}
+		case "savings_plan_type":
+			savingPlan.Name = types.SavingsPlansFilterNameSavingsPlanType
+			savingPlan.Values = []string{v.GetStringValue()}
+		default:
+			addFilter = false
+		}
 
-// 	if len(op.ReservedDBInstances) > 0 {
-// 		return op.ReservedDBInstances[0], nil
-// 	}
-// 	return nil, nil
-// }
+		if addFilter {
+			savingsPlanFilters = append(savingsPlanFilters, *savingPlan)
+		}
+	}
+
+	return savingsPlanFilters
+}
