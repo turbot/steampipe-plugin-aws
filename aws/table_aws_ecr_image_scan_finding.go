@@ -22,20 +22,19 @@ func tableAwsEcrImageScanFinding(_ context.Context) *plugin.Table {
 		Name:        "aws_ecr_image_scan_finding",
 		Description: "AWS ECR Image Scan Finding",
 		List: &plugin.ListConfig{
-			ParentHydrate: listAwsEcrImageTags,
-			Hydrate:       listAwsEcrImageScanFindings,
-			Tags:          map[string]string{"service": "ecr", "action": "DescribeImageScanFindings"},
+			Hydrate: listAwsEcrImageScanFindings,
+			Tags:    map[string]string{"service": "ecr", "action": "DescribeImageScanFindings"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"RepositoryNotFoundException", "ImageNotFoundException", "ScanNotFoundException"}),
 			},
 			// Ideally image_tag and image_digest could both be used as optional
 			// key columns, but the query planner only works with required key
-			// columns when there are multiple. We chose image_tag instead of
+			// columns when there are multiple. We choose image_tag instead of
 			// image_digest as it's more common/friendly to use.
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "repository_name", Require: plugin.Required},
-				{Name: "image_tag", Require: plugin.Optional},
-				{Name: "image_digest", Require: plugin.Optional},
+				{Name: "image_tag", Require: plugin.AnyOf},
+				{Name: "image_digest", Require: plugin.AnyOf},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(AWS_API_ECR_SERVICE_ID),
@@ -120,7 +119,6 @@ func tableAwsEcrImageScanFinding(_ context.Context) *plugin.Table {
 
 // // LIST FUNCTION
 func listAwsEcrImageScanFindings(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	repositoryTag := h.Item.(*RepositoryImage)
 
 	// Create Session
 	svc, err := ECRClient(ctx, d)
@@ -128,16 +126,9 @@ func listAwsEcrImageScanFindings(ctx context.Context, d *plugin.QueryData, h *pl
 		return nil, err
 	}
 
-	imageTag := d.EqualsQuals["image_tag"]
-	imageDigest := d.EqualsQuals["image_digest"]
-	repositoryName := d.EqualsQuals["repository_name"]
-
-	if imageTag != nil && imageTag.GetStringValue() != *repositoryTag.ImageTag {
-		return nil, nil
-	}
-	if repositoryName != nil && repositoryName.GetStringValue() != *repositoryTag.RepositoryName {
-		return nil, nil
-	}
+	imageTag := d.EqualsQuals["image_tag"].GetStringValue()
+	imageDigest := d.EqualsQuals["image_digest"].GetStringValue()
+	repositoryName := d.EqualsQuals["repository_name"].GetStringValue()
 
 	// Limiting the results
 	maxLimit := int32(1000)
@@ -150,27 +141,15 @@ func listAwsEcrImageScanFindings(ctx context.Context, d *plugin.QueryData, h *pl
 
 	input := &ecr.DescribeImageScanFindingsInput{
 		MaxResults:     aws.Int32(maxLimit),
-		RepositoryName: repositoryTag.RepositoryName,
+		RepositoryName: aws.String(repositoryName),
 	}
 
-	imageInfo := &types.ImageIdentifier{
-		ImageTag: repositoryTag.ImageTag,
+	imageInfo := &types.ImageIdentifier{}
+	if imageTag != "" {
+		imageInfo.ImageTag = aws.String(imageTag)
 	}
-
-	// Ideally, both image_tag and image_digest could be used.
-	// However, they cannot be passed together simultaneously.
-	// 1. If ImageTag is provided, it takes precedence and is used as the input parameter.
-	// 2. If both ImageTag and ImageDigest are provided, ImageTag will be prioritized to keep the existing table behavior unchanged.
-	// 3. If only ImageDigest is provided, the ImageDigest value will be used as the input parameter.
-	if imageTag != nil {
-		imageInfo.ImageTag = aws.String(imageTag.GetStringValue())
-	}
-	if imageTag != nil && imageDigest != nil {
-		imageInfo.ImageTag = aws.String(imageTag.GetStringValue())
-	}
-	if imageTag == nil && imageDigest != nil {
-		imageInfo.ImageDigest = aws.String(imageDigest.GetStringValue())
-		imageInfo.ImageTag = nil
+	if imageDigest != "" {
+		imageInfo.ImageDigest = aws.String(imageDigest)
 	}
 
 	input.ImageId = imageInfo
@@ -235,70 +214,4 @@ func listAwsEcrImageScanFindings(ctx context.Context, d *plugin.QueryData, h *pl
 	}
 
 	return nil, err
-}
-
-//// Parent Hydrate
-
-type RepositoryImage struct {
-	RepositoryName *string
-	ImageTag       *string
-}
-
-// To preserve the existing table behavior (fetching findings based on image tags), we have retained the parent function.
-// Making `image_tags` an optional or `anyof` qualifier alters the query plan for complex join queries, causing query execution errors.
-// This issue is detailed here: https://github.com/turbot/steampipe-plugin-aws/issues/2367
-func listAwsEcrImageTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-
-	repoName := d.EqualsQuals["repository_name"].GetStringValue()
-
-	// Limiting the results
-	maxLimit := int32(100)
-
-	// Create Session
-	svc, err := ECRClient(ctx, d)
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_ecr_image.listAwsEcrImageTags", "connection_error", err)
-		return nil, err
-	}
-
-	// Build the params
-	params := &ecr.DescribeImagesInput{
-		RepositoryName: &repoName,
-		MaxResults:     aws.Int32(maxLimit),
-	}
-
-	paginator := ecr.NewDescribeImagesPaginator(svc, params, func(o *ecr.DescribeImagesPaginatorOptions) {
-		o.Limit = maxLimit
-		o.StopOnDuplicateToken = true
-	})
-
-	// List call
-	for paginator.HasMorePages() {
-		// apply rate limiting
-		d.WaitForListRateLimit(ctx)
-
-		output, err := paginator.NextPage(ctx)
-		if err != nil {
-			var ae smithy.APIError
-			if errors.As(err, &ae) {
-				if ae.ErrorCode() == "RepositoryNotFoundException" {
-					return nil, nil
-				}
-			}
-			plugin.Logger(ctx).Error("aws_ecr_image.listAwsEcrImageTags", "api_error", err)
-			return nil, err
-		}
-
-		for _, items := range output.ImageDetails {
-			for _, tags := range items.ImageTags {
-				imageDetails := &RepositoryImage{
-					RepositoryName: items.RepositoryName,
-					ImageTag:       &tags,
-				}
-				d.StreamListItem(ctx, imageDetails)
-			}
-		}
-	}
-
-	return nil, nil
 }
