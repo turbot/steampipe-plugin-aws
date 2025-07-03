@@ -70,7 +70,7 @@ from
   aws_api_gateway_account;
 ```
 
-### View API throttling setting across regions
+### View API throttling settings across regions
 Assess the throttle configuration across different regions to ensure consistent API rate limiting policies.
 
 ```sql+postgres
