@@ -103,7 +103,7 @@ order by
   region;
 ```
 
-### Check if API usage plans are supported in each region
+### Check if API usage plans are enabled
 Identify which features are supported in each region, particularly usage plans functionality.
 
 ```sql+postgres
