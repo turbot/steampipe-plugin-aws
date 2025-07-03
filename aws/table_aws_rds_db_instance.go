@@ -21,7 +21,7 @@ func tableAwsRDSDBInstance(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("db_instance_identifier"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"DBInstanceNotFound", "InvalidParameterValue"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"DBInstanceNotFound"}),
 			},
 			Hydrate: getRDSDBInstance,
 			Tags:    map[string]string{"service": "rds", "action": "DescribeDBInstances"},
