@@ -25,6 +25,9 @@ func tableAwsRDSPendingMaintenanceAction(_ context.Context) *plugin.Table {
 					Require: plugin.Optional,
 				},
 			},
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"DBInstanceNotFound", "InvalidParameterValue"}),
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(AWS_RDS_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
