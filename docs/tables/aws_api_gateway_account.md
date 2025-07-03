@@ -1,6 +1,6 @@
 ---
 title: "Steampipe Table: aws_api_gateway_account - Query AWS API Gateway Account using SQL"
-description: "Allows users to query Account settings in AWS API Gateway. The `aws_api_gateway_account` table in Steampipe provides information about Account settings within AWS API Gateway. This table allows DevOps engineers to query Account-specific details, including throttle settings, CloudWatch role ARN, API key version, and supported features. Users can utilize this table to gather insights on Account settings, such as throttle limits, monitoring configuration, and feature availability. The schema outlines the various attributes of the Account, including the CloudWatch role ARN, throttle settings, API key version, and supported features."
+description: "Allows users to query AWS API Gateway account settings, including throttle limits, CloudWatch role ARN, API key version, and supported features. This table helps DevOps engineers inspect monitoring configurations and feature availability across API Gateway accounts."
 folder: "API Gateway"
 ---
 
@@ -70,7 +70,7 @@ from
   aws_api_gateway_account;
 ```
 
-### View throttle settings across regions
+### View API throttling setting across regions
 Assess the throttle configuration across different regions to ensure consistent API rate limiting policies.
 
 ```sql+postgres
@@ -103,7 +103,7 @@ order by
   region;
 ```
 
-### Check supported features
+### Check if API usage plans are supported in each region
 Identify which features are supported in each region, particularly usage plans functionality.
 
 ```sql+postgres
