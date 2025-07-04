@@ -123,6 +123,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3control"
 	"github.com/aws/aws-sdk-go-v2/service/s3tables"
 	"github.com/aws/aws-sdk-go-v2/service/sagemaker"
+	"github.com/aws/aws-sdk-go-v2/service/savingsplans"
 	"github.com/aws/aws-sdk-go-v2/service/scheduler"
 	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
 	"github.com/aws/aws-sdk-go-v2/service/securityhub"
@@ -1417,6 +1418,17 @@ func SageMakerClient(ctx context.Context, d *plugin.QueryData) (*sagemaker.Clien
 		return nil, nil
 	}
 	return sagemaker.NewFromConfig(*cfg), nil
+}
+
+func SavingsPlansClient(ctx context.Context, d *plugin.QueryData) (*savingsplans.Client, error) {
+	cfg, err := getClientForDefaultRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return savingsplans.NewFromConfig(*cfg), nil
 }
 
 func SchedulerClient(ctx context.Context, d *plugin.QueryData) (*scheduler.Client, error) {
