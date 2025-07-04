@@ -38,19 +38,27 @@ func tableAwsCloudFormationStack(_ context.Context) *plugin.Table {
 			Tags:    map[string]string{"service": "cloudformation", "action": "DescribeStacks"},
 			KeyColumns: []*plugin.KeyColumn{
 				{
-					Name:    "name",
+					Name:    "status",
 					Require: plugin.Optional,
 				},
 			},
 		},
 		HydrateConfig: []plugin.HydrateConfig{
+			// For deleted stacks we are encountering error "ValidationError"
 			{
 				Func: getStackTemplate,
 				Tags: map[string]string{"service": "cloudformation", "action": "GetTemplate"},
+				IgnoreConfig: &plugin.IgnoreConfig{
+					ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ValidationError"}),
+				},
 			},
+			// For deleted stacks we are encountering error "ValidationError"
 			{
 				Func: describeStackResources,
 				Tags: map[string]string{"service": "cloudformation", "action": "DescribeStackResources"},
+				IgnoreConfig: &plugin.IgnoreConfig{
+					ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ValidationError"}),
+				},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(AWS_CLOUDFORMATION_SERVICE_ID),
@@ -77,16 +85,19 @@ func tableAwsCloudFormationStack(_ context.Context) *plugin.Table {
 				Name:        "stack_status_reason",
 				Description: "Success/failure message associated with the stack status.",
 				Type:        proto.ColumnType_STRING,
+				Hydrate:     getCloudFormationStack,
 			},
 			{
 				Name:        "change_set_id",
 				Description: "The unique ID of the change set.",
 				Type:        proto.ColumnType_STRING,
+				Hydrate:     getCloudFormationStack,
 			},
 			{
 				Name:        "detailed_status",
 				Description: "The detailed status of the resource or stack.",
 				Type:        proto.ColumnType_STRING,
+				Hydrate:     getCloudFormationStack,
 			},
 			{
 				Name:        "creation_time",
@@ -102,16 +113,19 @@ func tableAwsCloudFormationStack(_ context.Context) *plugin.Table {
 				Name:        "retain_except_on_create",
 				Description: "When set to true , newly created resources are deleted when the operation rolls back.",
 				Type:        proto.ColumnType_BOOL,
+				Hydrate:     getCloudFormationStack,
 			},
 			{
 				Name:        "disable_rollback",
 				Description: "Boolean to enable or disable rollback on stack creation failures.",
 				Type:        proto.ColumnType_BOOL,
+				Hydrate:     getCloudFormationStack,
 			},
 			{
 				Name:        "enable_termination_protection",
 				Description: "Specifies whether termination protection is enabled for the stack.",
 				Type:        proto.ColumnType_BOOL,
+				Hydrate:     getCloudFormationStack,
 			},
 			{
 				Name:        "last_updated_time",
@@ -127,6 +141,7 @@ func tableAwsCloudFormationStack(_ context.Context) *plugin.Table {
 				Name:        "role_arn",
 				Description: "The Amazon Resource Name (ARN) of an AWS Identity and Access Management (IAM) role that is associated with the stack.",
 				Type:        proto.ColumnType_STRING,
+				Hydrate:     getCloudFormationStack,
 				Transform:   transform.FromField("RoleARN"),
 			},
 			{
@@ -138,32 +153,38 @@ func tableAwsCloudFormationStack(_ context.Context) *plugin.Table {
 				Name:        "description",
 				Description: "A user-defined description associated with the stack.",
 				Type:        proto.ColumnType_STRING,
+				Hydrate:     getCloudFormationStack,
 			},
 			{
 				Name:        "timeout_in_minutes",
 				Description: "The amount of time within which stack creation should complete.",
 				Type:        proto.ColumnType_INT,
+				Hydrate:     getCloudFormationStack,
 			},
 			{
 				Name:        "notification_arns",
 				Description: "SNS topic ARNs to which stack related events are published.",
 				Type:        proto.ColumnType_JSON,
+				Hydrate:     getCloudFormationStack,
 				Transform:   transform.FromField("NotificationARNs"),
 			},
 			{
 				Name:        "outputs",
 				Description: "A list of output structures.",
 				Type:        proto.ColumnType_JSON,
+				Hydrate:     getCloudFormationStack,
 			},
 			{
 				Name:        "rollback_configuration",
 				Description: "The rollback triggers for AWS CloudFormation to monitor during stack creation and updating operations, and for the specified monitoring period afterwards.",
 				Type:        proto.ColumnType_JSON,
+				Hydrate:     getCloudFormationStack,
 			},
 			{
 				Name:        "capabilities",
 				Description: "The capabilities allowed in the stack.",
 				Type:        proto.ColumnType_JSON,
+				Hydrate:     getCloudFormationStack,
 			},
 			{
 				Name:        "stack_drift_status",
@@ -175,6 +196,7 @@ func tableAwsCloudFormationStack(_ context.Context) *plugin.Table {
 				Name:        "parameters",
 				Description: "A list of Parameter structures.",
 				Type:        proto.ColumnType_JSON,
+				Hydrate:     getCloudFormationStack,
 			},
 			{
 				Name:        "template_body",
@@ -201,6 +223,7 @@ func tableAwsCloudFormationStack(_ context.Context) *plugin.Table {
 				Name:        "tags_src",
 				Description: "A list of tags associated with stack.",
 				Type:        proto.ColumnType_JSON,
+				Hydrate:     getCloudFormationStack,
 				Transform:   transform.FromField("Tags"),
 			},
 
@@ -209,6 +232,7 @@ func tableAwsCloudFormationStack(_ context.Context) *plugin.Table {
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
+				Hydrate:     getCloudFormationStack,
 				Transform:   transform.From(cfnStackTagsToTurbotTags),
 			},
 			{
@@ -243,14 +267,14 @@ func listCloudFormationStacks(ctx context.Context, d *plugin.QueryData, _ *plugi
 	}
 
 	// We can not pass the MaxResult value in param so we can't limit the result per page
-	input := &cloudformation.DescribeStacksInput{}
+	input := &cloudformation.ListStacksInput{}
 
 	// Additonal Filter
 	equalQuals := d.EqualsQuals
-	if equalQuals["name"] != nil {
-		input.StackName = aws.String(equalQuals["name"].GetStringValue())
+	if equalQuals["status"] != nil {
+		input.StackStatusFilter = []types.StackStatus{types.StackStatus(equalQuals["status"].GetStringValue())}
 	}
-	paginator := cloudformation.NewDescribeStacksPaginator(svc, input, func(o *cloudformation.DescribeStacksPaginatorOptions) {
+	paginator := cloudformation.NewListStacksPaginator(svc, input, func(o *cloudformation.ListStacksPaginatorOptions) {
 		o.StopOnDuplicateToken = true
 	})
 	for paginator.HasMorePages() {
@@ -263,7 +287,7 @@ func listCloudFormationStacks(ctx context.Context, d *plugin.QueryData, _ *plugi
 			return nil, err
 		}
 
-		for _, stack := range output.Stacks {
+		for _, stack := range output.StackSummaries {
 			d.StreamListItem(ctx, stack)
 			// Context can be cancelled due to manual cancellation or the limit has been hit
 			if d.RowsRemaining(ctx) == 0 {
@@ -277,12 +301,16 @@ func listCloudFormationStacks(ctx context.Context, d *plugin.QueryData, _ *plugi
 
 //// HYDRATE FUNCTIONS
 
-func getCloudFormationStack(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getCloudFormationStack(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create Session
 	svc, err := CloudFormationClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_cloudformation_stack.getCloudFormationStack", "connection_error", err)
 		return nil, err
+	}
+	var stackInfo types.StackSummary
+	if h.Item != nil {
+		stackInfo = h.Item.(types.StackSummary)
 	}
 
 	if svc == nil {
@@ -290,9 +318,12 @@ func getCloudFormationStack(ctx context.Context, d *plugin.QueryData, _ *plugin.
 		return nil, nil
 	}
 
-	name := d.EqualsQuals["name"].GetStringValue()
-	params := &cloudformation.DescribeStacksInput{
-		StackName: aws.String(name),
+	params := &cloudformation.DescribeStacksInput{}
+
+	if d.EqualsQuals["name"].GetStringValue() != "" {
+		params.StackName = aws.String(d.EqualsQuals["name"].GetStringValue())
+	} else {
+		params.StackName = stackInfo.StackName
 	}
 
 	op, err := svc.DescribeStacks(ctx, params)
@@ -309,7 +340,14 @@ func getCloudFormationStack(ctx context.Context, d *plugin.QueryData, _ *plugin.
 }
 
 func getStackTemplate(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	stack := h.Item.(types.Stack)
+	stackName := ""
+
+	switch h.Item.(type) {
+	case types.Stack:
+		stackName = *h.Item.(types.Stack).StackName
+	case types.StackSummary:
+		stackName = *h.Item.(types.StackSummary).StackName
+	}
 
 	// Create Session
 	svc, err := CloudFormationClient(ctx, d)
@@ -325,7 +363,7 @@ func getStackTemplate(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 
 	// template_body is the template in its original string form
 	params := &cloudformation.GetTemplateInput{
-		StackName: stack.StackName,
+		StackName: aws.String(stackName),
 	}
 	stackTemplate, err := svc.GetTemplate(ctx, params)
 	if err != nil {
@@ -337,7 +375,14 @@ func getStackTemplate(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrat
 }
 
 func describeStackResources(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	stack := h.Item.(types.Stack)
+	stackName := ""
+
+	switch h.Item.(type) {
+	case types.Stack:
+		stackName = *h.Item.(types.Stack).StackName
+	case types.StackSummary:
+		stackName = *h.Item.(types.StackSummary).StackName
+	}
 
 	// Create Session
 	svc, err := CloudFormationClient(ctx, d)
@@ -352,7 +397,7 @@ func describeStackResources(ctx context.Context, d *plugin.QueryData, h *plugin.
 	}
 
 	params := &cloudformation.DescribeStackResourcesInput{
-		StackName: stack.StackName,
+		StackName: aws.String(stackName),
 	}
 
 	stackResources, err := svc.DescribeStackResources(ctx, params)

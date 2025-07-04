@@ -12,6 +12,10 @@ The AWS CloudFormation Stack is a service that allows you to manage and provisio
 
 The `aws_cloudformation_stack` table in Steampipe provides you with information about stacks within AWS CloudFormation. This table enables you as a DevOps engineer to query stack-specific details, including stack name, status, creation time, and associated tags. You can utilize this table to gather insights on stacks, such as stack status, stack resources, stack capabilities, and more. The schema outlines the various attributes of the CloudFormation stack for you, including stack ID, stack name, creation time, stack status, and associated tags.
 
+**Important Notes**
+- This table supports the optional list key column `status`.
+- For supported values of the `status`, please refer [StackStatusFilter](https://docs.aws.amazon.com/AWSCloudFormation/latest/APIReference/API_ListStacks.html).
+
 ## Examples
 
 ### Find the status of each cloudformation stack
@@ -34,7 +38,6 @@ select
 from
   aws_cloudformation_stack;
 ```
-
 
 ### List of cloudformation stack where rollback is disabled
 Discover the segments that have disabled rollback in their AWS CloudFormation stacks. This can be useful for identifying potential risk areas, as these stacks will not automatically revert to a previous state if an error occurs during stack operations.
@@ -59,7 +62,6 @@ where
   disable_rollback = 1;
 ```
 
-
 ### List of stacks where termination protection is not enabled
 Discover the segments that have not enabled termination protection in their stacks. This is crucial to identify potential risk areas and ensure the safety of your resources.
 
@@ -83,7 +85,6 @@ where
   enable_termination_protection = 0;
 ```
 
-
 ### Rollback configuration info for each cloudformation stack
 Explore the settings of your AWS CloudFormation stacks to understand their rollback configurations, including how long they monitor for signs of trouble and what triggers a rollback. This can help optimize your stack management by adjusting these settings based on your operational needs.
 
@@ -105,7 +106,6 @@ from
   aws_cloudformation_stack;
 ```
 
-
 ### Resource ARNs where notifications about stack actions will be sent
 Determine the areas in which notifications related to stack actions will be sent. This is useful for managing and tracking changes in your AWS CloudFormation stacks.
 
@@ -124,4 +124,31 @@ select
 from
   aws_cloudformation_stack,
   json_each(notification_arns);
+```
+
+### List deleted stacks
+Identify CloudFormation stacks that have been successfully deleted. This is useful for cleanup verification and understanding which stacks have been removed from your infrastructure.
+
+```sql+postgres
+select
+  name,
+  id,
+  status,
+  deletion_time
+from
+  aws_cloudformation_stack
+where
+  status = 'DELETE_COMPLETE';
+```
+
+```sql+sqlite
+select
+  name,
+  id,
+  status,
+  deletion_time
+from
+  aws_cloudformation_stack
+where
+  status = 'DELETE_COMPLETE';
 ```
