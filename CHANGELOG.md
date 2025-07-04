@@ -1,3 +1,24 @@
+## v1.17.0 [2025-07-04]
+
+_What's new?_
+
+- New tables added
+  - [aws_api_gateway_account](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_api_gateway_account) ([#2544](https://github.com/turbot/steampipe-plugin-aws/pull/2544))
+  - [aws_iam_instance_profile](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_iam_instance_profile) ([#2541](https://github.com/turbot/steampipe-plugin-aws/pull/2541))
+
+_Enhancements_
+
+- Updated the `aws_cloudformation_stack` table to also return stacks that are in `DELETE_COMPLETE` state. ([#2548](https://github.com/turbot/steampipe-plugin-aws/pull/2548))
+- Added rate limiters for the following tables: ([#2547](https://github.com/turbot/steampipe-plugin-aws/pull/2547)) 
+  - `aws_iam_role`
+  - `aws_iam_policy`
+  - `aws_iam_policy_attachment` 
+- Added default rate limiter configuration for `AWS CloudFormation`, `AWS Kinesis`, `AWS Route 53`, `AWS WAF` and `AWS WAF v2` service tables. ([#2537](https://github.com/turbot/steampipe-plugin-aws/pull/2537)) (Thanks [@pdecat](https://github.com/pdecat) for the contribution!)
+
+_Bug fixes_
+
+- Fixed `aws_rds_pending_maintenance_action` table to correctly return data instead of an error. ([#2545](https://github.com/turbot/steampipe-plugin-aws/pull/2545))
+
 ## v1.16.1 [2025-06-23]
 
 _Bug fixes_
