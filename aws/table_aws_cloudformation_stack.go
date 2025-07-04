@@ -273,7 +273,6 @@ func listCloudFormationStacks(ctx context.Context, d *plugin.QueryData, _ *plugi
 	equalQuals := d.EqualsQuals
 	if equalQuals["status"] != nil {
 		input.StackStatusFilter = []types.StackStatus{types.StackStatus(equalQuals["status"].GetStringValue())}
-		// aws.String(equalQuals["name"].GetStringValue())
 	}
 	paginator := cloudformation.NewListStacksPaginator(svc, input, func(o *cloudformation.ListStacksPaginatorOptions) {
 		o.StopOnDuplicateToken = true
@@ -318,6 +317,7 @@ func getCloudFormationStack(ctx context.Context, d *plugin.QueryData, h *plugin.
 		// Unsupported region check
 		return nil, nil
 	}
+
 	params := &cloudformation.DescribeStacksInput{}
 
 	if d.EqualsQuals["name"].GetStringValue() != "" {
