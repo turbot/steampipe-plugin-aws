@@ -74,7 +74,6 @@ func tableAwsIamInstanceProfile(ctx context.Context) *plugin.Table {
 				Name:        "roles",
 				Description: "The role associated with the instance profile.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Roles").Transform(getInstanceProfileRoles),
 			},
 			{
 				Name:        "tags_src",
@@ -222,26 +221,6 @@ func getIamInstanceProfileTags(ctx context.Context, d *plugin.QueryData, h *plug
 }
 
 //// UTILITY FUNCTIONS
-
-func getInstanceProfileRoles(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	roles := d.Value.([]types.Role)
-	
-	var rolesData []map[string]interface{}
-	for _, role := range roles {
-		roleData := map[string]interface{}{
-			"arn":                   role.Arn,
-			"name":                  role.RoleName,
-			"role_id":               role.RoleId,
-			"path":                  role.Path,
-			"create_date":           role.CreateDate,
-			"max_session_duration":  role.MaxSessionDuration,
-			"description":           role.Description,
-		}
-		rolesData = append(rolesData, roleData)
-	}
-	
-	return rolesData, nil
-}
 
 // Extract instance profile name from ARN
 func iamInstanceProfileNameFromArn(arn string) string {
