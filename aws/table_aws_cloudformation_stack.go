@@ -44,6 +44,7 @@ func tableAwsCloudFormationStack(_ context.Context) *plugin.Table {
 			},
 		},
 		HydrateConfig: []plugin.HydrateConfig{
+			// For deleted stacks we are encountering error "ValidationError"
 			{
 				Func: getStackTemplate,
 				Tags: map[string]string{"service": "cloudformation", "action": "GetTemplate"},
@@ -51,6 +52,7 @@ func tableAwsCloudFormationStack(_ context.Context) *plugin.Table {
 					ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ValidationError"}),
 				},
 			},
+			// For deleted stacks we are encountering error "ValidationError"
 			{
 				Func: describeStackResources,
 				Tags: map[string]string{"service": "cloudformation", "action": "DescribeStackResources"},
