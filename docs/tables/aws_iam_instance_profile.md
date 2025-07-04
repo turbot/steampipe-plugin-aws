@@ -19,26 +19,26 @@ Discover all IAM instance profiles in your AWS account to understand what roles 
 
 ```sql+postgres
 select
-  name,
+  instance_profile_name,
   arn,
   create_date,
   path
 from
   aws_iam_instance_profile
 order by
-  name;
+  instance_profile_name;
 ```
 
 ```sql+sqlite
 select
-  name,
+  instance_profile_name,
   arn,
   create_date,
   path
 from
   aws_iam_instance_profile
 order by
-  name;
+  instance_profile_name;
 ```
 
 ### List instance profiles with their associated roles
@@ -46,10 +46,10 @@ Identify the relationships between instance profiles and their associated IAM ro
 
 ```sql+postgres
 select
-  ip.name as instance_profile_name,
+  ip.instance_profile_name as instance_profile_name,
   ip.arn as instance_profile_arn,
-  role ->> 'name' as role_name,
-  role ->> 'arn' as role_arn
+  role ->> 'RoleName' as role_name,
+  role ->> 'Arn' as role_arn
 from
   aws_iam_instance_profile as ip,
   jsonb_array_elements(roles) as role;
@@ -57,10 +57,10 @@ from
 
 ```sql+sqlite
 select
-  ip.name as instance_profile_name,
+  ip.instance_profile_name as instance_profile_name,
   ip.arn as instance_profile_arn,
-  json_extract(role.value, '$.name') as role_name,
-  json_extract(role.value, '$.arn') as role_arn
+  json_extract(role.value, '$.RoleName') as role_name,
+  json_extract(role.value, '$.Arn') as role_arn
 from
   aws_iam_instance_profile as ip,
   json_each(roles) as role;
@@ -71,25 +71,25 @@ Identify instance profiles that don't have any roles attached, which may indicat
 
 ```sql+postgres
 select
-  name,
+  instance_profile_name,
   arn,
   create_date
 from
   aws_iam_instance_profile
 where
-  roles is null 
+  roles is null
   or jsonb_array_length(roles) = 0;
 ```
 
 ```sql+sqlite
 select
-  name,
+  instance_profile_name,
   arn,
   create_date
 from
   aws_iam_instance_profile
 where
-  roles is null 
+  roles is null
   or json_array_length(roles) = 0;
 ```
 
@@ -98,7 +98,7 @@ Identify recently created instance profiles to track new configurations and pote
 
 ```sql+postgres
 select
-  name,
+  instance_profile_name,
   arn,
   create_date,
   path
@@ -112,7 +112,7 @@ order by
 
 ```sql+sqlite
 select
-  name,
+  instance_profile_name,
   arn,
   create_date,
   path
@@ -129,7 +129,7 @@ Find instance profiles that have specific tags to understand organization and ca
 
 ```sql+postgres
 select
-  name,
+  instance_profile_name,
   arn,
   tags
 from
@@ -140,7 +140,7 @@ where
 
 ```sql+sqlite
 select
-  name,
+  instance_profile_name,
   arn,
   tags
 from
@@ -154,8 +154,8 @@ Identify instance profiles whose associated roles have specific policies attache
 
 ```sql+postgres
 select
-  ip.name as instance_profile_name,
-  role ->> 'name' as role_name,
+  ip.instance_profile_name as instance_profile_name,
+  role ->> 'RoleName' as role_name,
   p.policy_name
 from
   aws_iam_instance_profile as ip,
@@ -164,15 +164,15 @@ from
   jsonb_array_elements_text(r.attached_policy_arns) as policy_arn,
   aws_iam_policy as p
 where
-  r.arn = role ->> 'arn'
+  r.arn = role ->> 'Arn'
   and p.arn = policy_arn
   and p.policy_name like '%EC2%';
 ```
 
 ```sql+sqlite
 select
-  ip.name as instance_profile_name,
-  json_extract(role.value, '$.name') as role_name,
+  ip.instance_profile_name as instance_profile_name,
+  json_extract(role.value, '$.RoleName') as role_name,
   p.policy_name
 from
   aws_iam_instance_profile as ip,
@@ -181,7 +181,7 @@ from
   json_each(r.attached_policy_arns) as policy_arn,
   aws_iam_policy as p
 where
-  r.arn = json_extract(role.value, '$.arn')
+  r.arn = json_extract(role.value, '$.Arn')
   and p.arn = policy_arn.value
   and p.policy_name like '%EC2%';
 ```
@@ -215,4 +215,4 @@ group by
   path_prefix
 order by
   instance_profile_count desc;
-``` 
+```

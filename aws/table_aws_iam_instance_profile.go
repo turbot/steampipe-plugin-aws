@@ -20,7 +20,7 @@ func tableAwsIamInstanceProfile(ctx context.Context) *plugin.Table {
 		Name:        "aws_iam_instance_profile",
 		Description: "AWS IAM Instance Profile",
 		Get: &plugin.GetConfig{
-			KeyColumns: plugin.AnyColumn([]string{"name", "arn"}),
+			KeyColumns: plugin.AnyColumn([]string{"instance_profile_name", "arn"}),
 			Hydrate:    getIamInstanceProfile,
 			Tags:       map[string]string{"service": "iam", "action": "GetInstanceProfile"},
 			IgnoreConfig: &plugin.IgnoreConfig{
@@ -43,7 +43,7 @@ func tableAwsIamInstanceProfile(ctx context.Context) *plugin.Table {
 		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			// "Key" Columns
 			{
-				Name:        "name",
+				Name:        "instance_profile_name",
 				Description: "The friendly name that identifies the instance profile.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("InstanceProfileName"),
@@ -179,7 +179,7 @@ func getIamInstanceProfile(ctx context.Context, d *plugin.QueryData, h *plugin.H
 		instanceProfile := h.Item.(types.InstanceProfile)
 		name = *instanceProfile.InstanceProfileName
 	} else {
-		name = d.EqualsQuals["name"].GetStringValue()
+		name = d.EqualsQuals["instance_profile_name"].GetStringValue()
 		if name == "" {
 			arn := d.EqualsQuals["arn"].GetStringValue()
 			name = iamInstanceProfileNameFromArn(arn)
