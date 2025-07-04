@@ -44,7 +44,6 @@ func tableAwsSavingsPlan(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameterValue"}),
 			},
 		},
-		GetMatrixItemFunc: SupportedRegionMatrix(AWS_SAVINGSPLANS_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "savings_plan_id",

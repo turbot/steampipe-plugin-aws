@@ -1421,8 +1421,7 @@ func SageMakerClient(ctx context.Context, d *plugin.QueryData) (*sagemaker.Clien
 }
 
 func SavingsPlansClient(ctx context.Context, d *plugin.QueryData) (*savingsplans.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, AWS_SAVINGSPLANS_SERVICE_ID)
-	fmt.Println("cfg", cfg)
+	cfg, err := getClientForDefaultRegion(ctx, d)
 	if err != nil {
 		return nil, err
 	}
