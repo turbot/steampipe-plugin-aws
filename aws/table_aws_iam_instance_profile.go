@@ -46,7 +46,6 @@ func tableAwsIamInstanceProfile(ctx context.Context) *plugin.Table {
 				Name:        "instance_profile_name",
 				Description: "The friendly name that identifies the instance profile.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("InstanceProfileName"),
 			},
 			{
 				Name:        "arn",
