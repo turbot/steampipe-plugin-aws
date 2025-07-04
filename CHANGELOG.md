@@ -17,7 +17,7 @@ _Enhancements_
 
 _Bug fixes_
 
-- Fixed: Add ignore error config to aws_rds_db_instance and aws_rds_pending_maintenance_action tables ([#2545](https://github.com/turbot/steampipe-plugin-aws/pull/2545))
+- Fixed `aws_rds_pending_maintenance_action` table to correctly return data instead of an error. ([#2545](https://github.com/turbot/steampipe-plugin-aws/pull/2545))
 
 ## v1.16.1 [2025-06-23]
 
