@@ -12,6 +12,10 @@ The AWS CloudFormation Stack is a service that allows you to manage and provisio
 
 The `aws_cloudformation_stack` table in Steampipe provides you with information about stacks within AWS CloudFormation. This table enables you as a DevOps engineer to query stack-specific details, including stack name, status, creation time, and associated tags. You can utilize this table to gather insights on stacks, such as stack status, stack resources, stack capabilities, and more. The schema outlines the various attributes of the CloudFormation stack for you, including stack ID, stack name, creation time, stack status, and associated tags.
 
+**Important Notes**
+- This table supports the optional list key column `status`, which comes with the following requirements:
+- For supported values of the `status`, please refer [StackStatusFilter](https://docs.aws.amazon.com/AWSCloudFormation/latest/APIReference/API_ListStacks.html).
+
 ## Examples
 
 ### Find the status of each cloudformation stack
