@@ -102,7 +102,7 @@ func tableAwsIamInstanceProfile(ctx context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Arn").Transform(arnToAkas),
+				Transform:   transform.FromField("Arn").Transform(transform.EnsureStringArray),
 			},
 		}),
 	}
