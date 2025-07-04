@@ -15,7 +15,6 @@ The `aws_cloudformation_stack` table in Steampipe provides you with information 
 ## Examples
 
 ### Find the status of each cloudformation stack
-
 Explore the current status of each AWS CloudFormation stack to monitor the health and progress of your infrastructure deployments. This can help in identifying any potential issues or failures in your stack deployments.
 
 ```sql+postgres
@@ -37,7 +36,6 @@ from
 ```
 
 ### List of cloudformation stack where rollback is disabled
-
 Discover the segments that have disabled rollback in their AWS CloudFormation stacks. This can be useful for identifying potential risk areas, as these stacks will not automatically revert to a previous state if an error occurs during stack operations.
 
 ```sql+postgres
@@ -61,7 +59,6 @@ where
 ```
 
 ### List of stacks where termination protection is not enabled
-
 Discover the segments that have not enabled termination protection in their stacks. This is crucial to identify potential risk areas and ensure the safety of your resources.
 
 ```sql+postgres
@@ -85,7 +82,6 @@ where
 ```
 
 ### Rollback configuration info for each cloudformation stack
-
 Explore the settings of your AWS CloudFormation stacks to understand their rollback configurations, including how long they monitor for signs of trouble and what triggers a rollback. This can help optimize your stack management by adjusting these settings based on your operational needs.
 
 ```sql+postgres
@@ -107,7 +103,6 @@ from
 ```
 
 ### Resource ARNs where notifications about stack actions will be sent
-
 Determine the areas in which notifications related to stack actions will be sent. This is useful for managing and tracking changes in your AWS CloudFormation stacks.
 
 ```sql+postgres
