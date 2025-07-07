@@ -20,11 +20,8 @@ func tableAwsSavingsPlan(_ context.Context) *plugin.Table {
 		Description: "AWS Savings Plan",
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("savings_plan_id"),
-			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameterValue"}),
-			},
-			Hydrate: getSavingsPlan,
-			Tags:    map[string]string{"service": "savingsplans", "action": "DescribeSavingsPlans"},
+			Hydrate:    getSavingsPlan,
+			Tags:       map[string]string{"service": "savingsplans", "action": "DescribeSavingsPlans"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listSavingsPlans,
@@ -37,8 +34,8 @@ func tableAwsSavingsPlan(_ context.Context) *plugin.Table {
 				{Name: "term_duration_in_seconds", Require: plugin.Optional, Operators: []string{"="}},
 				{Name: "savings_plan_type", Require: plugin.Optional, Operators: []string{"="}},
 				{Name: "payment_option", Require: plugin.Optional, Operators: []string{"="}},
-				{Name: "start", Require: plugin.Optional, Operators: []string{"="}},
-				{Name: "end", Require: plugin.Optional, Operators: []string{"="}},
+				{Name: "start", Require: plugin.Optional, Operators: []string{">="}},
+				{Name: "end_time", Require: plugin.Optional, Operators: []string{"<="}},
 			},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"InvalidParameterValue"}),
@@ -49,7 +46,6 @@ func tableAwsSavingsPlan(_ context.Context) *plugin.Table {
 				Name:        "savings_plan_id",
 				Description: "The ID of the Savings Plan.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("SavingsPlanId"),
 			},
 			{
 				Name:        "arn",
@@ -108,9 +104,10 @@ func tableAwsSavingsPlan(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
-				Name:        "end",
+				Name:        "end_time",
 				Description: "The end time of the Savings Plan.",
 				Type:        proto.ColumnType_TIMESTAMP,
+				Transform:   transform.FromField("End"), // Renamed from 'end' to 'end_time' to avoid SQL reserved keyword conflicts
 			},
 			{
 				Name:        "returnable_until",
@@ -166,15 +163,12 @@ func listSavingsPlans(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 	}
 
 	// Limiting the results
-	maxLimit := int32(100)
+	// https://docs.aws.amazon.com/savingsplans/latest/APIReference/API_DescribeSavingsPlans.html#API_DescribeSavingsPlans_RequestSyntax
+	maxLimit := int32(1000)
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
 		if limit < maxLimit {
-			if limit < 20 {
-				maxLimit = 20
-			} else {
-				maxLimit = limit
-			}
+			maxLimit = limit
 		}
 	}
 
@@ -284,7 +278,7 @@ func getSavingsPlanFilter(d *plugin.QueryData) []types.SavingsPlanFilter {
 			savingPlan.Name = types.SavingsPlansFilterNameStart
 			val := v.GetTimestampValue().AsTime()
 			savingPlan.Values = []string{val.Format(time.RFC3339)}
-		case "end":
+		case "end_time":
 			savingPlan.Name = types.SavingsPlansFilterNameEnd
 			val := v.GetTimestampValue().AsTime()
 			savingPlan.Values = []string{val.Format(time.RFC3339)}
