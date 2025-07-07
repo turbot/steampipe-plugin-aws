@@ -21,7 +21,7 @@ The `aws_savings_plan` table in Steampipe provides you with information about AW
   - `term_duration_in_seconds` - Filter by term duration (using `=` operator)
   - `savings_plan_type` - Filter by savings plan type (using `=` operator)
   - `payment_option` - Filter by payment option (using `=` operator)
-  - `start` - Filter by start time (using `>=` operator)
+  - `start_time` - Filter by start time (using `>=` operator)
   - `end_time` - Filter by end time (using `<=` operator)
 
 ## Examples
@@ -38,12 +38,12 @@ select
   commitment,
   currency,
   payment_option,
-  start,
+  start_time,
   end_time
 from
   aws_savings_plan
 order by
-  start desc;
+  start_time desc;
 ```
 
 ```sql+sqlite
@@ -55,12 +55,12 @@ select
   commitment,
   currency,
   payment_option,
-  start,
+  start_time,
   end_time
 from
   aws_savings_plan
 order by
-  start desc;
+  start_time desc;
 ```
 
 ### List active savings plans
@@ -72,9 +72,9 @@ select
   savings_plan_type,
   commitment,
   currency,
-  start,
+  start_time,
   end_time,
-  extract(days from (end_time - start)) as duration_days
+  extract(days from (end_time - start_time)) as duration_days
 from
   aws_savings_plan
 where
@@ -89,9 +89,9 @@ select
   savings_plan_type,
   commitment,
   currency,
-  start,
+  start_time,
   end_time,
-  julianday(end_time) - julianday(start) as duration_days
+  julianday(end_time) - julianday(start_time) as duration_days
 from
   aws_savings_plan
 where
@@ -287,7 +287,7 @@ select
   state,
   commitment,
   currency,
-  start,
+  start_time,
   returnable_until,
   extract(days from (returnable_until - now())) as days_until_return_deadline
 from
@@ -306,7 +306,7 @@ select
   state,
   commitment,
   currency,
-  start,
+  start_time,
   returnable_until,
   julianday(returnable_until) - julianday('now') as days_until_return_deadline
 from

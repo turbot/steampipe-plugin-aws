@@ -34,7 +34,7 @@ func tableAwsSavingsPlan(_ context.Context) *plugin.Table {
 				{Name: "term_duration_in_seconds", Require: plugin.Optional, Operators: []string{"="}},
 				{Name: "savings_plan_type", Require: plugin.Optional, Operators: []string{"="}},
 				{Name: "payment_option", Require: plugin.Optional, Operators: []string{"="}},
-				{Name: "start", Require: plugin.Optional, Operators: []string{">="}},
+				{Name: "start_time", Require: plugin.Optional, Operators: []string{">="}},
 				{Name: "end_time", Require: plugin.Optional, Operators: []string{"<="}},
 			},
 			IgnoreConfig: &plugin.IgnoreConfig{
@@ -99,9 +99,10 @@ func tableAwsSavingsPlan(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_INT,
 			},
 			{
-				Name:        "start",
+				Name:        "start_time",
 				Description: "The start time of the Savings Plan.",
 				Type:        proto.ColumnType_TIMESTAMP,
+				Transform:   transform.FromField("Start"), // Renamed from 'start' to 'start_time' to avoid SQL reserved keyword conflicts
 			},
 			{
 				Name:        "end_time",
@@ -181,7 +182,7 @@ func listSavingsPlans(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 		input.States = []types.SavingsPlanState{types.SavingsPlanState(d.EqualsQuals["state"].GetStringValue())}
 	}
 
-	filters := getSavingsPlanFilter(d)
+	filters := getSavingsPlanFilter(ctx, d.Quals)
 	if len(filters) > 0 {
 		input.Filters = filters
 	}
@@ -251,48 +252,72 @@ func getSavingsPlan(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 
 //// UTILITY FUNCTIONS
 
-func getSavingsPlanFilter(d *plugin.QueryData) []types.SavingsPlanFilter {
-	savingsPlanFilters := make([]types.SavingsPlanFilter, 0)
+func getSavingsPlanFilter(ctx context.Context, quals plugin.KeyColumnQualMap) []types.SavingsPlanFilter {
+	var filters []types.SavingsPlanFilter
 
-	for q, v := range d.EqualsQuals {
-		savingPlan := &types.SavingsPlanFilter{}
-		addFilter := true
+	// String-based filter mappings
+	stringFilterMap := map[string]types.SavingsPlansFilterName{
+		"region":              types.SavingsPlansFilterNameRegion,
+		"ec2_instance_family": types.SavingsPlansFilterNameEc2InstanceFamily,
+		"commitment":          types.SavingsPlansFilterNameCommitment,
+		"payment_option":      types.SavingsPlansFilterNamePaymentOption,
+		"savings_plan_type":   types.SavingsPlansFilterNameSavingsPlanType,
+	}
 
-		switch q {
-		case "region":
-			savingPlan.Name = types.SavingsPlansFilterNameRegion
-			savingPlan.Values = []string{v.GetStringValue()}
-		case "ec2_instance_family":
-			savingPlan.Name = types.SavingsPlansFilterNameEc2InstanceFamily
-			savingPlan.Values = []string{v.GetStringValue()}
-		case "commitment":
-			savingPlan.Name = types.SavingsPlansFilterNameCommitment
-			savingPlan.Values = []string{v.GetStringValue()}
-		case "payment_option":
-			savingPlan.Name = types.SavingsPlansFilterNamePaymentOption
-			savingPlan.Values = []string{v.GetStringValue()}
-		case "term_duration_in_seconds":
-			savingPlan.Name = types.SavingsPlansFilterNameTerm
-			savingPlan.Values = []string{fmt.Sprint(v.GetInt64Value())}
-		case "start":
-			savingPlan.Name = types.SavingsPlansFilterNameStart
-			val := v.GetTimestampValue().AsTime()
-			savingPlan.Values = []string{val.Format(time.RFC3339)}
-		case "end_time":
-			savingPlan.Name = types.SavingsPlansFilterNameEnd
-			val := v.GetTimestampValue().AsTime()
-			savingPlan.Values = []string{val.Format(time.RFC3339)}
-		case "savings_plan_type":
-			savingPlan.Name = types.SavingsPlansFilterNameSavingsPlanType
-			savingPlan.Values = []string{v.GetStringValue()}
-		default:
-			addFilter = false
-		}
-
-		if addFilter {
-			savingsPlanFilters = append(savingsPlanFilters, *savingPlan)
+	// Handle string filters
+	for columnName, filterName := range stringFilterMap {
+		if quals[columnName] != nil {
+			value := getQualsValueByColumn(quals, columnName, "string")
+			if value != nil {
+				filter := types.SavingsPlanFilter{
+					Name:   filterName,
+					Values: []string{value.(string)},
+				}
+				filters = append(filters, filter)
+			}
 		}
 	}
 
-	return savingsPlanFilters
+	// Handle integer filter (term_duration_in_seconds)
+	if quals["term_duration_in_seconds"] != nil {
+		value := getQualsValueByColumn(quals, "term_duration_in_seconds", "int64")
+		if value != nil {
+			filter := types.SavingsPlanFilter{
+				Name:   types.SavingsPlansFilterNameTerm,
+				Values: []string{fmt.Sprint(value)},
+			}
+			filters = append(filters, filter)
+		}
+	}
+
+	// DescribeSavingsPlans, https response error StatusCode: 400, RequestID: 95308c00-e832-4571-9a3c-0275d22821f7, ValidationException: The start / end filter values has an invalid format. Please use following format : yyyy-MM-dd'T'HH:mm:ss.SSSZ
+	timeLayout := "2006-01-02T15:04:05.000-0700"
+	// Handle time filters
+	if quals["start_time"] != nil {
+		value := getQualsValueByColumn(quals, "start_time", "time")
+		if value != nil {
+			if timeValue, ok := value.(time.Time); ok && !timeValue.IsZero() {
+				filter := types.SavingsPlanFilter{
+					Name:   types.SavingsPlansFilterNameStart,
+					Values: []string{timeValue.Format(timeLayout)},
+				}
+				filters = append(filters, filter)
+			}
+		}
+	}
+
+	if quals["end_time"] != nil {
+		value := getQualsValueByColumn(quals, "end_time", "time")
+		if value != nil {
+			if timeValue, ok := value.(time.Time); ok && !timeValue.IsZero() {
+				filter := types.SavingsPlanFilter{
+					Name:   types.SavingsPlansFilterNameEnd,
+					Values: []string{timeValue.Format(timeLayout)},
+				}
+				filters = append(filters, filter)
+			}
+		}
+	}
+
+	return filters
 }
