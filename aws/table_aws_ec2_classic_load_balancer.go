@@ -237,11 +237,18 @@ func tableAwsEc2ClassicLoadBalancer(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 			},
 			{
-				Name:        "policy_descriptions",
-				Description: "Information about the policies.",
+				Name:        "sample_policy_descriptions",
+				Description: "Information about the all sample (predefined) policies.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsEc2ClassicLoadBalancerPolicies,
-				Transform:   transform.FromValue(),
+				Transform:   transform.FromField("SamplePolicyDescriptions"),
+			},
+			{
+				Name:        "policy_descriptions",
+				Description: "Information about the policies associated with the load balancers.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsEc2ClassicLoadBalancerPolicies,
+				Transform:   transform.FromField("PolicyDescriptionsAssociatedWithLoadBalancer"),
 			},
 			{
 				Name:        "subnets",
@@ -400,20 +407,29 @@ func getAwsEc2ClassicLoadBalancerPolicies(ctx context.Context, d *plugin.QueryDa
 		return nil, err
 	}
 
-	params := &elasticloadbalancing.DescribeLoadBalancerPoliciesInput{
-		LoadBalancerName: classicLoadBalancer.LoadBalancerName,
+	params := &elasticloadbalancing.DescribeLoadBalancerPoliciesInput{}
+
+	policyDescriptions := map[string][]types.PolicyDescription{}
+	policyDescriptionTypes := []string{"SamplePolicyDescriptions", "PolicyDescriptionsAssociatedWithLoadBalancer"}
+
+	for _, policyDescriptionType := range policyDescriptionTypes {
+
+		if policyDescriptionType == "PolicyDescriptionsAssociatedWithLoadBalancer" {
+			params.LoadBalancerName = classicLoadBalancer.LoadBalancerName
+		} else {
+			params = &elasticloadbalancing.DescribeLoadBalancerPoliciesInput{}
+		}
+		loadBalancerData, err := svc.DescribeLoadBalancerPolicies(ctx, params)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_ec2_classic_load_balancer.getAwsEc2ClassicLoadBalancerPolicies", "api_error", err)
+			return nil, err
+		}
+		if len(loadBalancerData.PolicyDescriptions) > 0 {
+			policyDescriptions[policyDescriptionType] = loadBalancerData.PolicyDescriptions
+		}
 	}
 
-	loadBalancerData, err := svc.DescribeLoadBalancerPolicies(ctx, params)
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_ec2_classic_load_balancer.getAwsEc2ClassicLoadBalancerPolicies", "api_error", err)
-		return nil, err
-	}
-	if len(loadBalancerData.PolicyDescriptions) > 0 {
-		return loadBalancerData.PolicyDescriptions, nil
-	}
-
-	return []types.PolicyDescription{}, nil
+	return policyDescriptions, nil
 }
 
 func getAwsEc2ClassicLoadBalancerTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
