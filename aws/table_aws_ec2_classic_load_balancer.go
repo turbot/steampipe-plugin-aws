@@ -413,7 +413,7 @@ func getAwsEc2ClassicLoadBalancerPolicies(ctx context.Context, d *plugin.QueryDa
 		return loadBalancerData.PolicyDescriptions, nil
 	}
 
-	return nil, nil
+	return []types.PolicyDescription{}, nil
 }
 
 func getAwsEc2ClassicLoadBalancerTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
