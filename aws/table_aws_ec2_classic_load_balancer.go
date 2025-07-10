@@ -237,6 +237,13 @@ func tableAwsEc2ClassicLoadBalancer(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 			},
 			{
+				Name:        "policy_descriptions",
+				Description: "Information about the policies.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getAwsEc2ClassicLoadBalancerPolicies,
+				Transform:   transform.FromValue(),
+			},
+			{
 				Name:        "subnets",
 				Description: "A list of the IDs of the subnets for the load balancer.",
 				Type:        proto.ColumnType_JSON,
@@ -380,6 +387,33 @@ func getAwsEc2ClassicLoadBalancerAttributes(ctx context.Context, d *plugin.Query
 	}
 
 	return loadBalancerData, nil
+}
+
+func getAwsEc2ClassicLoadBalancerPolicies(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+
+	classicLoadBalancer := h.Item.(types.LoadBalancerDescription)
+
+	// Create service
+	svc, err := ELBClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_classic_load_balancer.getAwsEc2ClassicLoadBalancerPolicies", "connection_error", err)
+		return nil, err
+	}
+
+	params := &elasticloadbalancing.DescribeLoadBalancerPoliciesInput{
+		LoadBalancerName: classicLoadBalancer.LoadBalancerName,
+	}
+
+	loadBalancerData, err := svc.DescribeLoadBalancerPolicies(ctx, params)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_classic_load_balancer.getAwsEc2ClassicLoadBalancerPolicies", "api_error", err)
+		return nil, err
+	}
+	if len(loadBalancerData.PolicyDescriptions) > 0 {
+		return loadBalancerData.PolicyDescriptions, nil
+	}
+
+	return nil, nil
 }
 
 func getAwsEc2ClassicLoadBalancerTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
