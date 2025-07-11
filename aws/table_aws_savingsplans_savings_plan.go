@@ -16,7 +16,7 @@ import (
 
 func tableAwsSavingsPlan(_ context.Context) *plugin.Table {
 	return &plugin.Table{
-		Name:        "aws_savings_plan",
+		Name:        "aws_savingsplans_savings_plan",
 		Description: "AWS Savings Plan",
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("savings_plan_id"),
@@ -159,7 +159,7 @@ func listSavingsPlans(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 	// Create Session
 	svc, err := SavingsPlansClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_savings_plan.listSavingsPlans", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_savingsplans_savings_plan.listSavingsPlans", "connection_error", err)
 		return nil, err
 	}
 
@@ -199,7 +199,7 @@ func listSavingsPlans(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 
 		output, err := svc.DescribeSavingsPlans(ctx, input)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_savings_plan.listSavingsPlans", "api_error", err)
+			plugin.Logger(ctx).Error("aws_savingsplans_savings_plan.listSavingsPlans", "api_error", err)
 			return nil, err
 		}
 
@@ -230,7 +230,7 @@ func getSavingsPlan(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 	// Create service
 	svc, err := SavingsPlansClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_savings_plan.getSavingsPlan", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_savingsplans_savings_plan.getSavingsPlan", "connection_error", err)
 		return nil, err
 	}
 
@@ -240,7 +240,7 @@ func getSavingsPlan(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 
 	op, err := svc.DescribeSavingsPlans(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_savings_plan.getSavingsPlan", "api_error", err)
+		plugin.Logger(ctx).Error("aws_savingsplans_savings_plan.getSavingsPlan", "api_error", err)
 		return nil, err
 	}
 
