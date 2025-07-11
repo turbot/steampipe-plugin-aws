@@ -56,7 +56,6 @@ where
   access_log_enabled = 'false';
 ```
 
-
 ### Security groups attached to each classic load balancer
 Identify the security groups associated with each classic load balancer to ensure proper access control and minimize potential security risks.
 
@@ -133,4 +132,33 @@ select
   unhealthy_threshold
 from
   aws_ec2_classic_load_balancer;
+```
+
+### Get policy description details for each classic load balancer
+Extract detailed information from policy descriptions by iterating over the policy_descriptions array to understand the configuration of load balancer policies including their names, types, and attribute details.
+
+```sql+postgres
+select
+  name,
+  policy_detail ->> 'PolicyName' as policy_name,
+  policy_detail ->> 'PolicyTypeName' as policy_type_name,
+  policy_detail -> 'PolicyAttributeDescriptions' as policy_attributes
+from
+  aws_ec2_classic_load_balancer
+  cross join jsonb_array_elements(policy_descriptions) as policy_detail
+where
+  policy_descriptions is not null;
+```
+
+```sql+sqlite
+select
+  name,
+  json_extract(policy_detail.value, '$.PolicyName') as policy_name,
+  json_extract(policy_detail.value, '$.PolicyTypeName') as policy_type_name,
+  json_extract(policy_detail.value, '$.PolicyAttributeDescriptions') as policy_attributes
+from
+  aws_ec2_classic_load_balancer,
+  json_each(policy_descriptions) as policy_detail
+where
+  policy_descriptions is not null;
 ```
