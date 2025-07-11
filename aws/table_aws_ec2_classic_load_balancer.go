@@ -39,6 +39,10 @@ func tableAwsEc2ClassicLoadBalancer(_ context.Context) *plugin.Table {
 				Func: getAwsEc2ClassicLoadBalancerTags,
 				Tags: map[string]string{"service": "elasticloadbalancing", "action": "DescribeTags"},
 			},
+			{
+				Func: getAwsEc2ClassicLoadBalancerPolicies,
+				Tags: map[string]string{"service": "elasticloadbalancing", "action": "DescribeLoadBalancerPolicies"},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(AWS_ELASTICLOADBALANCING_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
