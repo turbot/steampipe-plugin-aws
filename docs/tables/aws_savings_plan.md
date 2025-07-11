@@ -14,15 +14,15 @@ The `aws_savings_plan` table in Steampipe provides you with information about AW
 
 **Important Notes**
 - This table supports optional quals. Queries with optional quals are optimized to reduce query time and cost. Optional quals are supported for the following columns:
-  - `state` - Filter by savings plan state
-  - `region` - Filter by AWS region (using `=` operator)
-  - `ec2_instance_family` - Filter by EC2 instance family (using `=` operator)
   - `commitment` - Filter by commitment amount (using `=` operator)
-  - `term_duration_in_seconds` - Filter by term duration (using `=` operator)
-  - `savings_plan_type` - Filter by savings plan type (using `=` operator)
-  - `payment_option` - Filter by payment option (using `=` operator)
-  - `start_time` - Filter by start time (using `>=` operator)
+  - `ec2_instance_family` - Filter by EC2 instance family (using `=` operator)
   - `end_time` - Filter by end time (using `<=` operator)
+  - `payment_option` - Filter by payment option (using `=` operator)
+  - `region` - Filter by AWS region (using `=` operator)
+  - `savings_plan_type` - Filter by savings plan type (using `=` operator)
+  - `start_time` - Filter by start time (using `>=` operator)
+  - `state` - Filter by savings plan state
+  - `term_duration_in_seconds` - Filter by term duration (using `=` operator)
 
 ## Examples
 
@@ -316,4 +316,45 @@ where
   and returnable_until > datetime('now')
 order by
   returnable_until asc;
+```
+
+### Filter savings plans by time range
+Query savings plans that started within a specific time period and are set to end before a certain date. This example demonstrates how to use timestamp filtering with the optional quals.
+
+```sql+postgres
+select
+  savings_plan_id,
+  savings_plan_type,
+  state,
+  commitment,
+  currency,
+  start_time,
+  end_time,
+  extract(days from (end_time - start_time)) as duration_days
+from
+  aws_savings_plan
+where
+  start_time >= '2023-01-01T00:00:00Z'
+  and end_time <= '2025-12-31T23:59:59Z'
+order by
+  start_time desc;
+```
+
+```sql+sqlite
+select
+  savings_plan_id,
+  savings_plan_type,
+  state,
+  commitment,
+  currency,
+  start_time,
+  end_time,
+  julianday(end_time) - julianday(start_time) as duration_days
+from
+  aws_savings_plan
+where
+  start_time >= '2023-01-01T00:00:00Z'
+  and end_time <= '2025-12-31T23:59:59Z'
+order by
+  start_time desc;
 ```
