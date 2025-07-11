@@ -13,7 +13,6 @@ AWS Savings Plans offer a flexible pricing model that provides significant savin
 The `aws_savingsplans_savings_plan` table in Steampipe provides you with information about AWS Savings Plans within your AWS account. This table allows you, as a DevOps engineer, cloud architect, or financial analyst, to query savings plan details, including commitment amounts, payment options, duration terms, and current states. You can utilize this table to gather insights on cost optimization, track savings plan utilization, and manage financial commitments. The schema outlines the various attributes of the savings plan, including the plan ID, type, payment details, and coverage information.
 
 **Important Notes**
-
 - This table supports optional quals. Queries with optional quals are optimized to reduce query time and cost. Optional quals are supported for the following columns:
   - `commitment` - Filter by commitment amount (using `=` operator)
   - `ec2_instance_family` - Filter by EC2 instance family (using `=` operator)
@@ -28,7 +27,6 @@ The `aws_savingsplans_savings_plan` table in Steampipe provides you with informa
 ## Examples
 
 ### Basic info
-
 Explore your AWS Savings Plans to understand their current state, commitment amounts, and terms. This helps in tracking your cost optimization commitments and their effectiveness.
 
 ```sql+postgres
@@ -66,7 +64,6 @@ order by
 ```
 
 ### List active savings plans
-
 Identify all currently active savings plans to understand your ongoing commitments and their coverage periods.
 
 ```sql+postgres
@@ -104,7 +101,6 @@ order by
 ```
 
 ### Get savings plans by payment option
-
 Analyze your savings plans based on different payment options to understand your financial commitment structure.
 
 ```sql+postgres
@@ -138,7 +134,6 @@ order by
 ```
 
 ### Find savings plans nearing expiration
-
 Identify savings plans that are approaching their end date to help with renewal planning and continued cost optimization.
 
 ```sql+postgres
@@ -178,7 +173,6 @@ order by
 ```
 
 ### Get EC2 instance savings plans by family
-
 Analyze EC2 Instance Savings Plans grouped by instance family to understand your compute savings strategy.
 
 ```sql+postgres
@@ -218,7 +212,6 @@ order by
 ```
 
 ### List savings plans with tags
-
 Explore savings plans that have been tagged for better resource management and cost allocation.
 
 ```sql+postgres
@@ -254,7 +247,6 @@ order by
 ```
 
 ### Get savings plans by region
-
 Analyze the distribution of your savings plans across different AWS regions to understand regional cost optimization coverage.
 
 ```sql+postgres
@@ -286,7 +278,6 @@ order by
 ```
 
 ### Get returnable savings plans
-
 Identify savings plans that can still be returned, which is useful for adjusting your savings commitments if needed.
 
 ```sql+postgres
@@ -328,7 +319,6 @@ order by
 ```
 
 ### Filter savings plans by time range
-
 Query savings plans that started within a specific time period and are set to end before a certain date. This example demonstrates how to use timestamp filtering with the optional quals.
 
 ```sql+postgres
