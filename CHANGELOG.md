@@ -1,3 +1,14 @@
+## v1.18.0 [2025-07-11]
+
+_What's new?_
+
+- New tables added
+  - [aws_savingsplans_savings_plan](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_savingsplans_savings_plan) ([#2538](https://github.com/turbot/steampipe-plugin-aws/pull/2538))
+
+_Enhancements_
+
+- Added `sample_policy_descriptions` and `policy_descriptions` columns to `aws_ec2_classic_load_balancer` table. ([#2552](https://github.com/turbot/steampipe-plugin-aws/pull/2552))
+
 ## v1.17.0 [2025-07-04]
 
 _What's new?_
