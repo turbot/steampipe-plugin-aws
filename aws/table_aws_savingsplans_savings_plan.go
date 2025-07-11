@@ -17,7 +17,7 @@ import (
 func tableAwsSavingsPlan(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_savingsplans_savings_plan",
-		Description: "AWS Savings Plan",
+		Description: "AWS Savings Plans Savings Plan",
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("savings_plan_id"),
 			Hydrate:    getSavingsPlan,
