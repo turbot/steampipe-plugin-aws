@@ -56,16 +56,17 @@ steampipe plugin install aws
 
 ### Credentials
 
-| Item | Description |
-| - | - |
-| Credentials | Specify a named profile from an AWS credential file with the `profile` argument. |
-| Permissions | Grant the `ReadOnlyAccess` policy to your user or role. |
-| Radius | Each connection represents a single AWS account. |
-| Resolution |  1. Credentials explicitly set in a Steampipe config file (`~/.steampipe/config/aws.spc`).<br />2. Credentials specified in environment variables, e.g., `AWS_ACCESS_KEY_ID`.<br />3. Credentials in the credential file (`~/.aws/credentials`) for the profile specified in the `AWS_PROFILE` environment variable.<br />4. Credentials for the default profile from the credential file.<br />5. EC2 instance role credentials (if running on an EC2 instance). |
+| Item        | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Credentials | Specify a named profile from an AWS credential file with the `profile` argument.                                                                                                                                                                                                                                                                                                                                                                                 |
+| Permissions | Grant the `ReadOnlyAccess` policy to your user or role.                                                                                                                                                                                                                                                                                                                                                                                                          |
+| Radius      | Each connection represents a single AWS account.                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| Resolution  | 1. Credentials explicitly set in a Steampipe config file (`~/.steampipe/config/aws.spc`).<br />2. Credentials specified in environment variables, e.g., `AWS_ACCESS_KEY_ID`.<br />3. Credentials in the credential file (`~/.aws/credentials`) for the profile specified in the `AWS_PROFILE` environment variable.<br />4. Credentials for the default profile from the credential file.<br />5. EC2 instance role credentials (if running on an EC2 instance). |
 
 ### Configuration
 
 Installing the latest aws plugin will create a config file (`~/.steampipe/config/aws.spc`) with a single connection named `aws`:
+
 ```hcl
 connection "aws" {
   plugin = "aws"
@@ -113,6 +114,11 @@ connection "aws" {
   # By default, common not found error codes are ignored and will still be ignored even if this argument is not set.
   #ignore_error_codes = ["AccessDenied", "AccessDeniedException", "NotAuthorized", "UnauthorizedOperation", "UnrecognizedClientException", "AuthorizationError"]
 
+  # List of regular expressions to match error messages to ignore for all queries.
+  # When encountering errors matching these patterns, the API call will not be retried and empty results will be returned.
+  # This allows for more flexible error handling based on error message content rather than just error codes.
+  #ignore_error_messages = [".*with an explicit deny in a service control policy.*", ".*Support\\s+Subscription\\s+is\\s+required.*"]
+
   # Specify the endpoint URL used when making requests to AWS services.
   # If not set, the default AWS generated endpoint will be used.
   # Can also be set with the AWS_ENDPOINT_URL environment variable.
@@ -130,6 +136,7 @@ By default, all options are commented out in the default connection, thus Steamp
 ## Multi-Region Connections
 
 By default, AWS connections behave like the `aws` cli and connect to a single default region. Alternatively, you may also specify one or more regions with the `regions` argument:
+
 ```hcl
 connection "aws" {
   plugin  = "aws"
@@ -138,6 +145,7 @@ connection "aws" {
 ```
 
 The `regions` argument supports wildcards:
+
 - All standard regions
   ```hcl
   connection "aws" {
@@ -187,6 +195,7 @@ Steampipe will automatically guess your `default_region` from your AWS config
 (e.g. `AWS_REGION` env var) or `regions` list, but you may prefer to specify it
 to ensure where API calls are made for global resources (e.g. STS, EC2 describe
 regions):
+
 ```hcl
 connection "aws" {
   plugin  = "aws"
@@ -198,6 +207,7 @@ connection "aws" {
 ## Multi-Account Connections
 
 You may create multiple aws connections:
+
 ```hcl
 connection "aws_dev" {
   plugin  = "aws"
@@ -235,11 +245,13 @@ connection "aws_all" {
 ```
 
 Querying tables from this connection will return results from the `aws_dev`, `aws_qa`, and `aws_prod` connections:
+
 ```sql
 select * from aws_all.aws_account
 ```
 
 Alternatively, can use an unqualified name and it will be resolved according to the [Search Path](https://steampipe.io/docs/guides/search-path). It's a good idea to name your aggregator first alphbetically, so that it is the first connection in the search path (i.e. `aws_all` comes before `aws_dev`):
+
 ```sql
 select * from aws_account
 ```
@@ -255,7 +267,8 @@ connection "aws_all" {
 ```
 
 Aggregators are powerful, but they are not infinitely scalable. Like any other Steampipe connection, they query APIs and are subject to API limits and throttling. Consider as an example and aggregator that includes 3 AWS connections, where each connection queries 16 regions. This means you essentially run the same list API calls 48 times! When using aggregators, it is especially important to:
-- Query only what you need! `select * from aws_s3_bucket` must make a list API call in each connection, and then 11 API calls *for each bucket*, where `select name, versioning_enabled from aws_s3_bucket` would only require a single API call per bucket.
+
+- Query only what you need! `select * from aws_s3_bucket` must make a list API call in each connection, and then 11 API calls _for each bucket_, where `select name, versioning_enabled from aws_s3_bucket` would only require a single API call per bucket.
 - Consider extending the [cache TTL](https://steampipe.io/docs/reference/config-files#connection-options). The default is currently 300 seconds (5 minutes). Obviously, anytime Steampipe can pull from the cache, its is faster and less impactful to the APIs. If you don't need the most up-to-date results, increase the cache TTL!
 
 ## Configuring AWS Credentials
@@ -298,6 +311,7 @@ Using named profiles allows Steampipe to work with your existing CLI configurati
 ### AWS SSO Credentials
 
 Steampipe works with [AWS SSO](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-sso.html#sso-configure-profile-auto) via AWS profiles however:
+
 - You must login to SSO (`aws sso login` ) before starting Steampipe
 - If your credentials expire, you will need to re-authenticate outside of Steampipe - Steampipe currently cannot re-authenticate you.
 
@@ -407,6 +421,7 @@ If you are using Steampipe on AWS ECS then you need to ensure that have separate
 The Task Role should have permissions to assume your service role. Additionally your service role needs a trust relationship set up, and have permissions to assume your other roles.
 
 #### Task Role IAM Assume Role
+
 ```json
 {
     "Version": "2012-10-17"
@@ -425,19 +440,20 @@ The Task Role should have permissions to assume your service role. Additionally 
 ```
 
 #### Service Role
+
 ```json
 {
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Sid": "",
-            "Effect": "Allow",
-            "Principal": {
-                "AWS": "arn:aws:iam::111111111111:role/steampipe-ecs-task-role"
-            },
-            "Action": "sts:AssumeRole"
-        }
-    ]
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "",
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "arn:aws:iam::111111111111:role/steampipe-ecs-task-role"
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
 }
 ```
 
@@ -525,5 +541,3 @@ connection "aws" {
   regions = ["eu-west-1", "eu-west-2"]
 }
 ```
-
-
