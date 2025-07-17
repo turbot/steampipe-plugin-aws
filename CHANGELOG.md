@@ -1,3 +1,10 @@
+## v1.19.0 [2025-07-17]
+
+_What's new?_
+
+- New tables added
+  - [aws_trusted_advisor_check_result](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_trusted_advisor_check_result) ([#2555](https://github.com/turbot/steampipe-plugin-aws/pull/2555))
+
 ## v1.18.0 [2025-07-11]
 
 _What's new?_
