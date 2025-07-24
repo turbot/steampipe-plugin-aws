@@ -20,7 +20,7 @@ Explore the basic details of your custom Bedrock models to understand their conf
 ```sql+postgres
 select
   model_name,
-  model_arn,
+  arn,
   base_model_name,
   customization_type,
   model_status
@@ -31,7 +31,7 @@ from
 ```sql+sqlite
 select
   model_name,
-  model_arn,
+  arn,
   base_model_name,
   customization_type,
   model_status
@@ -45,7 +45,7 @@ Identify recently created custom models to track new model deployments and monit
 ```sql+postgres
 select
   model_name,
-  model_arn,
+  arn,
   base_model_name,
   creation_time
 from
@@ -59,7 +59,7 @@ order by
 ```sql+sqlite
 select
   model_name,
-  model_arn,
+  arn,
   base_model_name,
   creation_time
 from
@@ -101,7 +101,7 @@ Retrieve detailed information about a particular custom model using its ARN for 
 ```sql+postgres
 select
   model_name,
-  model_arn,
+  arn,
   base_model_name,
   customization_type,
   model_status,
@@ -110,13 +110,13 @@ select
 from
   aws_bedrock_custom_model
 where
-  model_arn = 'arn:aws:bedrock:us-east-1:123456789012:custom-model/example-model';
+  arn = 'arn:aws:bedrock:us-east-1:123456789012:custom-model/example-model';
 ```
 
 ```sql+sqlite
 select
   model_name,
-  model_arn,
+  arn,
   base_model_name,
   customization_type,
   model_status,
@@ -125,5 +125,5 @@ select
 from
   aws_bedrock_custom_model
 where
-  model_arn = 'arn:aws:bedrock:us-east-1:123456789012:custom-model/example-model';
+  arn = 'arn:aws:bedrock:us-east-1:123456789012:custom-model/example-model';
 ``` 
