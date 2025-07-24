@@ -90,6 +90,13 @@ func tableAwsAcmCertificate(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Options.CertificateTransparencyLoggingPreference"),
 			},
 			{
+				Name:        "export",
+				Description: "You can opt in to allow the export of your certificates by specifying ENABLED .",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getAwsAcmCertificateAttributes,
+				Transform:   transform.FromField("Options.Export"),
+			},
+			{
 				Name:        "created_at",
 				Description: "The time at which the certificate was requested. This value exists only when the certificate type is AMAZON_ISSUED",
 				Type:        proto.ColumnType_TIMESTAMP,
