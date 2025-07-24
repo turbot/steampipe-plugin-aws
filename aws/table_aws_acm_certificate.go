@@ -91,7 +91,7 @@ func tableAwsAcmCertificate(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "export",
-				Description: "You can opt in to allow the export of your certificates by specifying ENABLED .",
+				Description: "Indicates whether certificate export is enabled. Set to 'ENABLED' to allow the certificate to be exported.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getAwsAcmCertificateAttributes,
 				Transform:   transform.FromField("Options.Export"),
