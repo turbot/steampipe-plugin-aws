@@ -1,3 +1,20 @@
+## v1.20.0 [2025-07-24]
+
+_What's new?_
+
+- New tables added
+  - [aws_bedrock_custom_model](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_bedrock_custom_model) ([#2569](https://github.com/turbot/steampipe-plugin-aws/pull/2569))
+
+_Enhancements_
+
+- Added `export` column to the `aws_acm_certificate` table. ([#2571](https://github.com/turbot/steampipe-plugin-aws/pull/2571))
+- Added `ignore_error_messages` config arg to provide users the ability to set a list of additional AWS error mesaages to ignore while running queries. For more information, please see [AWS plugin configuration](https://hub.steampipe.io/plugins/turbot/aws#configuration) ([#2560](https://github.com/turbot/steampipe-plugin-aws/pull/2560))
+
+_Dependencies_
+
+- Recompiled plugin with Go version `1.24`.
+- Recompiled plugin with [steampipe-plugin-sdk v5.13.0](https://github.com/turbot/steampipe-plugin-sdk/blob/develop/CHANGELOG.md#v5113-2025-02-11) that addresses critical and high vulnerabilities in dependent packages.
+
 ## v1.19.0 [2025-07-17]
 
 _What's new?_
