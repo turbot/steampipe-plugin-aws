@@ -4,6 +4,7 @@ import (
 	"context"
 	"strings"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/bedrock"
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -15,7 +16,10 @@ func tableAwsBedrockCustomModel(_ context.Context) *plugin.Table {
 		Name:        "aws_bedrock_custom_model",
 		Description: "AWS Bedrock Custom Model",
 		Get: &plugin.GetConfig{
-			KeyColumns: plugin.SingleColumn("model_arn"),
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "arn", Require: plugin.AnyOf},
+				{Name: "model_name", Require: plugin.AnyOf},
+			},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "ValidationException"}),
 			},
@@ -23,6 +27,10 @@ func tableAwsBedrockCustomModel(_ context.Context) *plugin.Table {
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listBedrockCustomModels,
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "base_model_arn", Require: plugin.Optional},
+				{Name: "creation_time", Require: plugin.Optional, Operators: []string{">", ">=", "<", "<="}},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(AWS_BEDROCK_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -35,6 +43,7 @@ func tableAwsBedrockCustomModel(_ context.Context) *plugin.Table {
 				Name:        "base_model_name",
 				Description: "The base model name.",
 				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("BaseModelName"),
 			},
 			{
 				Name:        "creation_time",
@@ -42,9 +51,10 @@ func tableAwsBedrockCustomModel(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
-				Name:        "model_arn",
+				Name:        "arn",
 				Description: "The Amazon Resource Name (ARN) of the custom model.",
 				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("ModelArn"),
 			},
 			{
 				Name:        "model_name",
@@ -90,15 +100,12 @@ func listBedrockCustomModels(ctx context.Context, d *plugin.QueryData, h *plugin
 	// Create Session
 	svc, err := BedrockClient(ctx, d)
 	if err != nil {
-		if strings.Contains(strings.ToLower(err.Error()), strings.ToLower("ValidationException: Unknown operation")) {
-			return nil, nil
-		}
 		plugin.Logger(ctx).Error("aws_bedrock_custom_model.listBedrockCustomModels", "connection_error", err)
 		return nil, err
 	}
 
 	// Limiting the results
-	maxLimit := int32(100)
+	maxLimit := int32(1000)
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
 		if limit < maxLimit {
@@ -108,6 +115,23 @@ func listBedrockCustomModels(ctx context.Context, d *plugin.QueryData, h *plugin
 
 	input := &bedrock.ListCustomModelsInput{
 		MaxResults: &maxLimit,
+	}
+
+	// Apply optional quals if provided
+	if d.EqualsQuals["base_model_arn"] != nil {
+		input.BaseModelArnEquals = aws.String(d.EqualsQuals["base_model_arn"].GetStringValue())
+	}
+
+	if d.Quals["creation_time"] != nil {
+		for _, q := range d.Quals["creation_time"].Quals {
+			timestamp := q.Value.GetTimestampValue().AsTime()
+			switch q.Operator {
+			case ">=", ">":
+				input.CreationTimeAfter = &timestamp
+			case "<=", "<":
+				input.CreationTimeBefore = &timestamp
+			}
+		}
 	}
 
 	paginator := bedrock.NewListCustomModelsPaginator(svc, input, func(o *bedrock.ListCustomModelsPaginatorOptions) {
@@ -144,26 +168,29 @@ func listBedrockCustomModels(ctx context.Context, d *plugin.QueryData, h *plugin
 //// HYDRATE FUNCTIONS
 
 func getBedrockCustomModel(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	modelId := d.EqualsQualString("model_arn")
+	var modelIdentifier string
+
+	if d.EqualsQualString("arn") != "" {
+		modelIdentifier = d.EqualsQualString("arn")
+	} else {
+		modelIdentifier = d.EqualsQualString("model_name")
+	}
 
 	// Empty check
-	if modelId == "" {
+	if modelIdentifier == "" {
 		return nil, nil
 	}
 
 	// Create service
 	svc, err := BedrockClient(ctx, d)
 	if err != nil {
-		if strings.Contains(strings.ToLower(err.Error()), strings.ToLower("ValidationException: Unknown operation")) {
-			return nil, nil
-		}
 		plugin.Logger(ctx).Error("aws_bedrock_custom_model.getBedrockCustomModel", "connection_error", err)
 		return nil, err
 	}
 
 	// Build the params
 	params := &bedrock.GetCustomModelInput{
-		ModelIdentifier: &modelId,
+		ModelIdentifier: &modelIdentifier,
 	}
 
 	// Get call
