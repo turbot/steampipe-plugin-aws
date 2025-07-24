@@ -6,6 +6,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/bedrock"
+	"github.com/aws/aws-sdk-go-v2/service/bedrock/types"
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -21,15 +22,18 @@ func tableAwsBedrockCustomModel(_ context.Context) *plugin.Table {
 				{Name: "model_name", Require: plugin.AnyOf},
 			},
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "ValidationException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
 			Hydrate: getBedrockCustomModel,
+			Tags:    map[string]string{"service": "bedrock", "action": "GetCustomModel"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listBedrockCustomModels,
+			Tags:    map[string]string{"service": "bedrock", "action": "ListCustomModels"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "base_model_arn", Require: plugin.Optional},
 				{Name: "creation_time", Require: plugin.Optional, Operators: []string{">", ">=", "<", "<="}},
+				{Name: "model_status", Require: plugin.Optional},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(AWS_BEDROCK_SERVICE_ID),
@@ -43,7 +47,6 @@ func tableAwsBedrockCustomModel(_ context.Context) *plugin.Table {
 				Name:        "base_model_name",
 				Description: "The base model name.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("BaseModelName"),
 			},
 			{
 				Name:        "creation_time",
@@ -99,6 +102,12 @@ func tableAwsBedrockCustomModel(_ context.Context) *plugin.Table {
 func listBedrockCustomModels(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create Session
 	svc, err := BedrockClient(ctx, d)
+
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
+
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_bedrock_custom_model.listBedrockCustomModels", "connection_error", err)
 		return nil, err
@@ -134,6 +143,10 @@ func listBedrockCustomModels(ctx context.Context, d *plugin.QueryData, h *plugin
 		}
 	}
 
+	if d.EqualsQuals["model_status"] != nil {
+		input.ModelStatus = types.ModelStatus(d.EqualsQuals["model_status"].GetStringValue())
+	}
+
 	paginator := bedrock.NewListCustomModelsPaginator(svc, input, func(o *bedrock.ListCustomModelsPaginatorOptions) {
 		o.Limit = maxLimit
 		o.StopOnDuplicateToken = true
@@ -145,6 +158,7 @@ func listBedrockCustomModels(ctx context.Context, d *plugin.QueryData, h *plugin
 
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
+			// Handle the unsupported region error since the resource is not available in all the regions: ValidationException: Unknown operation
 			if strings.Contains(strings.ToLower(err.Error()), strings.ToLower("ValidationException: Unknown operation")) {
 				return nil, nil
 			}
@@ -183,6 +197,12 @@ func getBedrockCustomModel(ctx context.Context, d *plugin.QueryData, h *plugin.H
 
 	// Create service
 	svc, err := BedrockClient(ctx, d)
+
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
+
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_bedrock_custom_model.getBedrockCustomModel", "connection_error", err)
 		return nil, err
@@ -196,6 +216,7 @@ func getBedrockCustomModel(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	// Get call
 	data, err := svc.GetCustomModel(ctx, params)
 	if err != nil {
+		// Handle the unsupported region error since the resource is not available in all the regions: ValidationException: Unknown operation
 		if strings.Contains(strings.ToLower(err.Error()), strings.ToLower("ValidationException: Unknown operation")) {
 			return nil, nil
 		}
