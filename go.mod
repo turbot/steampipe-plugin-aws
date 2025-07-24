@@ -5,7 +5,7 @@ go 1.23.1
 toolchain go1.23.2
 
 require (
-	github.com/aws/aws-sdk-go-v2 v1.36.3
+	github.com/aws/aws-sdk-go-v2 v1.36.6
 	github.com/aws/aws-sdk-go-v2/config v1.29.14
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.67
 	github.com/aws/aws-sdk-go-v2/feature/s3/manager v1.16.21
@@ -26,6 +26,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/autoscaling v1.40.5
 	github.com/aws/aws-sdk-go-v2/service/backup v1.34.2
 	github.com/aws/aws-sdk-go-v2/service/batch v1.37.4
+	github.com/aws/aws-sdk-go-v2/service/bedrock v1.39.1
 	github.com/aws/aws-sdk-go-v2/service/cloudcontrol v1.18.4
 	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.49.0
 	github.com/aws/aws-sdk-go-v2/service/cloudfront v1.35.4
@@ -140,7 +141,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/wafv2 v1.48.2
 	github.com/aws/aws-sdk-go-v2/service/wellarchitected v1.29.4
 	github.com/aws/aws-sdk-go-v2/service/workspaces v1.38.4
-	github.com/aws/smithy-go v1.22.2
+	github.com/aws/smithy-go v1.22.4
 	github.com/gocarina/gocsv v0.0.0-20201208093247-67c824bc04d4
 	github.com/goccy/go-yaml v1.11.3
 	github.com/golang/protobuf v1.5.4
@@ -178,8 +179,8 @@ require (
 	github.com/apparentlymart/go-textseg/v15 v15.0.0 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.6.10 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.16.30 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.34 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.6.34 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.37 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.6.37 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/ini v1.8.3 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/v4a v1.3.34 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.12.3 // indirect
