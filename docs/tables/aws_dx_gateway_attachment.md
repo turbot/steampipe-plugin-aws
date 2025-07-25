@@ -15,7 +15,6 @@ The `aws_dx_gateway_attachment` table in Steampipe provides you with information
 ## Examples
 
 ### Basic gateway attachment information
-
 Explore which virtual interfaces are attached to Direct Connect gateways and their current status.
 
 ```sql+postgres
@@ -41,7 +40,6 @@ from
 ```
 
 ### Attachments by state
-
 Analyze the distribution of gateway attachments by their current state to understand operational status.
 
 ```sql+postgres
@@ -65,7 +63,6 @@ group by
 ```
 
 ### Virtual interface types attached to gateways
-
 Understand what types of virtual interfaces are being used with Direct Connect gateways.
 
 ```sql+postgres
@@ -91,7 +88,6 @@ group by
 ```
 
 ### Cross-account virtual interface attachments
-
 Identify attachments where the virtual interface is owned by a different account than the gateway.
 
 ```sql+postgres
@@ -121,7 +117,6 @@ where
 ```
 
 ### Attachments with state change errors
-
 Find attachments that have encountered errors during state transitions for troubleshooting.
 
 ```sql+postgres
@@ -151,7 +146,6 @@ where
 ```
 
 ### Regional distribution of attachments
-
 Understand how virtual interface attachments are distributed across different AWS regions.
 
 ```sql+postgres
@@ -183,7 +177,6 @@ order by
 ```
 
 ### Attachment types analysis
-
 Analyze the distribution of different attachment types to understand connectivity patterns.
 
 ```sql+postgres
@@ -209,7 +202,6 @@ group by
 ```
 
 ### Gateway attachment with virtual interface details
-
 Get comprehensive information by joining with the virtual interface table for operational insights.
 
 ```sql+postgres
@@ -241,7 +233,6 @@ from
 ```
 
 ### Gateway attachment with gateway details
-
 Combine attachment information with gateway details for comprehensive connectivity overview.
 
 ```sql+postgres
@@ -271,7 +262,6 @@ from
 ```
 
 ### Attachment with complete connectivity details
-
 Get complete connectivity information by joining attachments with virtual interfaces, connections, and gateway associations.
 
 ```sql+postgres

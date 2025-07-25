@@ -15,7 +15,6 @@ The `aws_dx_virtual_interface` table in Steampipe provides you with information 
 ## Examples
 
 ### Basic virtual interface information
-
 Explore which Direct Connect virtual interfaces are configured and their basic details.
 
 ```sql+postgres
@@ -43,7 +42,6 @@ from
 ```
 
 ### Virtual interfaces by type and state
-
 Analyze the distribution of virtual interfaces by type and state to understand connectivity patterns.
 
 ```sql+postgres
@@ -77,7 +75,6 @@ order by
 ```
 
 ### BGP configuration analysis
-
 Examine BGP configurations across virtual interfaces for network routing insights.
 
 ```sql+postgres
@@ -113,7 +110,6 @@ where
 ```
 
 ### VLAN usage analysis
-
 Analyze VLAN assignments across virtual interfaces to understand VLAN utilization.
 
 ```sql+postgres
@@ -149,7 +145,6 @@ order by
 ```
 
 ### Virtual interfaces with jumbo frame capability
-
 Identify virtual interfaces that support jumbo frames (9001 MTU) for improved network performance.
 
 ```sql+postgres
@@ -179,7 +174,6 @@ where
 ```
 
 ### Gateway connectivity analysis
-
 Understand which virtual interfaces are connected to Direct Connect gateways or VPN gateways.
 
 ```sql+postgres
@@ -215,7 +209,6 @@ from
 ```
 
 ### SiteLink enabled interfaces
-
 Find virtual interfaces that have SiteLink enabled for direct on-premises to on-premises connectivity.
 
 ```sql+postgres
@@ -245,7 +238,6 @@ where
 ```
 
 ### BGP peer analysis
-
 Examine BGP peer configurations for each virtual interface.
 
 ```sql+postgres
@@ -275,7 +267,6 @@ where
 ```
 
 ### Route filter configuration
-
 Analyze route filter prefixes configured on virtual interfaces.
 
 ```sql+postgres
@@ -307,7 +298,6 @@ where
 ```
 
 ### Cross-account virtual interface ownership
-
 Identify virtual interfaces owned by different AWS accounts for cross-account scenarios.
 
 ```sql+postgres
@@ -341,7 +331,6 @@ from
 ```
 
 ### Connection to virtual interface mapping
-
 Understand which connections host which virtual interfaces for connectivity planning.
 
 ```sql+postgres

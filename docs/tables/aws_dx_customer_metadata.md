@@ -15,7 +15,6 @@ The `aws_dx_customer_metadata` table in Steampipe provides you with information 
 ## Examples
 
 ### Basic customer metadata information
-
 Explore the Direct Connect customer metadata to understand agreement status and partner configurations.
 
 ```sql+postgres
@@ -37,7 +36,6 @@ from
 ```
 
 ### Group metadata by status
-
 Analyze the distribution of customer agreements by their current status to understand the overall health of Direct Connect agreements.
 
 ```sql+postgres
@@ -61,7 +59,6 @@ group by
 ```
 
 ### NNI partner type distribution
-
 Understand the distribution of different NNI partner types in your Direct Connect setup.
 
 ```sql+postgres
@@ -87,7 +84,6 @@ group by
 ```
 
 ### Active agreements with partner information
-
 Find all active customer agreements and their associated NNI partner types for operational insights.
 
 ```sql+postgres
@@ -113,7 +109,6 @@ where
 ```
 
 ### V2 partner agreements
-
 Identify agreements with V2 NNI partners, which typically offer enhanced capabilities.
 
 ```sql+postgres
@@ -139,7 +134,6 @@ where
 ```
 
 ### Customer metadata by region
-
 Analyze customer metadata distribution across different AWS regions.
 
 ```sql+postgres
@@ -169,7 +163,6 @@ order by
 ```
 
 ### Cross-account metadata analysis
-
 Identify customer metadata that spans multiple AWS accounts for complex organizational structures.
 
 ```sql+postgres
@@ -199,7 +192,6 @@ having
 ```
 
 ### Non-partner agreements
-
 Find agreements that are not associated with NNI partners for direct AWS connections.
 
 ```sql+postgres

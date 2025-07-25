@@ -15,7 +15,6 @@ The `aws_dx_interconnect` table in Steampipe provides you with information about
 ## Examples
 
 ### Basic interconnect information
-
 Explore which Direct Connect interconnects are available and their basic configuration details.
 
 ```sql+postgres
@@ -43,7 +42,6 @@ from
 ```
 
 ### Interconnects by state
-
 Analyze the distribution of interconnects by their current state to understand operational status.
 
 ```sql+postgres
@@ -67,7 +65,6 @@ group by
 ```
 
 ### Bandwidth capacity analysis
-
 Analyze the distribution of bandwidth allocations across interconnects to understand capacity planning.
 
 ```sql+postgres
@@ -99,7 +96,6 @@ order by
 ```
 
 ### Interconnects with jumbo frame capability
-
 Identify interconnects that support jumbo frames (9001 MTU) for improved network performance.
 
 ```sql+postgres
@@ -129,7 +125,6 @@ where
 ```
 
 ### Geographic distribution of interconnects
-
 Understand the geographic distribution of interconnects across AWS Direct Connect locations.
 
 ```sql+postgres
@@ -161,7 +156,6 @@ order by
 ```
 
 ### Provider analysis
-
 Analyze which providers are offering interconnect services and their capacity distribution.
 
 ```sql+postgres
@@ -193,7 +187,6 @@ order by
 ```
 
 ### Interconnects with LAG associations
-
 Discover which interconnects are part of Link Aggregation Groups (LAGs) for redundancy and increased bandwidth.
 
 ```sql+postgres
@@ -227,7 +220,6 @@ where
 ```
 
 ### Interconnect LOA information
-
 Examine interconnects and their Letter of Authorization (LOA) details for operational tracking.
 
 ```sql+postgres
@@ -261,7 +253,6 @@ order by
 ```
 
 ### Device and logical redundancy analysis
-
 Analyze the AWS device assignments and logical redundancy capabilities of interconnects.
 
 ```sql+postgres
@@ -289,7 +280,6 @@ from
 ```
 
 ### Interconnects without proper tagging
-
 Identify interconnects that lack proper tagging for better resource management and cost tracking.
 
 ```sql+postgres
@@ -321,7 +311,6 @@ where
 ```
 
 ### Interconnect with LAG associations
-
 Analyze interconnects and their relationship with LAGs for high-capacity connectivity management.
 
 ```sql+postgres

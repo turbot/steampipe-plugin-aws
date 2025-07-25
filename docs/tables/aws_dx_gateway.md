@@ -15,7 +15,6 @@ The `aws_dx_gateway` table in Steampipe provides you with information about AWS 
 ## Examples
 
 ### Basic gateway information
-
 Explore which Direct Connect gateways are available and their basic configuration details.
 
 ```sql+postgres
@@ -41,7 +40,6 @@ from
 ```
 
 ### Gateways by state
-
 Analyze the distribution of gateways by their current state to understand operational status.
 
 ```sql+postgres
@@ -65,7 +63,6 @@ group by
 ```
 
 ### Gateways with state change errors
-
 Identify gateways that have encountered errors during state transitions for troubleshooting.
 
 ```sql+postgres
@@ -93,7 +90,6 @@ where
 ```
 
 ### Cross-account gateway ownership
-
 Identify gateways owned by different AWS accounts for cross-account Direct Connect scenarios.
 
 ```sql+postgres
@@ -125,7 +121,6 @@ from
 ```
 
 ### Gateways with their associations
-
 Get gateways along with their associated VPCs or transit gateways to understand connectivity patterns.
 
 ```sql+postgres
@@ -157,7 +152,6 @@ from
 ```
 
 ### ASN distribution analysis
-
 Analyze the distribution of Amazon-side ASN values across Direct Connect gateways.
 
 ```sql+postgres
@@ -185,7 +179,6 @@ order by
 ```
 
 ### Available gateways for new associations
-
 Find gateways that are in a state where they can accept new associations.
 
 ```sql+postgres
@@ -213,7 +206,6 @@ where
 ```
 
 ### Gateway virtual interfaces connectivity
-
 Analyze which virtual interfaces are connected to each gateway for comprehensive connectivity mapping.
 
 ```sql+postgres
@@ -243,7 +235,6 @@ from
 ```
 
 ### Gateway regional distribution
-
 Understand the geographic distribution of Direct Connect gateways across AWS regions.
 
 ```sql+postgres

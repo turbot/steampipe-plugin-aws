@@ -15,7 +15,6 @@ The `aws_dx_lag` table in Steampipe provides you with information about AWS Dire
 ## Examples
 
 ### Basic LAG information
-
 Explore which Direct Connect LAGs are configured and their basic details.
 
 ```sql+postgres
@@ -45,7 +44,6 @@ from
 ```
 
 ### LAGs by state
-
 Analyze the distribution of LAGs by their current state to understand operational status.
 
 ```sql+postgres
@@ -69,7 +67,6 @@ group by
 ```
 
 ### LAG capacity and redundancy analysis
-
 Analyze LAG configurations to understand capacity planning and redundancy settings.
 
 ```sql+postgres
@@ -109,7 +106,6 @@ order by
 ```
 
 ### LAGs with jumbo frame capability
-
 Identify LAGs that support jumbo frames (9001 MTU) for improved network performance.
 
 ```sql+postgres
@@ -139,7 +135,6 @@ where
 ```
 
 ### LAGs with MACsec capability
-
 Find LAGs that support MAC Security (MACsec) for enhanced network security.
 
 ```sql+postgres
@@ -171,7 +166,6 @@ where
 ```
 
 ### LAGs that allow hosted connections
-
 Identify LAGs that can host connections from partners or other accounts.
 
 ```sql+postgres
@@ -203,7 +197,6 @@ where
 ```
 
 ### Geographic distribution of LAGs
-
 Understand the geographic distribution of LAGs across AWS Direct Connect locations.
 
 ```sql+postgres
@@ -235,7 +228,6 @@ order by
 ```
 
 ### LAG connections details
-
 Examine the individual connections that make up each LAG for detailed connectivity analysis.
 
 ```sql+postgres
@@ -265,7 +257,6 @@ where
 ```
 
 ### Cross-account LAG ownership
-
 Identify LAGs owned by different AWS accounts for cross-account Direct Connect scenarios.
 
 ```sql+postgres
@@ -297,7 +288,6 @@ from
 ```
 
 ### LAG redundancy and reliability analysis
-
 Analyze LAG configurations for redundancy and reliability characteristics.
 
 ```sql+postgres
@@ -333,7 +323,6 @@ from
 ```
 
 ### LAGs without proper tagging
-
 Identify LAGs that lack proper tagging for better resource management and cost tracking.
 
 ```sql+postgres
@@ -365,7 +354,6 @@ where
 ```
 
 ### LAG with member connections and virtual interfaces
-
 Analyze LAG configurations with their member connections and associated virtual interfaces for complete connectivity overview.
 
 ```sql+postgres

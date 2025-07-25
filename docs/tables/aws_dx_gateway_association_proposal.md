@@ -15,7 +15,6 @@ The `aws_dx_gateway_association_proposal` table in Steampipe provides you with i
 ## Examples
 
 ### Basic association proposal information
-
 Explore which Direct Connect gateway association proposals are pending and their basic details.
 
 ```sql+postgres
@@ -41,7 +40,6 @@ from
 ```
 
 ### Proposals by state
-
 Analyze the distribution of association proposals by their current state to understand approval workflow.
 
 ```sql+postgres
@@ -65,7 +63,6 @@ group by
 ```
 
 ### Cross-account association proposals
-
 Identify proposals that involve associations between different AWS accounts.
 
 ```sql+postgres
@@ -97,7 +94,6 @@ where
 ```
 
 ### Pending proposals requiring action
-
 Find proposals that are in a pending state and require approval or rejection.
 
 ```sql+postgres
@@ -129,7 +125,6 @@ where
 ```
 
 ### Proposals with prefix changes
-
 Examine proposals that involve changes to allowed prefixes for route filtering.
 
 ```sql+postgres
@@ -165,7 +160,6 @@ where
 ```
 
 ### Regional distribution of proposals
-
 Understand how association proposals are distributed across different AWS regions.
 
 ```sql+postgres
@@ -197,7 +191,6 @@ order by
 ```
 
 ### Transit gateway vs VPC proposals
-
 Analyze the distribution of proposals by target gateway type.
 
 ```sql+postgres
@@ -223,7 +216,6 @@ group by
 ```
 
 ### Proposals with gateway details
-
 Get comprehensive information by joining with the gateway table for operational insights.
 
 ```sql+postgres
@@ -255,7 +247,6 @@ from
 ```
 
 ### Account ownership analysis
-
 Analyze ownership patterns for Direct Connect gateway association proposals.
 
 ```sql+postgres

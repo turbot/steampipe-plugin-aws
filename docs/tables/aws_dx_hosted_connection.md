@@ -15,7 +15,6 @@ The `aws_dx_hosted_connection` table in Steampipe provides you with information 
 ## Examples
 
 ### Basic hosted connection information
-
 Explore which Direct Connect hosted connections are available and their basic configuration details.
 
 ```sql+postgres
@@ -43,7 +42,6 @@ from
 ```
 
 ### Hosted connections by state
-
 Analyze the distribution of hosted connections by their current state to understand operational status.
 
 ```sql+postgres
@@ -67,7 +65,6 @@ group by
 ```
 
 ### Hosted connections by partner
-
 Understand which partners are providing hosted connections and their capacity distribution.
 
 ```sql+postgres
@@ -99,7 +96,6 @@ order by
 ```
 
 ### Hosted connections with jumbo frame capability
-
 Identify hosted connections that support jumbo frames (9001 MTU) for improved network performance.
 
 ```sql+postgres
@@ -129,7 +125,6 @@ where
 ```
 
 ### Hosted connections with MACsec capability
-
 Find hosted connections that support MAC Security (MACsec) for enhanced network security.
 
 ```sql+postgres
@@ -163,7 +158,6 @@ where
 ```
 
 ### Bandwidth distribution analysis
-
 Analyze the distribution of bandwidth allocations across hosted connections.
 
 ```sql+postgres
@@ -195,7 +189,6 @@ order by
 ```
 
 ### Hosted connections with LAG associations
-
 Discover which hosted connections are part of Link Aggregation Groups (LAGs).
 
 ```sql+postgres
@@ -229,7 +222,6 @@ where
 ```
 
 ### Geographic distribution of hosted connections
-
 Understand the geographic distribution of hosted connections across AWS Direct Connect locations.
 
 ```sql+postgres
@@ -261,7 +253,6 @@ order by
 ```
 
 ### Cross-account hosted connection ownership
-
 Identify hosted connections owned by different AWS accounts for cross-account scenarios.
 
 ```sql+postgres
@@ -295,7 +286,6 @@ from
 ```
 
 ### Hosted connections without proper tagging
-
 Identify hosted connections that lack proper tagging for better resource management.
 
 ```sql+postgres
@@ -327,7 +317,6 @@ where
 ```
 
 ### Hosted connection with LAG and virtual interfaces
-
 Analyze hosted connections with their LAG associations and virtual interface utilization.
 
 ```sql+postgres
