@@ -55,6 +55,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/costoptimizationhub"
 	"github.com/aws/aws-sdk-go-v2/service/databasemigrationservice"
 	"github.com/aws/aws-sdk-go-v2/service/dax"
+	"github.com/aws/aws-sdk-go-v2/service/directconnect"
 	"github.com/aws/aws-sdk-go-v2/service/directoryservice"
 	"github.com/aws/aws-sdk-go-v2/service/dlm"
 	"github.com/aws/aws-sdk-go-v2/service/docdb"
@@ -565,6 +566,14 @@ func DirectoryServiceClient(ctx context.Context, d *plugin.QueryData) (*director
 		return nil, nil
 	}
 	return directoryservice.NewFromConfig(*cfg), nil
+}
+
+func DirectConnectClient(ctx context.Context, d *plugin.QueryData) (*directconnect.Client, error) {
+	cfg, err := getClientForQueryRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return directconnect.NewFromConfig(*cfg), nil
 }
 
 func DLMClient(ctx context.Context, d *plugin.QueryData) (*dlm.Client, error) {
