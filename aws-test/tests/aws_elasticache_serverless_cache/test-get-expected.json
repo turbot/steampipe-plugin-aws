@@ -1,0 +1,12 @@
+[
+	{
+		"serverless_cache_name": "{{ output.resource_id.value }}",
+		"engine": "valkey",
+		"tags_src": [
+			{
+				"Key": "name",
+				"Value": "{{resourceName}}"
+			}
+		]
+	}
+] 
