@@ -97,11 +97,17 @@ func tableAwsDxInterconnect(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "loa_content_type",
+				Description: "The standard media type for the LOA-CFA document.",
+				Hydrate:     getDxInterconnectLoa,
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "loa_content",
 				Description: "The binary contents of the LOA-CFA document (base64 encoded).",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getDxInterconnectLoa,
-				Transform:   transform.FromValue(),
+				Transform:   transform.FromField("LoaContent").Transform(loaContentToBase64),
 			},
 			{
 				Name:        "tags_src",
