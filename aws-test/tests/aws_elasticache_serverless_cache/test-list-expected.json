@@ -1,8 +1,8 @@
 [
 	{
 		"akas": ["{{ output.resource_aka.value }}"],
-		"serverless_cache_name": "{{ output.resource_id.value }}",
 		"engine": "valkey",
+		"serverless_cache_name": "{{ output.resource_id.value }}",
 		"title": "{{resourceName}}"
 	}
 ] 

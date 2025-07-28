@@ -1,7 +1,7 @@
 [
 	{
-		"serverless_cache_name": "{{ output.resource_id.value }}",
 		"akas": ["{{ output.resource_aka.value }}"],
+		"serverless_cache_name": "{{ output.resource_id.value }}",
 		"tags": {
 			"name": "{{resourceName}}"
 		},

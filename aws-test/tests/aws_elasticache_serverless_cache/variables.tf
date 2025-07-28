@@ -23,13 +23,13 @@ variable "aws_region_alternate" {
 }
 
 provider "aws" {
-  profile = var.aws_profile
+  // profile = var.aws_profile
   region  = var.aws_region
 }
 
 provider "aws" {
   alias   = "alternate"
-  profile = var.aws_profile
+  // profile = var.aws_profile
   region  = var.aws_region_alternate
 }
 
@@ -54,6 +54,12 @@ resource "aws_subnet" "my_subnet" {
   vpc_id            = aws_vpc.my_vpc.id
   cidr_block        = "10.0.0.0/24"
   availability_zone = "${var.aws_region}a"
+}
+
+resource "aws_subnet" "my_subnet_2" {
+  vpc_id            = aws_vpc.my_vpc.id
+  cidr_block        = "10.0.1.0/24"
+  availability_zone = "${var.aws_region}b"
 }
 
 resource "aws_security_group" "my_security_group" {
@@ -81,14 +87,20 @@ resource "aws_elasticache_user_group" "my_user_group" {
 }
 
 resource "aws_elasticache_serverless_cache" "named_test_resource" {
-  serverless_cache_name = var.resource_name
+  name                 = var.resource_name
   engine               = "valkey"
   user_group_id        = aws_elasticache_user_group.my_user_group.user_group_id
-  subnet_ids           = [aws_subnet.my_subnet.id]
+  subnet_ids           = [aws_subnet.my_subnet.id, aws_subnet.my_subnet_2.id]
   security_group_ids   = [aws_security_group.my_security_group.id]
   
   cache_usage_limits {
-    max_gb = 10
+    data_storage {
+      maximum = 10
+      unit    = "GB"
+    }
+    ecpu_per_second {
+      maximum = 5000
+    }
   }
 
   tags = {
@@ -102,15 +114,15 @@ output "resource_name" {
 
 output "resource_aka" {
   depends_on = [aws_elasticache_serverless_cache.named_test_resource]
-  value      = "arn:${data.aws_partition.current.partition}:elasticache:${data.aws_region.primary.name}:${data.aws_caller_identity.current.account_id}:serverlesscache:${aws_elasticache_serverless_cache.named_test_resource.serverless_cache_name}"
+  value      = "arn:${data.aws_partition.current.partition}:elasticache:${data.aws_region.primary.name}:${data.aws_caller_identity.current.account_id}:serverlesscache:${aws_elasticache_serverless_cache.named_test_resource.name}"
 }
 
 output "resource_id" {
-  value = aws_elasticache_serverless_cache.named_test_resource.serverless_cache_name
+  value = aws_elasticache_serverless_cache.named_test_resource.name
 }
 
 output "serverless_cache_name" {
-  value = aws_elasticache_serverless_cache.named_test_resource.serverless_cache_name
+  value = aws_elasticache_serverless_cache.named_test_resource.name
 }
 
 output "account_id" {
