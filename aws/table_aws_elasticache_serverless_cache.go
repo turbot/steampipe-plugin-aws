@@ -60,7 +60,7 @@ func tableAwsElastiCacheServerlessCache(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "engine",
-				Description: "The name of the cache engine (redis) used by the serverless cache.",
+				Description: "The name of the cache engine (e.g., redis, valkey) used by the serverless cache.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
