@@ -473,8 +473,8 @@ github.com/aws/aws-sdk-go-v2/service/simspaceweaver v1.10.4 h1:3Van6iPm54SieS9ap
 github.com/aws/aws-sdk-go-v2/service/simspaceweaver v1.10.4/go.mod h1:epFVpwUgd/c80/2fR2Zd7WDDctrJfXfxBvhreA5PJYo=
 github.com/aws/aws-sdk-go-v2/service/sns v1.29.4 h1:VhW/J21SPH9bNmk1IYdZtzqA6//N2PB5Py5RexNmLVg=
 github.com/aws/aws-sdk-go-v2/service/sns v1.29.4/go.mod h1:DojKGyWXa4p+e+C+GpG7qf02QaE68Nrg2v/UAXQhKhU=
-github.com/aws/aws-sdk-go-v2/service/sqs v1.31.4 h1:mE2ysZMEeQ3ulHWs4mmc4fZEhOfeY1o6QXAfDqjbSgw=
-github.com/aws/aws-sdk-go-v2/service/sqs v1.31.4/go.mod h1:lCN2yKnj+Sp9F6UzpoPPTir+tSaC9Jwf6LcmTqnXFZw=
+github.com/aws/aws-sdk-go-v2/service/sqs v1.38.10 h1:f8DaKfXPawd2U9lEKVZKpGyOaR0Z/RsveDu5stN4mbo=
+github.com/aws/aws-sdk-go-v2/service/sqs v1.38.10/go.mod h1:TmYkwanFzsU2TkM0xCt15u3KMzf0wVmx0GhZOsxhVKo=
 github.com/aws/aws-sdk-go-v2/service/ssm v1.49.5 h1:KBwyHzP2QG8J//hoGuPyHWZ5tgL1BzaoMURUkecpI4g=
 github.com/aws/aws-sdk-go-v2/service/ssm v1.49.5/go.mod h1:Ebk/HZmGhxWKDVxM4+pwbxGjm3RQOQLMjAEosI3ss9Q=
 github.com/aws/aws-sdk-go-v2/service/ssmincidents v1.30.4 h1:FctT4NUwB7L4EvS5OBT10m7mY7a4HzUD2jxHM94C4T0=
