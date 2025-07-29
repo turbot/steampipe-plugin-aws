@@ -2,10 +2,13 @@ package aws
 
 import (
 	"context"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/service/bedrock"
+	"github.com/aws/aws-sdk-go-v2/service/bedrock/types"
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 func tableAwsBedrockImportedModel(_ context.Context) *plugin.Table {
@@ -15,11 +18,20 @@ func tableAwsBedrockImportedModel(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listBedrockImportedModels,
 			Tags:    map[string]string{"service": "bedrock", "action": "ListImportedModels"},
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "creation_time", Require: plugin.Optional, Operators: []string{">", ">=", "<", "<="}},
+			},
 		},
 		Get: &plugin.GetConfig{
-			KeyColumns: plugin.SingleColumn("model_arn"),
-			Hydrate:    getBedrockImportedModel,
-			Tags:       map[string]string{"service": "bedrock", "action": "GetImportedModel"},
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "arn", Require: plugin.AnyOf},
+				{Name: "model_name", Require: plugin.AnyOf},
+			},
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
+			},
+			Hydrate: getBedrockImportedModel,
+			Tags:    map[string]string{"service": "bedrock", "action": "GetImportedModel"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(AWS_BEDROCK_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -29,8 +41,9 @@ func tableAwsBedrockImportedModel(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
-				Name:        "model_arn",
+				Name:        "arn",
 				Description: "The Amazon Resource Name (ARN) of the imported model.",
+				Transform:   transform.FromField("ModelArn"),
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -48,6 +61,49 @@ func tableAwsBedrockImportedModel(_ context.Context) *plugin.Table {
 				Description: "The architecture of the imported model.",
 				Type:        proto.ColumnType_STRING,
 			},
+			{
+				Name:        "job_arn",
+				Description: "Job Amazon Resource Name (ARN) associated with the imported model.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getBedrockImportedModel,
+			},
+			{
+				Name:        "job_name",
+				Description: "Job name associated with the imported model.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getBedrockImportedModel,
+			},
+			{
+				Name:        "model_data_source",
+				Description: "The data source for this imported model.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getBedrockImportedModel,
+			},
+			{
+				Name:        "model_kms_key_arn",
+				Description: "The imported model is encrypted at rest using this key.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getBedrockImportedModel,
+			},
+			{
+				Name:        "custom_model_units",
+				Description: "Information about the hardware utilization for a single copy of the model.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getBedrockImportedModel,
+			},
+			// Steampipe standard columns
+			{
+				Name:        "title",
+				Description: "Title of the resource.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("ModelName"),
+			},
+			{
+				Name:        "akas",
+				Description: "Array of globally unique identifier strings (also known as) for the resource.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("ModelArn").Transform(transform.EnsureStringArray),
+			},
 		}),
 	}
 }
@@ -57,13 +113,18 @@ func tableAwsBedrockImportedModel(_ context.Context) *plugin.Table {
 func listBedrockImportedModels(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create client
 	svc, err := BedrockClient(ctx, d)
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
+
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_bedrock_imported_model.listBedrockImportedModels", "client_error", err)
 		return nil, err
 	}
 
 	// Limiting the results
-	maxLimit := int32(100)
+	maxLimit := int32(1000)
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
 		if limit < maxLimit {
@@ -73,6 +134,19 @@ func listBedrockImportedModels(ctx context.Context, d *plugin.QueryData, h *plug
 
 	input := &bedrock.ListImportedModelsInput{
 		MaxResults: &maxLimit,
+	}
+
+	// Apply creation_time qual if provided
+	if d.Quals["creation_time"] != nil {
+		for _, q := range d.Quals["creation_time"].Quals {
+			timestamp := q.Value.GetTimestampValue().AsTime()
+			switch q.Operator {
+			case ">=", ">":
+				input.CreationTimeAfter = &timestamp
+			case "<=", "<":
+				input.CreationTimeBefore = &timestamp
+			}
+		}
 	}
 
 	paginator := bedrock.NewListImportedModelsPaginator(svc, input, func(o *bedrock.ListImportedModelsPaginatorOptions) {
@@ -87,6 +161,10 @@ func listBedrockImportedModels(ctx context.Context, d *plugin.QueryData, h *plug
 
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
+			// Handle the unsupported region error since the resource is not available in all the regions: ValidationException: Unknown operation
+			if strings.Contains(strings.ToLower(err.Error()), strings.ToLower("ValidationException: Unknown operation")) {
+				return nil, nil
+			}
 			plugin.Logger(ctx).Error("aws_bedrock_imported_model.listBedrockImportedModels", "api_error", err)
 			return nil, err
 		}
@@ -107,15 +185,31 @@ func listBedrockImportedModels(ctx context.Context, d *plugin.QueryData, h *plug
 //// HYDRATE FUNCTIONS
 
 func getBedrockImportedModel(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	modelArn := d.EqualsQualString("model_arn")
+	var modelIdentifier string
+
+	if h.Item != nil {
+		modelIdentifier = *h.Item.(types.ImportedModelSummary).ModelArn
+	} else {
+		if d.EqualsQualString("arn") != "" {
+			modelIdentifier = d.EqualsQualString("arn")
+		} else {
+			modelIdentifier = d.EqualsQualString("model_name")
+		}
+	}
 
 	// Empty check
-	if modelArn == "" {
+	if modelIdentifier == "" {
 		return nil, nil
 	}
 
 	// Create client
 	svc, err := BedrockClient(ctx, d)
+
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
+
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_bedrock_imported_model.getBedrockImportedModel", "client_error", err)
 		return nil, err
@@ -123,12 +217,16 @@ func getBedrockImportedModel(ctx context.Context, d *plugin.QueryData, h *plugin
 
 	// Build the params
 	params := &bedrock.GetImportedModelInput{
-		ModelIdentifier: &modelArn,
+		ModelIdentifier: &modelIdentifier,
 	}
 
 	// Get call
 	data, err := svc.GetImportedModel(ctx, params)
 	if err != nil {
+		// Handle the unsupported region error since the resource is not available in all the regions: ValidationException: Unknown operation
+		if strings.Contains(strings.ToLower(err.Error()), strings.ToLower("ValidationException: Unknown operation")) {
+			return nil, nil
+		}
 		plugin.Logger(ctx).Error("aws_bedrock_imported_model.getBedrockImportedModel", "api_error", err)
 		return nil, err
 	}

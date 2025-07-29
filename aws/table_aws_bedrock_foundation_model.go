@@ -6,6 +6,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/bedrock"
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 func tableAwsBedrockFoundationModel(_ context.Context) *plugin.Table {
@@ -23,6 +24,12 @@ func tableAwsBedrockFoundationModel(_ context.Context) *plugin.Table {
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(AWS_BEDROCK_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
+			{
+				Name:        "arn",
+				Description: "The Amazon Resource Name (ARN) of the foundation model.",
+				Transform:   transform.FromField("ModelArn"),
+				Type:        proto.ColumnType_STRING,
+			},
 			{
 				Name:        "model_id",
 				Description: "The unique identifier of the foundation model.",
@@ -59,14 +66,27 @@ func tableAwsBedrockFoundationModel(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 			},
 			{
-				Name:        "model_lifecycle_status",
+				Name:        "model_lifecycle",
 				Description: "The lifecycle status of the model.",
-				Type:        proto.ColumnType_STRING,
+				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "response_streaming_supported",
 				Description: "Whether the model supports response streaming.",
 				Type:        proto.ColumnType_BOOL,
+			},
+			// Steampipe standard columns
+			{
+				Name:        "title",
+				Description: "Title of the resource.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("ModelName"),
+			},
+			{
+				Name:        "akas",
+				Description: "Array of globally unique identifier strings (also known as) for the resource.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("ModelArn").Transform(transform.EnsureStringArray),
 			},
 		}),
 	}
@@ -75,6 +95,11 @@ func tableAwsBedrockFoundationModel(_ context.Context) *plugin.Table {
 func listBedrockFoundationModels(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Create AWS service client
 	svc, err := BedrockClient(ctx, d)
+
+	if svc == nil {
+		return nil, nil
+	}
+
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_bedrock_foundation_model.listBedrockFoundationModels", "connection_error", err)
 		return nil, err
@@ -97,8 +122,17 @@ func listBedrockFoundationModels(ctx context.Context, d *plugin.QueryData, h *pl
 func getBedrockFoundationModel(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	modelId := d.EqualsQualString("model_id")
 
+	if modelId == "" {
+		return nil, nil
+	}
+
 	// Create AWS service client
 	svc, err := BedrockClient(ctx, d)
+
+	if svc == nil {
+		return nil, nil
+	}
+
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_bedrock_foundation_model.getBedrockFoundationModel", "connection_error", err)
 		return nil, err
