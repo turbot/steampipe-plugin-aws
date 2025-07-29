@@ -140,3 +140,34 @@ select
 from
   aws_bedrock_agent;
 ``` 
+
+### List agents created in the last 30 days
+Monitor recently created agents to track new deployments and changes in your AWS Bedrock environment.
+
+```sql+postgres
+select
+  agent_name,
+  agent_id,
+  agent_status,
+  created_at,
+  foundation_model,
+  description
+from
+  aws_bedrock_agent
+where
+  created_at >= now() - interval '30 days';
+```
+
+```sql+sqlite
+select
+  agent_name,
+  agent_id,
+  agent_status,
+  created_at,
+  foundation_model,
+  description
+from
+  aws_bedrock_agent
+where
+  created_at >= datetime('now', '-30 days');
+``` 

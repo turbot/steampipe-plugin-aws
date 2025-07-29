@@ -70,12 +70,18 @@ func tableAwsBedrockAgent(_ context.Context) *plugin.Table {
 				Description: "The latest version of the agent.",
 				Type:        proto.ColumnType_STRING,
 			},
+			{
+				Name:        "guardrail_configuration",
+				Description: "Details about the guardrail associated with the agent.",
+				Type:        proto.ColumnType_JSON,
+			},
 
 			// Columns from GetAgent (Agent)
 			{
 				Name:        "arn",
 				Description: "The Amazon Resource Name (ARN) of the agent.",
 				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("AgentArn"),
 				Hydrate:     getBedrockAgent,
 			},
 			{
@@ -125,7 +131,6 @@ func tableAwsBedrockAgent(_ context.Context) *plugin.Table {
 				Name:        "orchestration_type",
 				Description: "Specifies the orchestration strategy for the agent.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("OrchestrationType"),
 				Hydrate:     getBedrockAgent,
 			},
 			{
@@ -141,8 +146,32 @@ func tableAwsBedrockAgent(_ context.Context) *plugin.Table {
 				Hydrate:     getBedrockAgent,
 			},
 			{
+				Name:        "agent_collaboration",
+				Description: "The agent's collaboration settings.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getBedrockAgent,
+			},
+			{
 				Name:        "recommended_actions",
 				Description: "Contains recommended actions to take for the agent-related API that you invoked to succeed.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getBedrockAgent,
+			},
+			{
+				Name:        "custom_orchestration",
+				Description: "Contains custom orchestration configurations for the agent.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getBedrockAgent,
+			},
+			{
+				Name:        "memory_configuration",
+				Description: "Contains memory configuration for the agent.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getBedrockAgent,
+			},
+			{
+				Name:        "prompt_override_configuration",
+				Description: "Contains configurations to override prompt templates in different parts of an agent sequence.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getBedrockAgent,
 			},
@@ -182,7 +211,7 @@ func listBedrockAgents(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	}
 
 	// Limiting the results
-	maxLimit := int32(100)
+	maxLimit := int32(1000)
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
 		if limit < maxLimit {

@@ -113,3 +113,32 @@ select
 from
   aws_bedrock_knowledge_base;
 ```
+
+### List knowledge bases created in the last 30 days
+Identify recently created knowledge bases to monitor new resource creation and track recent changes in your AWS Bedrock environment.
+
+```sql+postgres
+select
+  name,
+  knowledge_base_id,
+  status,
+  created_at,
+  arn
+from
+  aws_bedrock_knowledge_base
+where
+  created_at >= now() - interval '30 days';
+```
+
+```sql+sqlite
+select
+  name,
+  knowledge_base_id,
+  status,
+  created_at,
+  arn
+from
+  aws_bedrock_knowledge_base
+where
+  created_at >= datetime('now', '-30 days');
+```
