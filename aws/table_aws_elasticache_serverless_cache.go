@@ -23,11 +23,8 @@ func tableAwsElastiCacheServerlessCache(_ context.Context) *plugin.Table {
 		Description: "AWS ElastiCache Serverless Cache",
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("serverless_cache_name"),
-			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ServerlessCacheNotFoundFault", "InvalidParameterValue"}),
-			},
-			Hydrate: getElastiCacheServerlessCache,
-			Tags:    map[string]string{"service": "elasticache", "action": "DescribeServerlessCaches"},
+			Hydrate:    getElastiCacheServerlessCache,
+			Tags:       map[string]string{"service": "elasticache", "action": "DescribeServerlessCaches"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listElastiCacheServerlessCaches,
