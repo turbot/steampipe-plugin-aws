@@ -224,6 +224,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_backup_vault":                                             tableAwsBackupVault(ctx),
 			"aws_batch_queue":                                              tableAwsBatchQueue(ctx),
 			"aws_bedrock_agent":                                            tableAwsBedrockAgent(ctx),
+			"aws_bedrock_knowledge_base":                                   tableAwsBedrockKnowledgeBase(ctx),
 			"aws_bedrock_custom_model":                                     tableAwsBedrockCustomModel(ctx),
 			"aws_cloudcontrol_resource":                                    tableAwsCloudControlResource(ctx),
 			"aws_cloudformation_stack_resource":                            tableAwsCloudFormationStackResource(ctx),
