@@ -149,7 +149,7 @@ func tableAwsElastiCacheServerlessCache(_ context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("ARN").Transform(arnToAkas),
+				Transform:   transform.FromField("ARN").Transform(transform.EnsureStringArray),
 			},
 		}),
 	}
