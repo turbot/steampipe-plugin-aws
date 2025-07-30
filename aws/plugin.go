@@ -226,6 +226,8 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_bedrock_agent":                                            tableAwsBedrockAgent(ctx),
 			"aws_bedrock_knowledge_base":                                   tableAwsBedrockKnowledgeBase(ctx),
 			"aws_bedrock_custom_model":                                     tableAwsBedrockCustomModel(ctx),
+			"aws_bedrock_foundation_model":                                 tableAwsBedrockFoundationModel(ctx),
+			"aws_bedrock_imported_model":                                   tableAwsBedrockImportedModel(ctx),
 			"aws_cloudcontrol_resource":                                    tableAwsCloudControlResource(ctx),
 			"aws_cloudformation_stack_resource":                            tableAwsCloudFormationStackResource(ctx),
 			"aws_cloudformation_stack_set":                                 tableAwsCloudFormationStackSet(ctx),
