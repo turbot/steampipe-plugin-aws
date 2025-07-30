@@ -174,32 +174,3 @@ group by
 order by
   model_count desc;
 ```
-
-### Find models with specific tags
-Identify models that have been tagged with specific metadata. This helps in organizing and filtering models based on custom criteria.
-
-```sql+postgres
-select
-  model_name,
-  model_arn,
-  creation_time,
-  tags
-from
-  aws_bedrock_imported_model
-where
-  tags is not null
-  and tags ->> 'Environment' = 'Production';
-```
-
-```sql+sqlite
-select
-  model_name,
-  model_arn,
-  creation_time,
-  tags
-from
-  aws_bedrock_imported_model
-where
-  tags is not null
-  and json_extract(tags, '$.Environment') = 'Production';
-``` 

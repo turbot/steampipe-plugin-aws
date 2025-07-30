@@ -21,6 +21,9 @@ func tableAwsBedrockFoundationModel(_ context.Context) *plugin.Table {
 			KeyColumns: plugin.SingleColumn("model_id"),
 			Hydrate:    getBedrockFoundationModel,
 			Tags:       map[string]string{"service": "bedrock", "action": "GetFoundationModel"},
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(AWS_BEDROCK_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -78,13 +81,13 @@ func tableAwsBedrockFoundationModel(_ context.Context) *plugin.Table {
 			// Steampipe standard columns
 			{
 				Name:        "title",
-				Description: "Title of the resource.",
+				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("ModelName"),
 			},
 			{
 				Name:        "akas",
-				Description: "Array of globally unique identifier strings (also known as) for the resource.",
+				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("ModelArn").Transform(transform.EnsureStringArray),
 			},
@@ -106,6 +109,7 @@ func listBedrockFoundationModels(ctx context.Context, d *plugin.QueryData, h *pl
 	}
 
 	// Execute list call
+	// The API does not support pagination
 	resp, err := svc.ListFoundationModels(ctx, &bedrock.ListFoundationModelsInput{})
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_bedrock_foundation_model.listBedrockFoundationModels", "api_error", err)
@@ -114,6 +118,11 @@ func listBedrockFoundationModels(ctx context.Context, d *plugin.QueryData, h *pl
 
 	for _, model := range resp.ModelSummaries {
 		d.StreamListItem(ctx, model)
+
+		// Context can be cancelled due to manual cancellation or the limit has been hit
+		if d.RowsRemaining(ctx) == 0 {
+			return nil, nil
+		}
 	}
 
 	return nil, nil

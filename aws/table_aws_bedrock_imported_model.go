@@ -28,10 +28,16 @@ func tableAwsBedrockImportedModel(_ context.Context) *plugin.Table {
 				{Name: "model_name", Require: plugin.AnyOf},
 			},
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "ValidationException"}),
 			},
 			Hydrate: getBedrockImportedModel,
 			Tags:    map[string]string{"service": "bedrock", "action": "GetImportedModel"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getBedrockImportedModel,
+				Tags: map[string]string{"service": "bedrock", "action": "GetImportedModel"},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(AWS_BEDROCK_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -94,13 +100,13 @@ func tableAwsBedrockImportedModel(_ context.Context) *plugin.Table {
 			// Steampipe standard columns
 			{
 				Name:        "title",
-				Description: "Title of the resource.",
+				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("ModelName"),
 			},
 			{
 				Name:        "akas",
-				Description: "Array of globally unique identifier strings (also known as) for the resource.",
+				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("ModelArn").Transform(transform.EnsureStringArray),
 			},
@@ -161,8 +167,8 @@ func listBedrockImportedModels(ctx context.Context, d *plugin.QueryData, h *plug
 
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			// Handle the unsupported region error since the resource is not available in all the regions: ValidationException: Unknown operation
-			if strings.Contains(strings.ToLower(err.Error()), strings.ToLower("ValidationException: Unknown operation")) {
+			// Handle the unsupported region error since the resource is not available in all the regions: An error occurred (AccessDeniedException) when calling the ListImportedModels operation: Your account is not authorized to invoke this API operation.
+			if strings.Contains(strings.ToLower(err.Error()), strings.ToLower("Your account is not authorized to invoke this API operation")) {
 				return nil, nil
 			}
 			plugin.Logger(ctx).Error("aws_bedrock_imported_model.listBedrockImportedModels", "api_error", err)
@@ -223,10 +229,12 @@ func getBedrockImportedModel(ctx context.Context, d *plugin.QueryData, h *plugin
 	// Get call
 	data, err := svc.GetImportedModel(ctx, params)
 	if err != nil {
-		// Handle the unsupported region error since the resource is not available in all the regions: ValidationException: Unknown operation
-		if strings.Contains(strings.ToLower(err.Error()), strings.ToLower("ValidationException: Unknown operation")) {
+		// Handle the unsupported region error since the resource is not available in all the regions
+		if strings.Contains(strings.ToLower(err.Error()), strings.ToLower("ValidationException")) ||
+		  strings.Contains(strings.ToLower(err.Error()), strings.ToLower("Your account is not authorized to invoke this API operation")) {
 			return nil, nil
 		}
+
 		plugin.Logger(ctx).Error("aws_bedrock_imported_model.getBedrockImportedModel", "api_error", err)
 		return nil, err
 	}
