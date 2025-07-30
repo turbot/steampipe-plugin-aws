@@ -1,0 +1,23 @@
+[
+	{
+		"cache_usage_limits": {
+			"DataStorage": {
+				"Maximum": 10,
+				"Minimum": null,
+				"Unit": "GB"
+			},
+			"ECPUPerSecond": {
+				"Maximum": 5000,
+				"Minimum": null
+			}
+		},
+		"engine": "valkey",
+		"serverless_cache_name": "{{ output.resource_id.value }}",
+		"tags_src": [
+			{
+				"Key": "name",
+				"Value": "{{resourceName}}"
+			}
+		]
+	}
+] 
