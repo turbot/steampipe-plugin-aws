@@ -1,3 +1,14 @@
+## v1.21.0 [2025-07-30]
+
+_What's new?_
+
+- New tables added
+  - [aws_bedrock_agent](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_bedrock_agent) ([#2580](https://github.com/turbot/steampipe-plugin-aws/pull/2580))
+  - [aws_bedrock_foundation_model](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_bedrock_foundation_model) ([#2581](https://github.com/turbot/steampipe-plugin-aws/pull/2581))
+  - [aws_bedrock_imported_model](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_bedrock_imported_model) ([#2581](https://github.com/turbot/steampipe-plugin-aws/pull/2581))
+  - [aws_bedrock_knowledge_base](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_bedrock_knowledge_base) ([#2580](https://github.com/turbot/steampipe-plugin-aws/pull/2580))
+  - [aws_elasticache_serverless_cache](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_elasticache_serverless_cache) ([#2538](https://github.com/turbot/steampipe-plugin-aws/pull/2538)) (Thanks [@michalpl-monday](https://github.com/michalpl-monday) for the contribution!)
+
 ## v1.20.0 [2025-07-24]
 
 _What's new?_
