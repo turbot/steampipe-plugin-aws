@@ -105,13 +105,13 @@ func tableAwsBedrockKnowledgeBase(_ context.Context) *plugin.Table {
 			// Steampipe standard columns
 			{
 				Name:        "title",
-				Description: "Title of the resource.",
+				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("Name"),
 			},
 			{
 				Name:        "akas",
-				Description: "Array of globally unique identifier strings (also known as) for the resource.",
+				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("KnowledgeBaseArn").Transform(transform.EnsureStringArray),
 				Hydrate:     getBedrockKnowledgeBase,
