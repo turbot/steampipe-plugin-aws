@@ -16,6 +16,7 @@ type awsConfig struct {
 	SessionToken          *string  `hcl:"session_token"`
 	MaxErrorRetryAttempts *int     `hcl:"max_error_retry_attempts"`
 	MinErrorRetryDelay    *int     `hcl:"min_error_retry_delay"`
+	IgnoreErrorMessages   []string `hcl:"ignore_error_messages,optional"`
 	IgnoreErrorCodes      []string `hcl:"ignore_error_codes,optional"`
 	EndpointUrl           *string  `hcl:"endpoint_url"`
 	S3ForcePathStyle      *bool    `hcl:"s3_force_path_style"`

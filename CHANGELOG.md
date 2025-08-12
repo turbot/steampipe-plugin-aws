@@ -1,3 +1,38 @@
+## v1.21.0 [2025-07-30]
+
+_What's new?_
+
+- New tables added
+  - [aws_bedrock_agent](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_bedrock_agent) ([#2580](https://github.com/turbot/steampipe-plugin-aws/pull/2580))
+  - [aws_bedrock_foundation_model](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_bedrock_foundation_model) ([#2581](https://github.com/turbot/steampipe-plugin-aws/pull/2581))
+  - [aws_bedrock_imported_model](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_bedrock_imported_model) ([#2581](https://github.com/turbot/steampipe-plugin-aws/pull/2581))
+  - [aws_bedrock_knowledge_base](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_bedrock_knowledge_base) ([#2580](https://github.com/turbot/steampipe-plugin-aws/pull/2580))
+  - [aws_elasticache_serverless_cache](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_elasticache_serverless_cache) ([#2538](https://github.com/turbot/steampipe-plugin-aws/pull/2538)) (Thanks [@michalpl-monday](https://github.com/michalpl-monday) for the contribution!)
+
+## v1.20.0 [2025-07-24]
+
+_What's new?_
+
+- New tables added
+  - [aws_bedrock_custom_model](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_bedrock_custom_model) ([#2569](https://github.com/turbot/steampipe-plugin-aws/pull/2569))
+
+_Enhancements_
+
+- Added `export` column to the `aws_acm_certificate` table. ([#2571](https://github.com/turbot/steampipe-plugin-aws/pull/2571))
+- Added `ignore_error_messages` config arg to provide users the ability to set a list of additional AWS error mesaages to ignore while running queries. For more information, please see [AWS plugin configuration](https://hub.steampipe.io/plugins/turbot/aws#configuration) ([#2560](https://github.com/turbot/steampipe-plugin-aws/pull/2560))
+
+_Dependencies_
+
+- Recompiled plugin with Go version `1.24`.
+- Recompiled plugin with [steampipe-plugin-sdk v5.13.0](https://github.com/turbot/steampipe-plugin-sdk/blob/develop/CHANGELOG.md#v5130-2025-07-21) that addresses critical and high vulnerabilities in dependent packages.
+
+## v1.19.0 [2025-07-17]
+
+_What's new?_
+
+- New tables added
+  - [aws_trusted_advisor_check_result](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_trusted_advisor_check_result) ([#2555](https://github.com/turbot/steampipe-plugin-aws/pull/2555))
+
 ## v1.18.0 [2025-07-11]
 
 _What's new?_

@@ -35,6 +35,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/autoscaling"
 	"github.com/aws/aws-sdk-go-v2/service/backup"
 	"github.com/aws/aws-sdk-go-v2/service/batch"
+	"github.com/aws/aws-sdk-go-v2/service/bedrock"
+	"github.com/aws/aws-sdk-go-v2/service/bedrockagent"
 	"github.com/aws/aws-sdk-go-v2/service/cloudcontrol"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/aws-sdk-go-v2/service/cloudfront"
@@ -341,6 +343,32 @@ func BatchClient(ctx context.Context, d *plugin.QueryData) (*batch.Client, error
 
 	client := batch.NewFromConfig(*conf)
 	return client, nil
+}
+
+// BedrockClient returns the service client for AWS Bedrock service
+func BedrockClient(ctx context.Context, d *plugin.QueryData) (*bedrock.Client, error) {
+	// Get client config
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, AWS_BEDROCK_SERVICE_ID)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return bedrock.NewFromConfig(*cfg), nil
+}
+
+// BedrockAgentClient returns the service client for AWS Bedrock Agent service
+func BedrockAgentClient(ctx context.Context, d *plugin.QueryData) (*bedrockagent.Client, error) {
+	// Get client config
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, AWS_BEDROCK_SERVICE_ID)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return bedrockagent.NewFromConfig(*cfg), nil
 }
 
 func CloudControlClient(ctx context.Context, d *plugin.QueryData) (*cloudcontrol.Client, error) {

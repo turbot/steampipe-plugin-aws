@@ -42,6 +42,11 @@ connection "aws" {
   # By default, common not found error codes are ignored and will still be ignored even if this argument is not set.
   #ignore_error_codes = ["AccessDenied", "AccessDeniedException", "NotAuthorized", "UnauthorizedOperation", "UnrecognizedClientException", "AuthorizationError"]
 
+  # List of regular expressions to match error messages to ignore for all queries.
+  # When encountering errors matching these patterns, the API call will not be retried and empty results will be returned.
+  # This allows for more flexible error handling based on error message content rather than just error codes.
+  #ignore_error_messages = [".*with an explicit deny in a service control policy.*", ".*Support\\s+Subscription\\s+is\\s+required.*"]
+
   # Specify the endpoint URL used when making requests to AWS services.
   # If not set, the default AWS generated endpoint will be used.
   # Can also be set with the AWS_ENDPOINT_URL environment variable.
