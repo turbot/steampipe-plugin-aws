@@ -312,6 +312,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_dms_endpoint":                                             tableAwsDmsEndpoint(ctx),
 			"aws_dms_replication_instance":                                 tableAwsDmsReplicationInstance(ctx),
 			"aws_dms_replication_task":                                     tableAwsDmsReplicationTask(ctx),
+			"aws_datasync_task":                                            tableAwsDataSyncTask(ctx),
 			"aws_docdb_cluster_instance":                                   tableAwsDocDBClusterInstance(ctx),
 			"aws_docdb_cluster_snapshot":                                   tableAwsDocDBClusterSnapshot(ctx),
 			"aws_docdb_cluster":                                            tableAwsDocDBCluster(ctx),
