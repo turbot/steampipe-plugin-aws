@@ -27,6 +27,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/backup v1.34.2
 	github.com/aws/aws-sdk-go-v2/service/batch v1.37.4
 	github.com/aws/aws-sdk-go-v2/service/bedrock v1.39.1
+	github.com/aws/aws-sdk-go-v2/service/bedrockagent v1.45.1
 	github.com/aws/aws-sdk-go-v2/service/cloudcontrol v1.18.4
 	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.49.0
 	github.com/aws/aws-sdk-go-v2/service/cloudfront v1.35.4
@@ -43,6 +44,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/cognitoidentity v1.23.6
 	github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.36.3
 	github.com/aws/aws-sdk-go-v2/service/configservice v1.46.4
+	github.com/aws/aws-sdk-go-v2/service/connect v1.131.1
 	github.com/aws/aws-sdk-go-v2/service/costexplorer v1.37.1
 	github.com/aws/aws-sdk-go-v2/service/costoptimizationhub v1.4.7
 	github.com/aws/aws-sdk-go-v2/service/databasemigrationservice v1.38.4
@@ -141,7 +143,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/wafv2 v1.48.2
 	github.com/aws/aws-sdk-go-v2/service/wellarchitected v1.29.4
 	github.com/aws/aws-sdk-go-v2/service/workspaces v1.38.4
-	github.com/aws/smithy-go v1.22.4
+	github.com/aws/smithy-go v1.22.5
 	github.com/gocarina/gocsv v0.0.0-20201208093247-67c824bc04d4
 	github.com/goccy/go-yaml v1.11.3
 	github.com/golang/protobuf v1.5.4
@@ -157,7 +159,6 @@ require golang.org/x/xerrors v0.0.0-20231012003039-104605ab7028 // indirect
 
 require (
 	github.com/aws/aws-sdk-go v1.44.183 // indirect
-	github.com/aws/aws-sdk-go-v2/service/bedrockagent v1.45.1 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/go-playground/validator/v10 v10.20.0 // indirect

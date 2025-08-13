@@ -53,6 +53,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/cognitoidentity"
 	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider"
 	"github.com/aws/aws-sdk-go-v2/service/configservice"
+	"github.com/aws/aws-sdk-go-v2/service/connect"
 	"github.com/aws/aws-sdk-go-v2/service/costexplorer"
 	"github.com/aws/aws-sdk-go-v2/service/costoptimizationhub"
 	"github.com/aws/aws-sdk-go-v2/service/databasemigrationservice"
@@ -542,6 +543,18 @@ func ConfigClient(ctx context.Context, d *plugin.QueryData) (*configservice.Clie
 		return nil, err
 	}
 	return configservice.NewFromConfig(*cfg), nil
+}
+
+
+func ConnectClient(ctx context.Context, d *plugin.QueryData) (*connect.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, AWS_CONNECT_SERVICE_ID)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return connect.NewFromConfig(*cfg), nil
 }
 
 func CostExplorerClient(ctx context.Context, d *plugin.QueryData) (*costexplorer.Client, error) {
