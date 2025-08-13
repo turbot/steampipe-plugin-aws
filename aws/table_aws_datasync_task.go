@@ -32,6 +32,10 @@ func tableAwsDataSyncTask(_ context.Context) *plugin.Table {
 				Func: getDataSyncTask,
 				Tags: map[string]string{"service": "datasync", "action": "DescribeTask"},
 			},
+			{
+				Func: getDataSyncTaskTags,
+				Tags: map[string]string{"service": "datasync", "action": "ListTagsForResource"},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(AWS_DATASYNC_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -152,20 +156,32 @@ func tableAwsDataSyncTask(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getDataSyncTask,
 			},
+			{
+				Name:        "tags_src",
+				Description: "The tags associated the task.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getDataSyncTaskTags,
+				Transform:   transform.FromValue(),
+			},
 
 			// Steampipe standard columns
 			{
 				Name:        "title",
 				Description: resourceInterfaceDescription("title"),
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getDataSyncTask,
 				Transform:   transform.FromField("Name"),
+			},
+			{
+				Name:        "tags",
+				Description: resourceInterfaceDescription("tags"),
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getDataSyncTaskTags,
+				Transform:   transform.From(getTaskTurbotTags),
 			},
 			{
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getDataSyncTask,
 				Transform:   transform.FromField("TaskArn").Transform(transform.EnsureStringArray),
 			},
 		}),
@@ -263,4 +279,69 @@ func getDataSyncTask(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 	}
 
 	return data, nil
+}
+
+func getDataSyncTaskTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	var taskArn string
+	if h.Item != nil {
+		task := h.Item.(types.TaskListEntry)
+		taskArn = *task.TaskArn
+	} else {
+		taskArn = d.EqualsQuals["arn"].GetStringValue()
+	}
+
+	if taskArn == "" {
+		return nil, nil
+	}
+
+	// Create service
+	svc, err := DataSyncClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_datasync_task.getDataSyncTask", "connection_error", err)
+		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
+
+	// Build the params
+	params := &datasync.ListTagsForResourceInput{
+		ResourceArn: aws.String(taskArn),
+	}
+
+	// Get call
+	paginator := datasync.NewListTagsForResourcePaginator(svc, params, func(o *datasync.ListTagsForResourcePaginatorOptions) {
+		o.Limit = 100
+	})
+
+	var tags []types.TagListEntry
+	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_datasync_task.getDataSyncTaskTags", "api_error", err)
+			return nil, err
+		}
+
+		tags = append(tags, output.Tags...)
+	}
+
+	return tags, nil
+}
+
+//// TRANSFORM FUNCTIONS
+
+func getTaskTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+	if d.HydrateItem != nil {
+		tags := d.HydrateItem.([]types.TagListEntry)
+		tagsMap := make(map[string]string)
+		for _, tag := range tags {
+			tagsMap[*tag.Key] = *tag.Value
+		}
+		return tagsMap, nil
+	}
+	return nil, nil
 }
