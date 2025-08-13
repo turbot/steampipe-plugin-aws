@@ -28,7 +28,7 @@ func tableAwsVpcBlockPublicAccessOptions(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "internet_gateway_block_mode",
-				Description: "The current mode of VPC BPA. possible values are: 'off','block-bidirectional', and 'block-ingress'.",
+				Description: "The current mode of VPC BPA. Possible values are: 'off', 'block-bidirectional', and 'block-ingress'.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
