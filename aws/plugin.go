@@ -703,6 +703,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_vpc_verified_access_trust_provider":                       tableAwsVpcVerifiedAccessTrustProvider(ctx),
 			"aws_vpc_vpn_connection":                                       tableAwsVpcVpnConnection(ctx),
 			"aws_vpc_vpn_gateway":                                          tableAwsVpcVpnGateway(ctx),
+			"aws_vpc_block_public_access_options":                          tableAwsVpcBlockPublicAccessOptions(ctx),
 			"aws_vpc":                                                      tableAwsVpc(ctx),
 			"aws_waf_rate_based_rule":                                      tableAwsWafRateBasedRule(ctx),
 			"aws_waf_rule_group":                                           tableAwsWafRuleGroup(ctx),
