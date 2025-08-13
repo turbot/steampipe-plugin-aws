@@ -320,7 +320,7 @@ func getAppsyncGraphQLApiCache(ctx context.Context, d *plugin.QueryData, h *plug
 		return nil, nil
 	}
 
-	// Using the actual ListApis API
+	// Using the actual GetApiCache API
 	input := appsync.GetApiCacheInput{
 		ApiId:      aws.String(apiId),
 	}
