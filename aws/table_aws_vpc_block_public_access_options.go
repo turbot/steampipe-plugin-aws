@@ -23,7 +23,7 @@ func tableAwsVpcBlockPublicAccessOptions(_ context.Context) *plugin.Table {
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "exclusions_allowed",
-				Description: "Determines if exclusions are allowed. If you have [enabled VPC BPA at the Organization level], exclusions may be not-allowed . Otherwise, they are allowed .",
+				Description: "Determines if exclusions are allowed. If you have [enabled VPC BPA at the Organization level], exclusions may be not-allowed. Otherwise, they are allowed.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
