@@ -1,3 +1,19 @@
+## v1.22.0 [2025-08-14]
+
+_What's new?_
+
+- New tables added
+  - [aws_appsync_api](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_appsync_api) ([#2591](https://github.com/turbot/steampipe-plugin-aws/pull/2591))
+  - [aws_codebuild_report_group](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_codebuild_report_group) ([#2589](https://github.com/turbot/steampipe-plugin-aws/pull/2589))
+  - [aws_connect_instance_attribute](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_connect_instance_attribute) ([#2592](https://github.com/turbot/steampipe-plugin-aws/pull/2592))
+  - [aws_connect_instance](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_connect_instance) ([#2592](https://github.com/turbot/steampipe-plugin-aws/pull/2592))
+  - [aws_datasync_task](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_datasync_task) ([#2590](https://github.com/turbot/steampipe-plugin-aws/pull/2590))
+  - [aws_vpc_security_group_vpc_association](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_vpc_security_group_vpc_association) ([#2597](https://github.com/turbot/steampipe-plugin-aws/pull/2597))
+
+_Enhancements_
+
+- Added `api_cache` column to `aws_appsync_graphql_api` table. ([#2591](https://github.com/turbot/steampipe-plugin-aws/pull/2591))
+
 ## v1.21.0 [2025-07-30]
 
 _What's new?_
