@@ -367,6 +367,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_ec2_placement_group":                                      tableAwsEc2PlacementGroup(ctx),
 			"aws_ec2_regional_settings":                                    tableAwsEc2RegionalSettings(ctx),
 			"aws_ec2_reserved_instance":                                    tableAwsEc2ReservedInstance(ctx),
+			"aws_ec2_spot_fleet_request":                                   tableAwsEc2SpotFleetRequest(ctx),
 			"aws_ec2_spot_price":                                           tableAwsEc2SpotPrice(ctx),
 			"aws_ec2_ssl_policy":                                           tableAwsEc2SslPolicy(ctx),
 			"aws_ec2_target_group":                                         tableAwsEc2TargetGroup(ctx),
