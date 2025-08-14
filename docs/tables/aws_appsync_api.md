@@ -166,28 +166,3 @@ from
 where
   event_config is not null;
 ```
-
-### Get Event API cache configuration
-Retrieve cache configuration for Event APIs to understand caching settings and performance optimization.
-
-```sql+postgres
-select
-  name,
-  api_id,
-  api_cache
-from
-  aws_appsync_api
-where
-  api_cache is not null;
-```
-
-```sql+sqlite
-select
-  name,
-  api_id,
-  api_cache
-from
-  aws_appsync_api
-where
-  api_cache is not null;
-```
