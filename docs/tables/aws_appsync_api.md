@@ -12,7 +12,6 @@ AWS AppSync is a managed service that provides real-time data and offline capabi
 
 The `aws_appsync_api` table in Steampipe provides you with information about **AppSync Event APIs** within AWS. This table allows you, as a DevOps engineer, to query Event API-specific details, including API ID, name, DNS endpoints, event configuration, and associated metadata. You can utilize this table to gather insights on Event APIs, such as their real-time messaging configuration, DNS endpoints, X-Ray tracing settings, and associated tags.
 
-
 ## Examples
 
 ### Basic info
