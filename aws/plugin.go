@@ -266,6 +266,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_codebuild_build":                                          tableAwsCodeBuildBuild(ctx),
 			"aws_codebuild_fleet":                                          tableAwsCodeBuildFleet(ctx),
 			"aws_codebuild_project":                                        tableAwsCodeBuildProject(ctx),
+			"aws_codebuild_report_group":                                   tableAwsCodeBuildReportGroup(ctx),
 			"aws_codebuild_source_credential":                              tableAwsCodeBuildSourceCredential(ctx),
 			"aws_codecommit_repository":                                    tableAwsCodeCommitRepository(ctx),
 			"aws_codedeploy_app":                                           tableAwsCodeDeployApplication(ctx),
