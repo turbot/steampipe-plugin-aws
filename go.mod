@@ -44,6 +44,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/cognitoidentity v1.23.6
 	github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.36.3
 	github.com/aws/aws-sdk-go-v2/service/configservice v1.46.4
+	github.com/aws/aws-sdk-go-v2/service/connect v1.131.1
 	github.com/aws/aws-sdk-go-v2/service/costexplorer v1.37.1
 	github.com/aws/aws-sdk-go-v2/service/costoptimizationhub v1.4.7
 	github.com/aws/aws-sdk-go-v2/service/databasemigrationservice v1.38.4

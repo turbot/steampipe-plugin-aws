@@ -293,6 +293,8 @@ github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.36.3 h1:JNWpkjIm
 github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider v1.36.3/go.mod h1:TiLZ2/+WAEyG2PnuAYj/un46UJ7qBf5BWWTAKgaHP8I=
 github.com/aws/aws-sdk-go-v2/service/configservice v1.46.4 h1:bmVA/LmysEu6gOplmzuLkugDcjDJQYjHSPzcB64F4/Q=
 github.com/aws/aws-sdk-go-v2/service/configservice v1.46.4/go.mod h1:WCD4Psga99kZmdqPGJ88SURa6UMa4WgqpqzY5vP2ZS0=
+github.com/aws/aws-sdk-go-v2/service/connect v1.131.1 h1:kQX9yr5uYeQPv/PdCtw+iLUltEz1tUYOJAtehBjaaZU=
+github.com/aws/aws-sdk-go-v2/service/connect v1.131.1/go.mod h1:TSGHpIRxxjWpqQRn/FInBotVOPOv7wOQJad9ucm6iWU=
 github.com/aws/aws-sdk-go-v2/service/costexplorer v1.37.1 h1:xjhk+io+kPtDOG5RizvHlkGKET3dxRBzorLdPPkpZQc=
 github.com/aws/aws-sdk-go-v2/service/costexplorer v1.37.1/go.mod h1:uLOg0o57AyQQhZGtUKIlcBJOKE53mO9bXKyrM9dFhy4=
 github.com/aws/aws-sdk-go-v2/service/costoptimizationhub v1.4.7 h1:MGeK6VW2qK2jY5mG0a5VyJ9AFwxjQUumkZcUK/C1UDA=
