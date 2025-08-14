@@ -7,6 +7,7 @@ import (
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -51,6 +52,14 @@ func tableAwsVpcBlockPublicAccessOptions(_ context.Context) *plugin.Table {
 				Description: "The current state of VPC BPA.",
 				Type:        proto.ColumnType_STRING,
 			},
+
+			// Steampipe standard columns
+			{
+				Name:        "title",
+				Description: resourceInterfaceDescription("title"),
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.From(getVPCBlockPublicAccessOptionsTitle),
+			},
 		}),
 	}
 }
@@ -77,4 +86,13 @@ func listVpcBlockPublicAccessOptions(ctx context.Context, d *plugin.QueryData, _
 	d.StreamListItem(ctx, op.VpcBlockPublicAccessOptions)
 
 	return nil, nil
+}
+
+//// TRANSFORM FUNCTIONS
+
+func getVPCBlockPublicAccessOptionsTitle(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+	region := d.MatrixItem[matrixKeyRegion]
+
+	title := region.(string) + " VPC Block Public Access Options"
+	return title, nil
 }
