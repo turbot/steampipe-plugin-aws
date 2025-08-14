@@ -139,6 +139,20 @@ order by
   created desc;
 ```
 
+```sql+sqlite
+select
+  name,
+  api_id,
+  created,
+  xray_enabled
+from
+  aws_appsync_api
+where
+  created >= datetime('now', '-30 days')
+order by
+  created desc;
+```
+
 ### Get Event API configuration details
 Retrieve detailed Event API configuration including event settings for real-time messaging capabilities.
 
