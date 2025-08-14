@@ -50,18 +50,18 @@ Determine the transfer options for each task to understand how data is being tra
 select
   name,
   status,
-  options::json->>'VerifyMode' as verify_mode,
-  options::json->>'Atime' as atime,
-  options::json->>'Mtime' as mtime,
-  options::json->>'Uid' as uid,
-  options::json->>'Gid' as gid,
-  options::json->>'PreserveDeletedFiles' as preserve_deleted_files,
-  options::json->>'PreserveDevices' as preserve_devices,
-  options::json->>'PosixPermissions' as posix_permissions,
-  options::json->>'BytesPerSecond' as bytes_per_second,
-  options::json->>'TaskQueueing' as task_queueing,
-  options::json->>'LogLevel' as log_level,
-  options::json->>'TransferMode' as transfer_mode
+  options::json ->> 'VerifyMode' as verify_mode,
+  options::json ->> 'Atime' as atime,
+  options::json ->> 'Mtime' as mtime,
+  options::json ->> 'Uid' as uid,
+  options::json ->> 'Gid' as gid,
+  options::json ->> 'PreserveDeletedFiles' as preserve_deleted_files,
+  options::json ->> 'PreserveDevices' as preserve_devices,
+  options::json ->> 'PosixPermissions' as posix_permissions,
+  options::json ->> 'BytesPerSecond' as bytes_per_second,
+  options::json ->> 'TaskQueueing' as task_queueing,
+  options::json ->> 'LogLevel' as log_level,
+  options::json ->> 'TransferMode' as transfer_mode
 from
   aws_datasync_task;
 ```
@@ -124,13 +124,13 @@ Find DataSync tasks with specific transfer modes to understand how data is being
 select
   name,
   status,
-  options::json->>'TransferMode' as transfer_mode,
+  options::json ->> 'TransferMode' as transfer_mode,
   source_location_arn,
   destination_location_arn
 from
   aws_datasync_task
 where
-  options::json->>'TransferMode' = 'CHANGED';
+  options::json ->> 'TransferMode' = 'CHANGED';
 ```
 
 ```sql+sqlite
@@ -153,12 +153,12 @@ Identify DataSync tasks that have bandwidth limits configured to understand netw
 select
   name,
   status,
-  options::json->>'BytesPerSecond' as bytes_per_second,
+  options::json ->> 'BytesPerSecond' as bytes_per_second,
   creation_time
 from
   aws_datasync_task
 where
-  options::json->>'BytesPerSecond' is not null;
+  options::json ->> 'BytesPerSecond' is not null;
 ```
 
 ```sql+sqlite
