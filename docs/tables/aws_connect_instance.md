@@ -184,219 +184,172 @@ where
   status_reason is not null;
 ```
 
-### Get instance access URLs
-Retrieve access URLs for Connect instances to understand how contact center users can access the admin website.
+### Find instances with specific call configurations
+Identify Connect instances with specific call configurations, such as inbound and outbound calling capabilities.
 
 ```sql+postgres
 select
   instance_alias,
   id,
-  instance_access_url,
+  inbound_calls_enabled,
+  outbound_calls_enabled,
+  instance_access_url
+from
+  aws_connect_instance
+where
+  inbound_calls_enabled = true
+  and outbound_calls_enabled = true;
+```
+
+```sql+sqlite
+select
+  instance_alias,
+  id,
+  inbound_calls_enabled,
+  outbound_calls_enabled,
+  instance_access_url
+from
+  aws_connect_instance
+where
+  inbound_calls_enabled = 1
+  and outbound_calls_enabled = 1;
+```
+
+### Get instance configuration summary
+Retrieve a summary of Connect instance configurations including status, creation time, and service role.
+
+```sql+postgres
+select
+  instance_alias,
+  id,
+  instance_status,
+  created_time,
+  service_role,
+  identity_management_type
+from
+  aws_connect_instance
+order by
+  created_time desc;
+```
+
+```sql+sqlite
+select
+  instance_alias,
+  id,
+  instance_status,
+  created_time,
+  service_role,
+  identity_management_type
+from
+  aws_connect_instance
+order by
+  created_time desc;
+```
+
+### Find instances by identity management type
+Identify Connect instances by their identity management type to understand authentication configurations.
+
+```sql+postgres
+select
+  instance_alias,
+  id,
+  identity_management_type,
   instance_status
 from
   aws_connect_instance
 where
-  instance_access_url is not null;
+  identity_management_type = 'SAML';
 ```
 
 ```sql+sqlite
 select
   instance_alias,
   id,
-  instance_access_url,
+  identity_management_type,
   instance_status
 from
   aws_connect_instance
 where
-  instance_access_url is not null;
+  identity_management_type = 'SAML';
 ```
 
-### Find instances with specific attributes enabled
-Identify Connect instances with specific features enabled, such as Contact Lens, early media, or multi-party conference capabilities.
+### Check instance status distribution
+Analyze the distribution of Connect instance statuses across your AWS environment.
 
 ```sql+postgres
 select
-  instance_alias,
-  id,
-  contact_lens,
-  early_media,
-  multi_party_conference,
-  enhanced_contact_monitoring
+  instance_status,
+  count(*) as instance_count
 from
   aws_connect_instance
-where
-  contact_lens = 'true'
-  or early_media = 'true'
-  or multi_party_conference = 'true';
-```
-
-```sql+sqlite
-select
-  instance_alias,
-  id,
-  contact_lens,
-  early_media,
-  multi_party_conference,
-  enhanced_contact_monitoring
-from
-  aws_connect_instance
-where
-  contact_lens = 'true'
-  or early_media = 'true'
-  or multi_party_conference = 'true';
-```
-
-### Get all instance attributes
-Retrieve all instance attributes as a JSON object to understand the complete configuration of Connect instances.
-
-```sql+postgres
-select
-  instance_alias,
-  id,
-  instance_attributes
-from
-  aws_connect_instance
-where
-  instance_attributes is not null;
-```
-
-```sql+sqlite
-select
-  instance_alias,
-  id,
-  instance_attributes
-from
-  aws_connect_instance
-where
-  instance_attributes is not null;
-```
-
-### Find instances with contact lens enabled
-Identify Connect instances that have Contact Lens enabled for advanced analytics and insights.
-
-```sql+postgres
-select
-  instance_alias,
-  id,
-  contact_lens,
-  enhanced_contact_monitoring,
-  enhanced_chat_monitoring
-from
-  aws_connect_instance
-where
-  contact_lens = 'true';
-```
-
-```sql+sqlite
-select
-  instance_alias,
-  id,
-  contact_lens,
-  enhanced_contact_monitoring,
-  enhanced_chat_monitoring
-from
-  aws_connect_instance
-where
-  contact_lens = 'true';
-```
-
-### Find instances with bot management capabilities
-Identify Connect instances that have bot management and analytics features enabled.
-
-```sql+postgres
-select
-  instance_alias,
-  id,
-  bot_management,
-  enable_bot_analytics_and_transcripts,
-  automated_interaction_log
-from
-  aws_connect_instance
-where
-  bot_management = 'true'
-  or enable_bot_analytics_and_transcripts = 'true';
-```
-
-```sql+sqlite
-select
-  instance_alias,
-  id,
-  bot_management,
-  enable_bot_analytics_and_transcripts,
-  automated_interaction_log
-from
-  aws_connect_instance
-where
-  bot_management = 'true'
-  or enable_bot_analytics_and_transcripts = 'true';
-```
-
-### Find instances with advanced features
-Identify Connect instances with advanced features like multi-party conference, forecasting, and high volume outbound.
-
-```sql+postgres
-select
-  instance_alias,
-  id,
-  multi_party_conference,
-  multi_party_chat_conference,
-  forecasting_planning_scheduling,
-  high_volume_outbound
-from
-  aws_connect_instance
-where
-  multi_party_conference = 'true'
-  or forecasting_planning_scheduling = 'true'
-  or high_volume_outbound = 'true';
-```
-
-```sql+sqlite
-select
-  instance_alias,
-  id,
-  multi_party_conference,
-  multi_party_chat_conference,
-  forecasting_planning_scheduling,
-  high_volume_outbound
-from
-  aws_connect_instance
-where
-  multi_party_conference = 'true'
-  or forecasting_planning_scheduling = 'true'
-  or high_volume_outbound = 'true';
-```
-
-### Check instance feature configuration
-Review the complete feature configuration of Connect instances to understand their capabilities.
-
-```sql+postgres
-select
-  instance_alias,
-  id,
-  contact_lens,
-  early_media,
-  contactflow_logs,
-  max_package,
-  use_custom_tts_voices,
-  auto_resolve_best_voices
-from
-  aws_connect_instance
+group by
+  instance_status
 order by
-  instance_alias;
+  instance_count desc;
+```
+
+```sql+sqlite
+select
+  instance_status,
+  count(*) as instance_count
+from
+  aws_connect_instance
+group by
+  instance_status
+order by
+  instance_count desc;
+```
+
+### Find instances with status issues
+Identify Connect instances that may have status issues or failed creation attempts for troubleshooting.
+
+```sql+postgres
+select
+  instance_alias,
+  id,
+  instance_status,
+  status_reason
+from
+  aws_connect_instance
+where
+  status_reason is not null;
 ```
 
 ```sql+sqlite
 select
   instance_alias,
   id,
-  contact_lens,
-  early_media,
-  contactflow_logs,
-  max_package,
-  use_custom_tts_voices,
-  auto_resolve_best_voices
+  instance_status,
+  status_reason
 from
   aws_connect_instance
-order by
-  instance_alias;
+where
+  status_reason is not null;
+```
+
+### Get attribute information for all instances
+Combine instance data with attribute information to get a comprehensive view of Connect instances and their configurations.
+
+```sql+postgres
+select
+  i.instance_alias,
+  i.id,
+  i.instance_status,
+  a.attribute_type,
+  a.value
+from
+  aws_connect_instance as i
+  right join aws_connect_instance_attribute as a on a.instance_id = i.id;
+```
+
+```sql+sqlite
+select
+  i.instance_alias,
+  i.id,
+  i.instance_status,
+  a.attribute_type,
+  a.value
+from
+  aws_connect_instance as i
+  right aws_connect_instance_attribute as a on i.id = a.instance_id;
 ```

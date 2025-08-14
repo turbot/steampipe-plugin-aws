@@ -27,12 +27,7 @@ func tableAwsConnectInstance(_ context.Context) *plugin.Table {
 			Hydrate: listConnectInstances,
 			Tags:    map[string]string{"service": "connect", "action": "ListInstances"},
 		},
-		HydrateConfig: []plugin.HydrateConfig{
-			{
-				Func: getConnectInstanceAttributes,
-				Tags: map[string]string{"service": "connect", "action": "ListInstanceAttributes"},
-			},
-		},
+
 		GetMatrixItemFunc: SupportedRegionMatrix(AWS_CONNECT_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
@@ -90,118 +85,6 @@ func tableAwsConnectInstance(_ context.Context) *plugin.Table {
 				Name:        "outbound_calls_enabled",
 				Description: "Whether outbound calls are enabled.",
 				Type:        proto.ColumnType_BOOL,
-			},
-			{
-				Name:        "contact_lens",
-				Description: "Whether Contact Lens is enabled for the instance.",
-				Type:        proto.ColumnType_STRING,
-				Hydrate:     getConnectInstanceAttributes,
-				Transform:   transform.FromField("CONTACT_LENS"),
-			},
-			{
-				Name:        "auto_resolve_best_voices",
-				Description: "Whether Auto resolve best voices is enabled for the instance.",
-				Type:        proto.ColumnType_STRING,
-				Hydrate:     getConnectInstanceAttributes,
-				Transform:   transform.FromField("AUTO_RESOLVE_BEST_VOICES"),
-			},
-			{
-				Name:        "use_custom_tts_voices",
-				Description: "Whether custom TTS voices are enabled for the instance.",
-				Type:        proto.ColumnType_STRING,
-				Hydrate:     getConnectInstanceAttributes,
-				Transform:   transform.FromField("USE_CUSTOM_TTS_VOICES"),
-			},
-			{
-				Name:        "early_media",
-				Description: "Whether early media is enabled for the instance.",
-				Type:        proto.ColumnType_STRING,
-				Hydrate:     getConnectInstanceAttributes,
-				Transform:   transform.FromField("EARLY_MEDIA"),
-			},
-			{
-				Name:        "multi_party_conference",
-				Description: "Whether multi-party conference is enabled for the instance.",
-				Type:        proto.ColumnType_STRING,
-				Hydrate:     getConnectInstanceAttributes,
-				Transform:   transform.FromField("MULTI_PARTY_CONFERENCE"),
-			},
-			{
-				Name:        "contactflow_logs",
-				Description: "Whether contact flow logs are enabled for the instance.",
-				Type:        proto.ColumnType_STRING,
-				Hydrate:     getConnectInstanceAttributes,
-				Transform:   transform.FromField("CONTACTFLOW_LOGS"),
-			},
-			{
-				Name:        "high_volume_outbound",
-				Description: "Whether high volume outbound is enabled for the instance.",
-				Type:        proto.ColumnType_STRING,
-				Hydrate:     getConnectInstanceAttributes,
-				Transform:   transform.FromField("HIGH_VOLUME_OUTBOUND"),
-			},
-			{
-				Name:        "enhanced_contact_monitoring",
-				Description: "Whether enhanced contact monitoring is enabled for the instance.",
-				Type:        proto.ColumnType_STRING,
-				Hydrate:     getConnectInstanceAttributes,
-				Transform:   transform.FromField("ENHANCED_CONTACT_MONITORING"),
-			},
-			{
-				Name:        "max_package",
-				Description: "Whether max package is enabled for the instance.",
-				Type:        proto.ColumnType_STRING,
-				Hydrate:     getConnectInstanceAttributes,
-				Transform:   transform.FromField("MAX_PACKAGE"),
-			},
-			{
-				Name:        "bot_management",
-				Description: "Whether bot management is enabled for the instance.",
-				Type:        proto.ColumnType_STRING,
-				Hydrate:     getConnectInstanceAttributes,
-				Transform:   transform.FromField("BOT_MANAGEMENT"),
-			},
-			{
-				Name:        "enhanced_chat_monitoring",
-				Description: "Whether enhanced chat monitoring is enabled for the instance.",
-				Type:        proto.ColumnType_STRING,
-				Hydrate:     getConnectInstanceAttributes,
-				Transform:   transform.FromField("ENHANCED_CHAT_MONITORING"),
-			},
-			{
-				Name:        "automated_interaction_log",
-				Description: "Whether automated interaction log is enabled for the instance.",
-				Type:        proto.ColumnType_STRING,
-				Hydrate:     getConnectInstanceAttributes,
-				Transform:   transform.FromField("AUTOMATED_INTERACTION_LOG"),
-			},
-			{
-				Name:        "multi_party_chat_conference",
-				Description: "Whether multi-party chat conference is enabled for the instance.",
-				Type:        proto.ColumnType_STRING,
-				Hydrate:     getConnectInstanceAttributes,
-				Transform:   transform.FromField("MULTI_PARTY_CHAT_CONFERENCE"),
-			},
-			{
-				Name:        "forecasting_planning_scheduling",
-				Description: "Whether forecasting planning scheduling is enabled for the instance.",
-				Type:        proto.ColumnType_STRING,
-				Hydrate:     getConnectInstanceAttributes,
-				Transform:   transform.FromField("FORECASTING_PLANNING_SCHEDULING"),
-			},
-			{
-				Name:        "enable_bot_analytics_and_transcripts",
-				Description: "Whether bot analytics and transcripts is enabled for the instance.",
-				Type:        proto.ColumnType_STRING,
-				Hydrate:     getConnectInstanceAttributes,
-				Transform:   transform.FromField("ENABLE_BOT_ANALYTICS_AND_TRANSCRIPTS"),
-			},
-			{
-				Name:        "instance_attributes",
-				Description: "All instance attributes as a JSON object.",
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     getConnectInstanceAttributes,
-				Transform:   transform.FromValue(),
 			},
 
 			// Steampipe standard columns
@@ -326,65 +209,4 @@ func getConnectInstance(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	}
 
 	return nil, nil
-}
-
-func getConnectInstanceAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	var instanceId string
-	if h.Item != nil {
-		// If we have an item from the list, extract the instance ID
-		switch item := h.Item.(type) {
-		case types.InstanceSummary:
-			instanceId = *item.Id
-		case *types.Instance:
-			instanceId = *item.Id
-		}
-	} else {
-		// If this is a get call, use the key column
-		instanceId = d.EqualsQualString("id")
-	}
-
-	if instanceId == "" {
-		return nil, nil
-	}
-
-	// Create service
-	svc, err := ConnectClient(ctx, d)
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_connect_instance.getConnectInstanceAttributes", "connection_error", err)
-		return nil, err
-	}
-	if svc == nil {
-		// Unsupported region, return no data
-		return nil, nil
-	}
-
-	// Build the params
-	params := &connect.ListInstanceAttributesInput{
-		InstanceId: aws.String(instanceId),
-		MaxResults: aws.Int32(10),
-	}
-
-	// Create a map to store all attributes
-	attributes := make(map[string]string)
-
-	for {
-		data, err := svc.ListInstanceAttributes(ctx, params)
-		if err != nil {
-			plugin.Logger(ctx).Error("aws_connect_instance.getConnectInstanceAttributes", "api_error", err)
-			return nil, err
-		}
-
-		if data != nil && data.Attributes != nil {
-			for _, attr := range data.Attributes {
-				attributes[string(attr.AttributeType)] = *attr.Value
-			}
-		}
-
-		if data.NextToken == nil {
-			break
-		}
-		params.NextToken = data.NextToken
-	}
-
-	return attributes, nil
 }
