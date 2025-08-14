@@ -56,6 +56,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/costexplorer"
 	"github.com/aws/aws-sdk-go-v2/service/costoptimizationhub"
 	"github.com/aws/aws-sdk-go-v2/service/databasemigrationservice"
+	"github.com/aws/aws-sdk-go-v2/service/datasync"
 	"github.com/aws/aws-sdk-go-v2/service/dax"
 	"github.com/aws/aws-sdk-go-v2/service/directoryservice"
 	"github.com/aws/aws-sdk-go-v2/service/dlm"
@@ -623,6 +624,19 @@ func DRSClient(ctx context.Context, d *plugin.QueryData) (*drs.Client, error) {
 		return nil, nil
 	}
 	return drs.NewFromConfig(*cfg), nil
+}
+
+func DataSyncClient(ctx context.Context, d *plugin.QueryData) (*datasync.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, AWS_DATASYNC_SERVICE_ID)
+	if err != nil {
+		return nil, err
+	}
+
+	if cfg == nil {
+		return nil, nil
+	}
+
+	return datasync.NewFromConfig(*cfg), nil
 }
 
 func DynamoDBClient(ctx context.Context, d *plugin.QueryData) (*dynamodb.Client, error) {
