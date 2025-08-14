@@ -20,7 +20,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/applicationautoscaling v1.27.4
 	github.com/aws/aws-sdk-go-v2/service/apprunner v1.28.8
 	github.com/aws/aws-sdk-go-v2/service/appstream v1.34.4
-	github.com/aws/aws-sdk-go-v2/service/appsync v1.31.4
+	github.com/aws/aws-sdk-go-v2/service/appsync v1.47.4
 	github.com/aws/aws-sdk-go-v2/service/athena v1.40.4
 	github.com/aws/aws-sdk-go-v2/service/auditmanager v1.32.4
 	github.com/aws/aws-sdk-go-v2/service/autoscaling v1.40.5
