@@ -326,7 +326,7 @@ func getEc2SpotFleetRequestARN(ctx context.Context, d *plugin.QueryData, h *plug
 	commonColumnData := commonData.(*awsCommonColumnData)
 
 	// Build ARN
-	// arn:${Partition}:ec2:${Region}:${Account}:spot-instances-request/${SpotInstanceRequestId}
+	// arn:${Partition}:ec2:${Region}:${Account}:spot-fleet-request/${SpotFleetRequestId}
 	// https://docs.aws.amazon.com/service-authorization/latest/reference/list_amazonec2.html#amazonec2-spot-fleet-request
 	arn := "arn:" + commonColumnData.Partition + ":ec2:" + region + ":" + commonColumnData.AccountId + ":spot-fleet-request/" + *spotFleetRequest.SpotFleetRequestId
 
