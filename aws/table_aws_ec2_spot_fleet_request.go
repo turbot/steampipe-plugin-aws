@@ -307,7 +307,7 @@ func getEc2SpotFleetRequest(ctx context.Context, d *plugin.QueryData, h *plugin.
 		return nil, err
 	}
 
-	if op.SpotFleetRequestConfigs != nil && len(op.SpotFleetRequestConfigs) > 0 {
+	if len(op.SpotFleetRequestConfigs) > 0 {
 		return op.SpotFleetRequestConfigs[0], nil
 	}
 
