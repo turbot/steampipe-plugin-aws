@@ -19,6 +19,7 @@ Analyze the VPC Block Public Access settings to understand the security configur
 
 ```sql+postgres
 select
+  region,
   exclusions_allowed,
   internet_gateway_block_mode,
   last_update_timestamp,
@@ -31,6 +32,7 @@ from
 
 ```sql+sqlite
 select
+  region,
   exclusions_allowed,
   internet_gateway_block_mode,
   last_update_timestamp,
@@ -41,11 +43,12 @@ from
   aws_vpc_block_public_access_options;
 ```
 
-### List configurations with internet gateway blocking enabled
-Identify VPC Block Public Access configurations that have internet gateway blocking enabled. This is useful for maintaining network security by ensuring that public access through internet gateways is properly blocked.
+### Find regions with internet gateway blocking enabled
+Identify regions where VPC Block Public Access has internet gateway blocking enabled. This is useful for maintaining network security by ensuring that public access through internet gateways is properly blocked.
 
 ```sql+postgres
 select
+  region,
   internet_gateway_block_mode,
   state,
   managed_by
@@ -57,6 +60,7 @@ where
 
 ```sql+sqlite
 select
+  region,
   internet_gateway_block_mode,
   state,
   managed_by
@@ -66,11 +70,12 @@ where
   internet_gateway_block_mode != 'off';
 ```
 
-### List configurations managed by declarative policies
-Discover VPC Block Public Access configurations that are managed by declarative policies. This is useful for understanding your security setup and identifying which configurations are centrally managed through policy-based controls.
+### Find regions managed by declarative policies
+Discover regions where VPC Block Public Access configurations are managed by declarative policies. This is useful for understanding your security setup and identifying which regions are centrally managed through policy-based controls.
 
 ```sql+postgres
 select
+  region,
   managed_by,
   state,
   reason
@@ -82,6 +87,7 @@ where
 
 ```sql+sqlite
 select
+  region,
   managed_by,
   state,
   reason
@@ -91,11 +97,12 @@ where
   managed_by = 'declarative-policy';
 ```
 
-### List configurations with bidirectional internet gateway blocking
-Explore VPC Block Public Access configurations that have bidirectional internet gateway blocking enabled. This provides maximum security against public access and is useful for environments requiring the highest level of network protection.
+### Find regions with bidirectional internet gateway blocking
+Explore regions where VPC Block Public Access has bidirectional internet gateway blocking enabled. This provides maximum security against public access and is useful for environments requiring the highest level of network protection.
 
 ```sql+postgres
 select
+  region,
   internet_gateway_block_mode,
   state,
   exclusions_allowed
@@ -107,6 +114,7 @@ where
 
 ```sql+sqlite
 select
+  region,
   internet_gateway_block_mode,
   state,
   exclusions_allowed
@@ -116,7 +124,7 @@ where
   internet_gateway_block_mode = 'block-bidirectional';
 ```
 
-### Check BPA configuration status
+### Check BPA configuration status across regions
 Analyze the current status of VPC Block Public Access configurations across all regions. This is useful for understanding your security posture and ensuring consistent protection across your AWS environment.
 
 ```sql+postgres
@@ -145,8 +153,8 @@ order by
   region;
 ```
 
-### Find configurations with exclusions not allowed
-Identify VPC Block Public Access configurations where exclusions are not allowed. This indicates strict security policies and is useful for compliance auditing and security assessment.
+### Find regions with exclusions set to not allowed
+Identify regions where VPC Block Public Access exclusions are not allowed. This indicates strict security policies and is useful for compliance auditing and security assessment.
 
 ```sql+postgres
 select
@@ -172,7 +180,7 @@ where
   exclusions_allowed = 'not-allowed';
 ```
 
-### Monitor recent BPA configuration changes
+### Monitor recent BPA configuration changes across regions
 Track recent changes to VPC Block Public Access configurations across regions. This is useful for security auditing and maintaining an audit trail of configuration modifications.
 
 ```sql+postgres
