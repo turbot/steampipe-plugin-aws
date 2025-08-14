@@ -27,15 +27,6 @@ func tableAwsAppsyncApi(_ context.Context) *plugin.Table {
 			Hydrate: listAppsyncApis,
 			Tags:    map[string]string{"service": "appsync", "action": "ListApis"},
 		},
-		HydrateConfig: []plugin.HydrateConfig{
-			{
-				Func: getAppsyncApiCache,
-				Tags: map[string]string{"service": "appsync", "action": "GetApiCache"},
-				IgnoreConfig: &plugin.IgnoreConfig{
-					ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NotFoundException"}),
-				},
-			},
-		},
 		GetMatrixItemFunc: SupportedRegionMatrix(AWS_APPSYNC_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
@@ -84,18 +75,6 @@ func tableAwsAppsyncApi(_ context.Context) *plugin.Table {
 				Description: "A flag indicating whether to use X-Ray tracing for this API.",
 				Type:        proto.ColumnType_BOOL,
 			},
-			{
-				Name:        "api_cache",
-				Description: "The ApiCache object.",
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     getAppsyncApiCache,
-				Transform:   transform.FromValue(),
-			},
-			{
-				Name:        "tags",
-				Description: "A map with keys of TagKey objects and values of TagValue objects.",
-				Type:        proto.ColumnType_JSON,
-			},
 
 			// Steampipe standard columns
 			{
@@ -104,6 +83,11 @@ func tableAwsAppsyncApi(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getAppsyncApi,
 				Transform:   transform.FromField("Name"),
+			},
+			{
+				Name:        "tags",
+				Description: "A map with keys of TagKey objects and values of TagValue objects.",
+				Type:        proto.ColumnType_JSON,
 			},
 			{
 				Name:        "akas",
@@ -217,52 +201,4 @@ func getAppsyncApi(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 	}
 
 	return nil, nil
-}
-
-func getAppsyncApiCache(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	var apiId string
-	if h.Item != nil {
-		// If we have an item from the list, extract the API ID
-		switch api := h.Item.(type) {
-		case types.Api:
-			apiId = *api.ApiId
-		case *types.Api:
-			apiId = *api.ApiId
-		}
-		
-	} else {
-		// If this is a get call, use the key column
-		apiId = d.EqualsQualString("api_id")
-	}
-
-	if apiId == "" {
-		return nil, nil
-	}
-
-	// Create service
-	svc, err := AppSyncClient(ctx, d)
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_appsync_api.getAppsyncApiCache", "connection_error", err)
-		return nil, err
-	}
-	if svc == nil {
-		// Unsupported region, return no data
-		return nil, nil
-	}
-
-	input := appsync.GetApiCacheInput{
-		ApiId:      aws.String(apiId),
-	}
-
-	res, err := svc.GetApiCache(ctx, &input)
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_appsync_api.getAppsyncApiCache", "api_error", err)
-		return nil, err
-	}
-
-	if res != nil && res.ApiCache != nil {
-		return res.ApiCache, nil
-	}
-
-	return res, nil
 }
