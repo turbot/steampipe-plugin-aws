@@ -103,6 +103,13 @@ func tableAwsSsoAdminPermissionSet(_ context.Context) *plugin.Table {
 				Hydrate:     getSsoAdminPermissionSetInlinePolicy,
 				Transform:   transform.FromValue().Transform(unescape).Transform(policyToCanonical),
 			},
+			{
+				Name:        "customer_managed_policy_references",
+				Description: "List of customer managed policy references attached to the permission set.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getSsoAdminCustomerManagedPolicyReferences,
+				Transform:   transform.FromValue(),
+			},
 
 			// Standard columns for all tables
 			{
@@ -336,7 +343,49 @@ func getSsoAdminResourceTags(ctx context.Context, d *plugin.QueryData, instanceA
 
 	return &tags, err
 }
+func getSsoAdminCustomerManagedPolicyReferences(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	// Create session
+	svc, err := SSOAdminClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_ssoadmin_permission_set.listSsoAdminCustomerManagedPolicyReferences", "connection_error", err)
+		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
 
+	permissionSet := h.Item.(*PermissionSetItem)
+	permissionSetArn := *permissionSet.PermissionSetArn
+	instanceArn := *permissionSet.InstanceArn
+
+	input := &ssoadmin.ListCustomerManagedPolicyReferencesInPermissionSetInput{
+		InstanceArn:      aws.String(instanceArn),
+		PermissionSetArn: aws.String(permissionSetArn),
+		MaxResults:       aws.Int32(100),
+	}
+
+	paginator := ssoadmin.NewListCustomerManagedPolicyReferencesInPermissionSetPaginator(svc, input, func(o *ssoadmin.ListCustomerManagedPolicyReferencesInPermissionSetPaginatorOptions) {
+		o.StopOnDuplicateToken = true
+	})
+
+	var refs []types.CustomerManagedPolicyReference
+
+	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_ssoadmin_permission_set.listSsoAdminCustomerManagedPolicyReferences", "api_error", err)
+			return nil, err
+		}
+
+		refs = append(refs, output.CustomerManagedPolicyReferences...)
+	}
+
+	return refs, nil
+}
 //// TRANSFORM FUNCTIONS
 
 func getSsoAdminResourceTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
