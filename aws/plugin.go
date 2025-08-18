@@ -517,6 +517,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_mq_broker":                                                tableAwsMQBroker(ctx),
 			"aws_msk_cluster":                                              tableAwsMSKCluster(ctx),
 			"aws_msk_serverless_cluster":                                   tableAwsMSKServerlessCluster(ctx),
+			"aws_mskconnect_connector":                                     tableAwsMSKConnectConnector(ctx),
 			"aws_neptune_db_cluster_snapshot":                              tableAwsNeptuneDBClusterSnapshot(ctx),
 			"aws_neptune_db_cluster":                                       tableAwsNeptuneDBCluster(ctx),
 			"aws_networkfirewall_firewall_policy":                          tableAwsNetworkFirewallPolicy(ctx),
