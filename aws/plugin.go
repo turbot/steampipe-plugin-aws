@@ -679,6 +679,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_tagging_resource":                                         tableAwsTaggingResource(ctx),
 			"aws_timestreamwrite_database":                                 tableAwsTimestreamwriteDatabase(ctx),
 			"aws_timestreamwrite_table":                                    tableAwsTimestreamwriteTable(ctx),
+			"aws_transfer_connector":                                       tableAwsTransferConnector(ctx),
 			"aws_transfer_server":                                          tableAwsTransferServer(ctx),
 			"aws_transfer_user":                                            tableAwsTransferUser(ctx),
 			"aws_trusted_advisor_check_result":                             tableAwsTrustedAdvisorCheckResult(ctx),
