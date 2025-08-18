@@ -10,6 +10,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/query_cache"
 )
 
 //// TABLE DEFINITION
@@ -29,11 +30,22 @@ func tableAwsMSKConnectConnector(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listMSKConnectConnectors,
 			Tags:    map[string]string{"service": "kafkaconnect", "action": "ListConnectors"},
+			KeyColumns: []*plugin.KeyColumn{
+				{
+					Name:       "connector_name_prefix",
+					Require:    plugin.Optional,
+					CacheMatch: query_cache.CacheMatchExact,
+				},
+			},
 		},
 		HydrateConfig: []plugin.HydrateConfig{
 			{
 				Func: getMSKConnectConnector,
 				Tags: map[string]string{"service": "kafkaconnect", "action": "DescribeConnector"},
+			},
+			{
+				Func: getMSKConnectConnectorTags,
+				Tags: map[string]string{"service": "kafkaconnect", "action": "ListTagsForResource"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(AWS_KAFKACONNECT_SERVICE_ID),
@@ -42,6 +54,12 @@ func tableAwsMSKConnectConnector(_ context.Context) *plugin.Table {
 				Name:        "connector_name",
 				Description: "The name of the connector.",
 				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "connector_name_prefix",
+				Description: "The prefix of the connector name.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromQual("connector_name_prefix"),
 			},
 			{
 				Name:        "arn",
@@ -136,6 +154,13 @@ func tableAwsMSKConnectConnector(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("ConnectorName"),
 			},
 			{
+				Name:        "tags",
+				Description: resourceInterfaceDescription("tags"),
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getMSKConnectConnectorTags,
+				Transform:   transform.FromValue(),
+			},
+			{
 				Name:        "akas",
 				Description: resourceInterfaceDescription("akas"),
 				Type:        proto.ColumnType_JSON,
@@ -163,6 +188,11 @@ func listMSKConnectConnectors(ctx context.Context, d *plugin.QueryData, h *plugi
 	maxItems := int32(100)
 	params := &kafkaconnect.ListConnectorsInput{
 		MaxResults: aws.Int32(maxItems),
+	}
+
+	// Add optional connector name filter
+	if d.EqualsQuals["connector_name_prefix"] != nil {
+		params.ConnectorNamePrefix = aws.String(d.EqualsQualString("connector_name_prefix"))
 	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
@@ -242,4 +272,45 @@ func getMSKConnectConnector(ctx context.Context, d *plugin.QueryData, h *plugin.
 	}
 
 	return data, nil
+}
+
+func getMSKConnectConnectorTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	var connectorArn string
+	if h.Item != nil {
+		switch item := h.Item.(type) {
+		case types.ConnectorSummary:
+			connectorArn = *item.ConnectorArn
+		case *kafkaconnect.DescribeConnectorOutput:
+			connectorArn = *item.ConnectorArn
+		}
+	}
+
+	if connectorArn == "" {
+		return nil, nil
+	}
+
+	// Create service
+	svc, err := KafkaConnectClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_mskconnect_connector.getMSKConnectConnectorTags", "connection_error", err)
+		return nil, err
+	}
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
+
+	// Build the params
+	params := &kafkaconnect.ListTagsForResourceInput{
+		ResourceArn: aws.String(connectorArn),
+	}
+
+	// Get connector tags
+	data, err := svc.ListTagsForResource(ctx, params)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_mskconnect_connector.getMSKConnectConnectorTags", "api_error", err)
+		return nil, err
+	}
+
+	return data.Tags, nil
 }
