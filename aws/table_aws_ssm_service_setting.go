@@ -18,7 +18,7 @@ func tableAwsSSMServiceSetting(_ context.Context) *plugin.Table {
 		Name:        "aws_ssm_service_setting",
 		Description: "AWS SSM Service Setting",
 		List: &plugin.ListConfig{
-			KeyColumns: plugin.AllColumns([]string{"setting_id"}),
+			KeyColumns: plugin.SingleColumn("setting_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ValidationException", "InvalidParameterValue"}),
 			},
@@ -76,7 +76,7 @@ func tableAwsSSMServiceSetting(_ context.Context) *plugin.Table {
 	}
 }
 
-//// GET FUNCTION
+//// List FUNCTION
 
 func getSSMServiceSetting(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
