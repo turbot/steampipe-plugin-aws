@@ -447,6 +447,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_guardduty_finding":                                        tableAwsGuardDutyFinding(ctx),
 			"aws_guardduty_ipset":                                          tableAwsGuardDutyIPSet(ctx),
 			"aws_guardduty_member":                                         tableAwsGuardDutyMember(ctx),
+			"aws_guardduty_organization_configuration_feature":             tableAwsGuardDutyOrganizationConfigurationFeature(ctx),
 			"aws_guardduty_publishing_destination":                         tableAwsGuardDutyPublishingDestination(ctx),
 			"aws_guardduty_threat_intel_set":                               tableAwsGuardDutyThreatIntelSet(ctx),
 			"aws_health_affected_entity":                                   tableAwsHealthAffectedEntity(ctx),
