@@ -670,6 +670,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_ssm_managed_instance":                                     tableAwsSSMManagedInstance(ctx),
 			"aws_ssm_parameter":                                            tableAwsSSMParameter(ctx),
 			"aws_ssm_patch_baseline":                                       tableAwsSSMPatchBaseline(ctx),
+			"aws_ssm_service_setting":                                      tableAwsSSMServiceSetting(ctx),
 			"aws_ssmincidents_response_plan":                               tableAwsSSMIncidentsResponseaPlan(ctx),
 			"aws_ssoadmin_account_assignment":                              tableAwsSsoAdminAccountAssignment(ctx),
 			"aws_ssoadmin_instance":                                        tableAwsSsoAdminInstance(ctx),
