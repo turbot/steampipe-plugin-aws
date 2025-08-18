@@ -22,7 +22,7 @@ func tableAwsSSMServiceSetting(_ context.Context) *plugin.Table {
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ValidationException", "InvalidParameterValue"}),
 			},
-			Hydrate: getSSMServiceSetting,
+			Hydrate: listSSMServiceSettings,
 			Tags:    map[string]string{"service": "ssm", "action": "GetServiceSetting"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(AWS_SSM_SERVICE_ID),
@@ -78,7 +78,7 @@ func tableAwsSSMServiceSetting(_ context.Context) *plugin.Table {
 
 //// List FUNCTION
 
-func getSSMServiceSetting(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listSSMServiceSettings(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
 	settingID := d.EqualsQuals["setting_id"].GetStringValue()
 
@@ -89,7 +89,7 @@ func getSSMServiceSetting(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	// Create service
 	svc, err := SSMClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_ssm_service_setting.getSSMServiceSetting", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_ssm_service_setting.listSSMServiceSettings", "connection_error", err)
 		return nil, err
 	}
 
@@ -100,7 +100,7 @@ func getSSMServiceSetting(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	d.WaitForListRateLimit(ctx)
 	op, err := svc.GetServiceSetting(ctx, params)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_ssm_service_setting.getSSMServiceSetting", "api_error", err)
+		plugin.Logger(ctx).Error("aws_ssm_service_setting.listSSMServiceSettings", "api_error", err)
 		return nil, err
 	}
 
