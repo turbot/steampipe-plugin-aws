@@ -635,6 +635,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_service_discovery_namespace":                              tableAwsServiceDiscoveryNamespace(ctx),
 			"aws_service_discovery_service":                                tableAwsServiceDiscoveryService(ctx),
 			"aws_servicecatalog_portfolio":                                 tableAwsServicecatalogPortfolio(ctx),
+			"aws_servicecatalog_portfolio_share":                           tableAwsServicecatalogPortfolioShare(ctx),
 			"aws_servicecatalog_product":                                   tableAwsServicecatalogProduct(ctx),
 			"aws_servicecatalog_provisioned_product":                       tableAwsServicecatalogProvisionedProduct(ctx),
 			"aws_servicequotas_default_service_quota":                      tableAwsServiceQuotasDefaultServiceQuota(ctx),
