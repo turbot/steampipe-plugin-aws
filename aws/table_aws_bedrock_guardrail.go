@@ -125,6 +125,12 @@ func getBedrockGuardrail(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_bedrock_guardrail.getBedrockGuardrail", "connection_error", err)
 		return nil, err
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_bedrock_guardrail.getBedrockGuardrail", "connection_error", err)
+		return nil, err
+	}
+	if svc == nil {
+		return nil, nil
 	}
 
 	out, err := svc.GetGuardrail(ctx, &bedrock.GetGuardrailInput{
