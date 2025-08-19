@@ -327,19 +327,3 @@ where
   type = 'ORGANIZATION_MEMBER_ACCOUNT'
   and accepted = 0;
 ```
-
-## Schema for table: aws_servicecatalog_portfolio_share
-
-| Column                   | Type    | Operators                                                            | Description                                           |
-| ------------------------ | ------- | -------------------------------------------------------------------- | ----------------------------------------------------- | --- | --- | ------------------------------------------------------------------------------------ |
-| `_ctx`                   | jsonb   |                                                                      | Steampipe context in JSON form, e.g. connection_name. |
-| `region`                 | text    | `=`, `~>`, `>`, `>=`, `<=`, `<`, `~`, `!~`, `!`, `?`, `!?`, `?&`, `? | `, `@>`, `@?`, `@@`, `                                |     | `   | The AWS region in which the resource is located.                                     |
-| `portfolio_id`           | text    | `=`, `~>`, `>`, `>=`, `<=`, `<`, `~`, `!~`, `!`, `?`, `!?`, `?&`, `? | `, `@>`, `@?`, `@@`, `                                |     | `   | The unique identifier of the portfolio.                                              |
-| `portfolio_arn`          | text    | `=`, `~>`, `>`, `>=`, `<=`, `<`, `~`, `!~`, `!`, `?`, `!?`, `?&`, `? | `, `@>`, `@?`, `@@`, `                                |     | `   | The ARN of the portfolio.                                                            |
-| `portfolio_display_name` | text    | `=`, `~>`, `>`, `>=`, `<=`, `<`, `~`, `!~`, `!`, `?`, `!?`, `?&`, `? | `, `@>`, `@?`, `@@`, `                                |     | `   | The display name of the portfolio.                                                   |
-| `type`                   | text    | `=`, `~>`, `>`, `>=`, `<=`, `<`, `~`, `!~`, `!`, `?`, `!?`, `?&`, `? | `, `@>`, `@?`, `@@`, `                                |     | `   | The type of the portfolio share.                                                     |
-| `principal_id`           | text    | `=`, `~>`, `>`, `>=`, `<=`, `<`, `~`, `!~`, `!`, `?`, `!?`, `?&`, `? | `, `@>`, `@?`, `@@`, `                                |     | `   | The identifier of the recipient entity that received the portfolio share.            |
-| `accepted`               | boolean | `=`, `~>`, `>`, `>=`, `<=`, `<`, `~`, `!~`, `!`, `?`, `!?`, `?&`, `? | `, `@>`, `@?`, `@@`, `                                |     | `   | Indicates whether the shared portfolio is imported by the recipient account.         |
-| `share_principals`       | boolean | `=`, `~>`, `>`, `>=`, `<=`, `<`, `~`, `!~`, `!`, `?`, `!?`, `?&`, `? | `, `@>`, `@?`, `@@`, `                                |     | `   | Indicates if Principal sharing is enabled or disabled for the portfolio share.       |
-| `share_tag_options`      | boolean | `=`, `~>`, `>`, `>=`, `<=`, `<`, `~`, `!~`, `!`, `?`, `!?`, `?&`, `? | `, `@>`, `@?`, `@@`, `                                |     | `   | Indicates whether TagOptions sharing is enabled or disabled for the portfolio share. |
-| `title`                  | text    | `=`, `~>`, `>`, `>=`, `<=`, `<`, `~`, `!~`, `!`, `?`, `!?`, `?&`, `? | `, `@>`, `@?`, `@@`, `                                |     | `   | Title of the resource.                                                               |
