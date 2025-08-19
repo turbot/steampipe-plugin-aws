@@ -54,6 +54,7 @@ func tableAwsServicecatalogPortfolioShare(_ context.Context) *plugin.Table {
 				Name:        "principal_id",
 				Description: "The identifier of the recipient entity that received the portfolio share.",
 				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("PortfolioShareDetail.PrincipalId"),
 			},
 			{
 				Name:        "accepted",
