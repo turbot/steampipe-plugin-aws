@@ -167,5 +167,15 @@ func t(p *time.Time) time.Time {
 	}
 	return *p
 }
-
+		Arn:         aws.ToString(out.GuardrailArn),
+		GuardrailId: aws.ToString(out.GuardrailId),
+		Name:        aws.ToString(out.Name),
+		Description: aws.ToString(out.Description),
+		Status:      string(out.Status),
+		Version:     aws.ToString(out.Version),
+		CreatedAt:   aws.ToTime(out.CreatedAt),
+		UpdatedAt:   aws.ToTime(out.UpdatedAt),
+	}
+	return row, nil
+}
 
