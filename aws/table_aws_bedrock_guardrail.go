@@ -73,6 +73,12 @@ func listBedrockGuardrails(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_bedrock_guardrail.listBedrockGuardrails", "connection_error", err)
 		return nil, err
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_bedrock_guardrail.listBedrockGuardrails", "connection_error", err)
+		return nil, err
+	}
+	if svc == nil {
+		return nil, err
 	}
 
 	p := bedrock.NewListGuardrailsPaginator(svc, &bedrock.ListGuardrailsInput{})
