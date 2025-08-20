@@ -269,6 +269,12 @@ func tableAwsRedshiftCluster(_ context.Context) *plugin.Table {
 				Description: "The status of a modify operation, if any, initiated for the cluster.",
 				Type:        proto.ColumnType_STRING,
 			},
+					{
+				Name:        "multi_az",
+				Description: "A boolean value that, if true, indicates that the cluster is deployed in two Availability Zones.",
+				Type:        proto.ColumnType_BOOL,
+				Transform:   transform.FromField("MultiAZ"),
+			},
 			{
 				Name:        "next_maintenance_window_start_time",
 				Description: "The date and time in UTC when system maintenance can begin.",
