@@ -251,7 +251,7 @@ func getS3DirectoryBucketArn(ctx context.Context, d *plugin.QueryData, h *plugin
 
 	commonData := commonInfo.(*awsCommonColumnData)
 
-	arn := fmt.Sprintf("arn:aws:s3express:%s:%s:bucket/%s", region, commonData.AccountId, *bucket.Name)
+	arn := fmt.Sprintf("arn:%s:s3express:%s:%s:bucket/%s", commonData.Partition, region, commonData.AccountId, *bucket.Name)
 
 	return arn, nil
 }
