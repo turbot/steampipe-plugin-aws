@@ -483,6 +483,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_inspector2_coverage":                                      tableAwsInspector2Coverage(ctx),
 			"aws_inspector2_finding":                                       tableAwsInspector2Finding(ctx),
 			"aws_inspector2_member":                                        tableAwsInspector2Member(ctx),
+			"aws_inspector2_organization_configuration":                    tableAwsInspector2OrganizationConfiguration(ctx),
 			"aws_iot_fleet_metric":                                         tableAwsIoTFleetMetric(ctx),
 			"aws_iot_thing_group":                                          tableAwsIoTThingGroup(ctx),
 			"aws_iot_thing_type":                                           tableAwsIoTThingType(ctx),
