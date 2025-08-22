@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/service/inspector2"
 
@@ -83,6 +84,10 @@ func listInspector2OrganizationConfiguration(ctx context.Context, d *plugin.Quer
 	// Get organization configuration
 	data, err := svc.DescribeOrganizationConfiguration(ctx, params)
 	if err != nil {
+		// For the regions where we have not enable it we will receive the rror: aws: operation error Inspector2: DescribeOrganizationConfiguration, https response error StatusCode: 403, RequestID: 8bb92eba-7e8d-4186-a83a-640e98b5621f, AccessDeniedException: Invoking account does not have access to describe the organization configuration.
+		if strings.Contains(strings.ToLower(err.Error()), strings.ToLower("Invoking account does not have access to describe the organization configuration")) {
+			return nil, nil
+		}
 		plugin.Logger(ctx).Error("aws_inspector2_organization_configuration.listInspector2OrganizationConfiguration", "api_error", err)
 		return nil, err
 	}
