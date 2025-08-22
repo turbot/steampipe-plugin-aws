@@ -322,22 +322,26 @@ with bucket_configs as (
   select
     name,
     region,
-    json_extract(lifecycle_rule.value, '$.ID') as lifecycle_rule_id,
-    json_extract(lifecycle_rule.value, '$.Status') as lifecycle_status,
-    json_extract(lifecycle_rule.value, '$.Expiration.Days') as expiration_days,
-    json_extract(encryption_config.value, '$.BucketKeyEnabled') as bucket_key_enabled,
-    json_extract(encryption_config.value, '$.ApplyServerSideEncryptionByDefault.SSEAlgorithm') as encryption_algorithm,
-    json_extract(policy_statement.value, '$.Sid') as policy_statement_id,
-    json_extract(policy_statement.value, '$.Effect') as policy_effect
-  from
-    aws_s3_directory_bucket,
     json_each(lifecycle_rules) as lifecycle_rule,
     json_each(server_side_encryption_configuration) as encryption_config,
     json_each(policy, '$.Statement') as policy_statement
+  from
+    aws_s3_directory_bucket
   where
     lifecycle_rules is not null
     and server_side_encryption_configuration is not null
     and policy is not null
 )
-select * from bucket_configs;
+select
+  name,
+  region,
+  json_extract(lifecycle_rule.value, '$.ID') as lifecycle_rule_id,
+  json_extract(lifecycle_rule.value, '$.Status') as lifecycle_status,
+  json_extract(lifecycle_rule.value, '$.Expiration.Days') as expiration_days,
+  json_extract(encryption_config.value, '$.BucketKeyEnabled') as bucket_key_enabled,
+  json_extract(encryption_config.value, '$.ApplyServerSideEncryptionByDefault.SSEAlgorithm') as encryption_algorithm,
+  json_extract(policy_statement.value, '$.Sid') as policy_statement_id,
+  json_extract(policy_statement.value, '$.Effect') as policy_effect
+from
+  bucket_configs;
 ```
