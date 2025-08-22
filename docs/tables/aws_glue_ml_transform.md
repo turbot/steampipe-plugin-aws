@@ -58,7 +58,7 @@ from
   aws_glue_ml_transform;
 ```
 
-### List ready transforms
+### List ML transforms that are in ready state
 Identify ML transforms that are ready to be used for data processing. This helps in understanding which transforms are available for immediate use.
 
 ```sql+postgres
@@ -89,7 +89,7 @@ where
   status = 'READY';
 ```
 
-### Check transform resource allocation
+### Check the resource allocation of ML transforms
 Review the resource allocation for ML transforms to understand compute capacity and worker configuration.
 
 ```sql+postgres
@@ -157,7 +157,7 @@ where
   evaluation_metrics is not null;
 ```
 
-### Check transform input/output schemas
+### Review the input and output schemas for ML transforms
 Review the input and output schemas for ML transforms to understand data structure requirements.
 
 ```sql+postgres
@@ -242,7 +242,6 @@ where
 
 
 ### Filter transforms by status
-
 Find transforms with a specific status using the optional qualifier.
 
 ```sql+postgres

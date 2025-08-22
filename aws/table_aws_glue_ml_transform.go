@@ -290,7 +290,7 @@ func listGlueMLTransforms(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 		}
 	}
 
-	// Only add filter if any criteria are set
+	// Only add filter if any criteria is set
 	if filterCriteria.Name != nil || filterCriteria.Status != "" || filterCriteria.TransformType != "" ||
 		filterCriteria.GlueVersion != nil || filterCriteria.CreatedAfter != nil || filterCriteria.CreatedBefore != nil ||
 		filterCriteria.LastModifiedAfter != nil || filterCriteria.LastModifiedBefore != nil {
@@ -385,7 +385,8 @@ func getGlueMLTransformTags(ctx context.Context, d *plugin.QueryData, h *plugin.
 	}
 	commonColumnData := c.(*awsCommonColumnData)
 
-	// Get the ARN for the transform
+	// arn:aws:glue:region:account-id:mlTransform/transform-id
+	// https://docs.aws.amazon.com/glue/latest/dg/glue-specifying-resource-arns.html#non-catalog-resource-arns
 	arn := "arn:" + commonColumnData.Partition + ":glue:" + d.EqualsQualString(matrixKeyRegion) + ":" + commonColumnData.AccountId + ":mlTransform/" + transformId
 
 	params := &glue.GetTagsInput{
@@ -420,6 +421,8 @@ func getGlueMLTransformArn(ctx context.Context, d *plugin.QueryData, h *plugin.H
 	}
 	commonColumnData := c.(*awsCommonColumnData)
 
+	// arn:aws:glue:region:account-id:mlTransform/transform-id
+	// https://docs.aws.amazon.com/glue/latest/dg/glue-specifying-resource-arns.html#non-catalog-resource-arns
 	arn := "arn:" + commonColumnData.Partition + ":glue:" + region + ":" + commonColumnData.AccountId + ":mlTransform/" + transformId
 
 	return arn, nil
