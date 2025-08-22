@@ -683,6 +683,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_transfer_user":                                            tableAwsTransferUser(ctx),
 			"aws_trusted_advisor_check_result":                             tableAwsTrustedAdvisorCheckResult(ctx),
 			"aws_trusted_advisor_check_summary":                            tableAwsTrustedAdvisorCheckSummary(ctx),
+			"aws_vpc_block_public_access_options":                          tableAwsVpcBlockPublicAccessOptions(ctx),
 			"aws_vpc_customer_gateway":                                     tableAwsVpcCustomerGateway(ctx),
 			"aws_vpc_dhcp_options":                                         tableAwsVpcDhcpOptions(ctx),
 			"aws_vpc_egress_only_internet_gateway":                         tableAwsVpcEgressOnlyIGW(ctx),
