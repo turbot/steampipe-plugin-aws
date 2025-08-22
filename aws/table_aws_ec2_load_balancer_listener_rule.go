@@ -6,6 +6,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
+	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2/types"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -34,6 +35,12 @@ func tableAwsEc2ApplicationLoadBalancerListenerRule(_ context.Context) *plugin.T
 			Tags: map[string]string{"service": "elasticloadbalancing", "action": "DescribeRules"},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(AWS_ELASTICLOADBALANCING_SERVICE_ID),
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getEc2LoadBalancerListenerRuleTags,
+				Tags: map[string]string{"service": "elasticloadbalancing", "action": "DescribeTags"},
+			},
+		},
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
 				Name:        "arn",
@@ -66,6 +73,20 @@ func tableAwsEc2ApplicationLoadBalancerListenerRule(_ context.Context) *plugin.T
 				Name:        "conditions",
 				Description: "The conditions. Each rule can include zero or one of the following conditions: http-request-method , host-header , path-pattern , and source-ip , and zero or more of the following conditions: http-header and query-string.",
 				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "tags_src",
+				Description: "A list of tags assigned to the rule.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getEc2LoadBalancerListenerRuleTags,
+				Transform:   transform.FromValue(),
+			},
+			{
+				Name:        "tags",
+				Description: resourceInterfaceDescription("tags"),
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getEc2LoadBalancerListenerRuleTags,
+				Transform:   transform.From(getEc2LoadBalancerListenerRuleTurbotTags),
 			},
 		}),
 	}
@@ -136,4 +157,53 @@ func listEc2LoadBalancerListenerRules(ctx context.Context, d *plugin.QueryData, 
 	}
 
 	return nil, err
+}
+
+//// HYDRATE FUNCTIONS
+
+func getEc2LoadBalancerListenerRuleTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	rule := h.Item.(types.Rule)
+
+	// Create service
+	svc, err := ELBV2Client(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_load_balancer_listener_rule.getEc2LoadBalancerListenerRuleTags", "connection_error", err)
+		return nil, err
+	}
+
+	params := &elasticloadbalancingv2.DescribeTagsInput{
+		ResourceArns: []string{*rule.RuleArn},
+	}
+
+	ruleData, err := svc.DescribeTags(ctx, params)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_load_balancer_listener_rule.getEc2LoadBalancerListenerRuleTags", "api_error", err)
+		return nil, err
+	}
+
+	var tags []types.Tag
+	if len(ruleData.TagDescriptions) > 0 {
+		for _, tagDescription := range ruleData.TagDescriptions {
+			if tagDescription.ResourceArn != nil && *tagDescription.ResourceArn == *rule.RuleArn {
+				tags = append(tags, tagDescription.Tags...)
+			}
+		}
+	}
+
+	return tags, nil
+}
+
+//// TRANSFORM FUNCTIONS
+
+func getEc2LoadBalancerListenerRuleTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	ruleTags := d.HydrateItem.([]types.Tag)
+
+	if ruleTags != nil {
+		turbotTagsMap := map[string]string{}
+		for _, i := range ruleTags {
+			turbotTagsMap[*i.Key] = *i.Value
+		}
+		return turbotTagsMap, nil
+	}
+	return nil, nil
 }
