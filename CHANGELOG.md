@@ -1,3 +1,27 @@
+## v1.23.0 [2025-08-22]
+
+_What's new?_
+
+- New tables added
+  - [aws_ec2_spot_fleet_request](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_ec2_spot_fleet_request) ([#2599](https://github.com/turbot/steampipe-plugin-aws/pull/2599))
+  - [aws_glue_ml_transform](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_glue_ml_transform) ([#2610](https://github.com/turbot/steampipe-plugin-aws/pull/2610))
+  - [aws_inspector2_organization_configuration](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_inspector2_organization_configuration) ([#2608](https://github.com/turbot/steampipe-plugin-aws/pull/2608))
+  - [aws_mskconnect_connector](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_mskconnect_connector) ([#2603](https://github.com/turbot/steampipe-plugin-aws/pull/2603))
+  - [aws_s3_directory_bucket](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_s3_directory_bucket) ([#2618](https://github.com/turbot/steampipe-plugin-aws/pull/2618))
+  - [aws_servicecatalog_portfolio_share](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_servicecatalog_portfolio_share) ([#2612](https://github.com/turbot/steampipe-plugin-aws/pull/2612))
+  - [aws_ssm_service_setting](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_ssm_service_setting) ([#2611](https://github.com/turbot/steampipe-plugin-aws/pull/2611))
+  - [aws_transfer_connector](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_transfer_connector) ([#2606](https://github.com/turbot/steampipe-plugin-aws/pull/2606))
+  - [aws_vpc_block_public_access_options](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_vpc_block_public_access_options) ([#2595](https://github.com/turbot/steampipe-plugin-aws/pull/2595))
+
+_Enhancements_
+
+- Added columns `tags` and `tags_src` to `aws_ec2_load_balancer_listener_rule` table. ([#2625](https://github.com/turbot/steampipe-plugin-aws/pull/2625))
+- Added column `multi_az` to `aws_redshift_cluster` table. ([#2617](https://github.com/turbot/steampipe-plugin-aws/pull/2617))
+
+_Bug fixes_
+
+- Fixed the `aws_cloudformation_stack_resource` table to correctly return data instead of an error. ([#2622](https://github.com/turbot/steampipe-plugin-aws/pull/2622))
+
 ## v1.22.0 [2025-08-14]
 
 _What's new?_
