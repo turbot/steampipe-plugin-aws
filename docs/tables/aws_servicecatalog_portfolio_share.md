@@ -1,7 +1,7 @@
 ---
 title: "Steampipe Table: aws_servicecatalog_portfolio_share - Query AWS Service Catalog Portfolio Shares using SQL"
 description: "Allows users to query AWS Service Catalog Portfolio Shares, providing information about portfolio sharing configurations and access permissions."
-folder: "ServiceCatalog"
+folder: "Service Catalog"
 ---
 
 # Table: aws_servicecatalog_portfolio_share - Query AWS Service Catalog Portfolio Shares using SQL
@@ -190,7 +190,7 @@ where
   type = 'ACCOUNT';
 ```
 
-### Find shares with tag options sharing
+### Find shares with tag options sharing enabled
 Identify portfolio shares that have tag options sharing enabled, allowing recipients to access and use tag options associated with the portfolio.
 
 ```sql+postgres
