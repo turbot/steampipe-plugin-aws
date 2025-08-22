@@ -121,11 +121,18 @@ func tableAwsCloudFormationStackResource(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listCloudFormationStackResources(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	stack := h.Item.(types.Stack)
+	stack := h.Item.(types.StackSummary)
 	stackName := d.EqualsQualString("stack_name")
 
 	// If a stack name is specified in optional quals, the user is not allowed to perform API calls for other stacks.
 	if d.EqualsQuals["stack_name"] != nil && stackName != *stack.StackName {
+		return nil, nil
+	}
+
+	// For the deleted stacks we will encounter the Error: aws: operation error CloudFormation: ListStackResources, https response error StatusCode: 400, RequestID: 4c97284f-3c37-461d-b0a1-5d4287bd170e, api error ValidationError: Stack with id ECS-Console-V2-Service-mongodb-service-zwwh6xcq-steampipe-test-env2Batchd22fbc22-01cd-3f17-9793-3e3ed0d605b2-03c4e5c1 does not exist
+	// For deleted stacks, the ListStackResources API may return a validation error indicating that the stack does not exist.
+	// Therefore, it is necessary to check the status of the stack before calling the ListStackResources API.
+	if stack.StackStatus == types.StackStatusDeleteComplete {
 		return nil, nil
 	}
 
