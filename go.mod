@@ -160,6 +160,7 @@ require golang.org/x/xerrors v0.0.0-20231012003039-104605ab7028 // indirect
 
 require (
 	github.com/aws/aws-sdk-go v1.44.183 // indirect
+	github.com/aws/aws-sdk-go-v2/service/kafkaconnect v1.23.6 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/go-playground/validator/v10 v10.20.0 // indirect

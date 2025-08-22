@@ -91,6 +91,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/inspector2"
 	"github.com/aws/aws-sdk-go-v2/service/iot"
 	"github.com/aws/aws-sdk-go-v2/service/kafka"
+	"github.com/aws/aws-sdk-go-v2/service/kafkaconnect"
 	"github.com/aws/aws-sdk-go-v2/service/keyspaces"
 	"github.com/aws/aws-sdk-go-v2/service/kinesis"
 	"github.com/aws/aws-sdk-go-v2/service/kinesisanalyticsv2"
@@ -546,7 +547,6 @@ func ConfigClient(ctx context.Context, d *plugin.QueryData) (*configservice.Clie
 	return configservice.NewFromConfig(*cfg), nil
 }
 
-
 func ConnectClient(ctx context.Context, d *plugin.QueryData) (*connect.Client, error) {
 	cfg, err := getClientForQuerySupportedRegion(ctx, d, AWS_CONNECT_SERVICE_ID)
 	if err != nil {
@@ -965,6 +965,17 @@ func KafkaClient(ctx context.Context, d *plugin.QueryData) (*kafka.Client, error
 		return nil, nil
 	}
 	return kafka.NewFromConfig(*cfg), nil
+}
+
+func KafkaConnectClient(ctx context.Context, d *plugin.QueryData) (*kafkaconnect.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, AWS_KAFKACONNECT_SERVICE_ID)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return kafkaconnect.NewFromConfig(*cfg), nil
 }
 
 func KeyspacesClient(ctx context.Context, d *plugin.QueryData) (*keyspaces.Client, error) {
