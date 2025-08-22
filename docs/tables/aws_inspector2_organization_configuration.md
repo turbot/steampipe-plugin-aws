@@ -12,6 +12,9 @@ The AWS Inspector2 Regional Organization Configuration contains settings that de
 
 The `aws_inspector2_organization_configuration` table in Steampipe provides you with information about the regional organization configuration of Amazon Inspector2. This table allows you, as a cloud administrator, security team member, or compliance officer, to query regional organization settings, including which scan types are automatically enabled for new members and whether the organization has reached its account limit. You can utilize this table to gather insights on regional organization configuration, such as EC2, ECR, Lambda, and Lambda Code scan auto-enablement status, account limit status, and region information. The schema outlines the various attributes of the regional organization configuration for you, including the region, scan type auto-enablement settings, and account limit status.
 
+**Important Notes**
+- To query this table, the account must be registered as the delegated administrator. For more details, see: https://docs.aws.amazon.com/inspector/latest/user/admin-member-relationship.html 
+
 ## Examples
 
 ### Basic info
