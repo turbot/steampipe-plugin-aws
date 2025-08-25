@@ -2,10 +2,12 @@ package aws
 
 import (
 	"context"
+	"errors"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
+	"github.com/aws/smithy-go"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -27,12 +29,16 @@ func tableAwsCloudFormationStackResource(_ context.Context) *plugin.Table {
 			Tags:    map[string]string{"service": "cloudformation", "action": "DescribeStackResource"},
 		},
 		List: &plugin.ListConfig{
-			ParentHydrate: listCloudFormationStacks,
+			ParentHydrate: listCloudFormationStackResourcesParent,
 			Hydrate:       listCloudFormationStackResources,
 			Tags:          map[string]string{"service": "cloudformation", "action": "ListStackResources"},
 			KeyColumns: []*plugin.KeyColumn{
 				{
 					Name:    "stack_name",
+					Require: plugin.Optional,
+				},
+				{
+					Name:    "physical_resource_id",
 					Require: plugin.Optional,
 				},
 			},
@@ -118,24 +124,93 @@ func tableAwsCloudFormationStackResource(_ context.Context) *plugin.Table {
 	}
 }
 
+//// PARENT HYDRATE FUNCTION
+
+// Parent hydrate function that optimizes the query flow based on the provided qualifiers
+// This function implements the performance optimization strategy described in the design:
+// 1. Fast access by PhysicalResourceId: Uses DescribeStackResources with PhysicalResourceId parameter
+// 2. Fast access by StackName: Falls back to listing all stacks for stack-based queries
+//
+// The function handles the physical_resource_id qualifier efficiently by:
+// - Making a single DescribeStackResources API call with PhysicalResourceId parameter
+// - Streaming results directly if < 100 resources (fast path)
+// - Falling back to stack iteration if ≥ 100 resources (rare case)
+// - Handling ValidationError gracefully when resource is not found
+//
+// This approach addresses the performance issue described in GitHub issue #2627 where
+// the previous implementation was slow because it iterated through all stacks.
+// The new implementation matches the CLI behavior: aws cloudformation describe-stack-resources --physical-resource-id
+func listCloudFormationStackResourcesParent(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	physicalResourceId := d.EqualsQualString("physical_resource_id")
+
+	// Case 3: Fast access by PhysicalResourceId using DescribeStackResources
+	// This is the optimized path that addresses the performance issue in GitHub issue #2627
+	// Instead of iterating through all stacks, we make a single API call with PhysicalResourceId
+	if physicalResourceId != "" {
+		// Create session
+		svc, err := CloudFormationClient(ctx, d)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_cloudformation_stack_resource.listCloudFormationStackResourcesParent", "connection_error", err)
+			return nil, err
+		}
+
+		// Unsupported region check
+		if svc == nil {
+			return nil, nil
+		}
+
+		// Apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
+		// Use DescribeStackResources directly with PhysicalResourceId parameter
+		// This is the key optimization: single API call instead of iterating all stacks
+		// This matches the CLI behavior: aws cloudformation describe-stack-resources --physical-resource-id
+		input := &cloudformation.DescribeStackResourcesInput{
+			PhysicalResourceId: aws.String(physicalResourceId),
+		}
+
+		output, err := svc.DescribeStackResources(ctx, input)
+		if err != nil {
+			// Handle ValidationError gracefully - this occurs when the physical resource ID is not found
+			// This matches the CLI behavior where it returns "Stack for my-arn-1 does not exist"
+			var ae smithy.APIError
+			if errors.As(err, &ae) {
+				if ae.ErrorCode() == "ValidationError" {
+					return nil, nil
+				}
+			}
+			plugin.Logger(ctx).Error("aws_cloudformation_stack_resource.listCloudFormationStackResourcesParent", "api_error", err)
+			return nil, err
+		}
+
+		// Fast path: If response has less than 100 resources, stream them directly
+		// This covers the vast majority of cases and provides optimal performance
+		if len(output.StackResources) < 100 {
+			for _, resource := range output.StackResources {
+				d.StreamListItem(ctx, resource)
+				// Context can be cancelled due to manual cancellation or the limit has been hit
+				if d.RowsRemaining(ctx) == 0 {
+					return nil, nil
+				}
+			}
+			return nil, nil
+		} else {
+			// Fallback path: If response has 100 or more resources (rare case),
+			// return the stack list for the list function to handle with pagination
+			// This ensures we don't lose the ability to handle large stacks
+			return listCloudFormationStacks(ctx, d, h)
+		}
+	}
+
+	// Case 1: Fast access by StackName or general stack listing
+	// For queries without physical_resource_id, we need to list all stacks
+	// This is the traditional approach for stack-based queries
+	return listCloudFormationStacks(ctx, d, h)
+}
+
 //// LIST FUNCTION
 
 func listCloudFormationStackResources(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	stack := h.Item.(types.StackSummary)
-	stackName := d.EqualsQualString("stack_name")
-
-	// If a stack name is specified in optional quals, the user is not allowed to perform API calls for other stacks.
-	if d.EqualsQuals["stack_name"] != nil && stackName != *stack.StackName {
-		return nil, nil
-	}
-
-	// For the deleted stacks we will encounter the Error: aws: operation error CloudFormation: ListStackResources, https response error StatusCode: 400, RequestID: 4c97284f-3c37-461d-b0a1-5d4287bd170e, api error ValidationError: Stack with id ECS-Console-V2-Service-mongodb-service-zwwh6xcq-steampipe-test-env2Batchd22fbc22-01cd-3f17-9793-3e3ed0d605b2-03c4e5c1 does not exist
-	// For deleted stacks, the ListStackResources API may return a validation error indicating that the stack does not exist.
-	// Therefore, it is necessary to check the status of the stack before calling the ListStackResources API.
-	if stack.StackStatus == types.StackStatusDeleteComplete {
-		return nil, nil
-	}
-
 	// Create session
 	svc, err := CloudFormationClient(ctx, d)
 	if err != nil {
@@ -148,45 +223,93 @@ func listCloudFormationStackResources(ctx context.Context, d *plugin.QueryData, 
 		return nil, nil
 	}
 
-	// We can not pass the MaxResult value in param so we can't limit the result per page
-	input := &cloudformation.ListStackResourcesInput{
-		StackName: stack.StackName,
+	stackName := d.EqualsQualString("stack_name")
+
+	// Check the type of h.Item and handle accordingly
+	// This function handles different types of items returned from the parent hydrate:
+	// - types.StackResource: Direct resources from physical_resource_id queries (fast path)
+	// - types.StackSummary: Stack information for stack-based queries
+	if h.Item != nil {
+		// Case 3: If h.Item is types.StackResource, directly stream it
+		if resource, ok := h.Item.(types.StackResource); ok {
+			d.StreamListItem(ctx, resource)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
+			if d.RowsRemaining(ctx) == 0 {
+				return nil, nil
+			}
+			return nil, nil
+		}
+
+		// Case 1: If h.Item is types.StackSummary, get stack name and make API call
+		if stack, ok := h.Item.(types.StackSummary); ok {
+
+			// If a stack name is specified in optional quals, the user is not allowed to perform API calls for other stacks.
+			if stackName != "" && stackName != *stack.StackName {
+				return nil, nil
+			}
+
+			// For deleted stacks, skip processing
+			if stack.StackStatus == types.StackStatusDeleteComplete {
+				return nil, nil
+			}
+
+			return listCloudFormationStackResourcesByStackName(ctx, d, svc, *stack.StackName)
+		}
 	}
 
-	paginator := cloudformation.NewListStackResourcesPaginator(svc, input, func(o *cloudformation.ListStackResourcesPaginatorOptions) {
+	return nil, nil
+}
+
+//// HELPER FUNCTIONS
+
+// Case 1: Fast access by StackName using ListStackResources
+// This function handles stack-based queries by using ListStackResources with pagination
+// It's used when the parent hydrate returns StackSummary items for stack iteration
+// This approach is used for:
+// - Queries with stack_name qualifier
+// - General stack resource listing (when no physical_resource_id is specified)
+func listCloudFormationStackResourcesByStackName(ctx context.Context, d *plugin.QueryData, svc *cloudformation.Client, stackName string) (interface{}, error) {
+
+	// Use ListStackResources to get resources for the stack
+	listInput := &cloudformation.ListStackResourcesInput{
+		StackName: aws.String(stackName),
+	}
+
+	paginator := cloudformation.NewListStackResourcesPaginator(svc, listInput, func(o *cloudformation.ListStackResourcesPaginatorOptions) {
 		o.StopOnDuplicateToken = true
 	})
+
 	for paginator.HasMorePages() {
-		// apply rate limiting
+		// Apply rate limiting
 		d.WaitForListRateLimit(ctx)
 
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_cloudformation_stack_resource.listCloudFormationStackResources", "api_error", err)
+			plugin.Logger(ctx).Error("aws_cloudformation_stack_resource.listCloudFormationStackResourcesByStackName", "api_error", err)
 			return nil, err
 		}
 
-		for _, resource := range output.StackResourceSummaries {
+		for _, resourceSummary := range output.StackResourceSummaries {
 			d.StreamListItem(ctx, types.StackResourceDetail{
-				LastUpdatedTimestamp: resource.LastUpdatedTimestamp,
-				LogicalResourceId:    resource.LogicalResourceId,
-				ResourceStatus:       resource.ResourceStatus,
-				ResourceType:         resource.ResourceType,
-				DriftInformation:     (*types.StackResourceDriftInformation)(resource.DriftInformation),
-				ModuleInfo:           resource.ModuleInfo,
-				PhysicalResourceId:   resource.PhysicalResourceId,
-				ResourceStatusReason: resource.ResourceStatusReason,
-				StackName:            stack.StackName,
-				StackId:              stack.StackId,
+				LastUpdatedTimestamp: resourceSummary.LastUpdatedTimestamp,
+				LogicalResourceId:    resourceSummary.LogicalResourceId,
+				ResourceStatus:       resourceSummary.ResourceStatus,
+				ResourceType:         resourceSummary.ResourceType,
+				DriftInformation:     (*types.StackResourceDriftInformation)(resourceSummary.DriftInformation),
+				ModuleInfo:           resourceSummary.ModuleInfo,
+				PhysicalResourceId:   resourceSummary.PhysicalResourceId,
+				ResourceStatusReason: resourceSummary.ResourceStatusReason,
+				StackName:            aws.String(stackName),
 			})
 			// Context can be cancelled due to manual cancellation or the limit has been hit
 			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
 		}
-
 	}
-	return nil, err
+
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
@@ -194,9 +317,13 @@ func listCloudFormationStackResources(ctx context.Context, d *plugin.QueryData, 
 func getCloudFormationStackResource(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	var stackName, logicalId string
 	if h.Item != nil {
-		data := h.Item.(types.StackResourceDetail)
-		stackName = *data.StackName
-		logicalId = *data.LogicalResourceId
+		switch item := h.Item.(type) {
+		case types.StackResourceDetail:
+			stackName = *item.StackName
+			logicalId = *item.LogicalResourceId
+		case types.StackResource:
+			return item, nil
+		}
 	} else {
 		stackName = d.EqualsQualString("stack_name")
 		logicalId = d.EqualsQualString("logical_resource_id")
