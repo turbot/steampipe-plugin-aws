@@ -82,6 +82,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/inspector2 v1.24.4
 	github.com/aws/aws-sdk-go-v2/service/iot v1.53.3
 	github.com/aws/aws-sdk-go-v2/service/kafka v1.31.2
+	github.com/aws/aws-sdk-go-v2/service/kafkaconnect v1.23.6
 	github.com/aws/aws-sdk-go-v2/service/keyspaces v1.10.8
 	github.com/aws/aws-sdk-go-v2/service/kinesis v1.27.4
 	github.com/aws/aws-sdk-go-v2/service/kinesisanalyticsv2 v1.25.2
@@ -160,7 +161,6 @@ require golang.org/x/xerrors v0.0.0-20231012003039-104605ab7028 // indirect
 
 require (
 	github.com/aws/aws-sdk-go v1.44.183 // indirect
-	github.com/aws/aws-sdk-go-v2/service/kafkaconnect v1.23.6 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/go-playground/validator/v10 v10.20.0 // indirect
@@ -249,7 +249,7 @@ require (
 	github.com/sethvargo/go-retry v0.2.4 // indirect
 	github.com/stevenle/topsort v0.2.0 // indirect
 	github.com/tkrajina/go-reflector v0.5.6 // indirect
-	github.com/ulikunitz/xz v0.5.10 // indirect
+	github.com/ulikunitz/xz v0.5.14 // indirect
 	github.com/zclconf/go-cty v1.14.4 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	go.opentelemetry.io/otel v1.26.0 // indirect
