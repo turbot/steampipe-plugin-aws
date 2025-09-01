@@ -74,6 +74,7 @@ func tableAwsCloudFormationStackResource(_ context.Context) *plugin.Table {
 				Name:        "last_updated_timestamp",
 				Description: "Time the status was updated.",
 				Type:        proto.ColumnType_TIMESTAMP,
+				Transform:   transform.FromField("LastUpdatedTimestamp", "Timestamp"),
 			},
 			{
 				Name:        "resource_status",
@@ -91,6 +92,13 @@ func tableAwsCloudFormationStackResource(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getCloudFormationStackResource,
 				Transform:   transform.FromField("Description"),
+			},
+			{
+				Name:        "metadata",
+				Description: "The content of the Metadata attribute declared for the resource.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getCloudFormationStackResource,
+				Transform:   transform.FromField("Metadata"),
 			},
 			{
 				Name:        "physical_resource_id",
@@ -232,7 +240,21 @@ func listCloudFormationStackResources(ctx context.Context, d *plugin.QueryData, 
 	if h.Item != nil {
 		// Case 3: If h.Item is types.StackResource, directly stream it
 		if resource, ok := h.Item.(types.StackResource); ok {
-			d.StreamListItem(ctx, resource)
+
+			resourceDetails := types.StackResourceDetail{
+				LastUpdatedTimestamp: resource.Timestamp,
+				LogicalResourceId:    resource.LogicalResourceId,
+				ResourceStatus:       resource.ResourceStatus,
+				ResourceType:         resource.ResourceType,
+				Description:          resource.Description,
+				DriftInformation:     (*types.StackResourceDriftInformation)(resource.DriftInformation),
+				ModuleInfo:           resource.ModuleInfo,
+				PhysicalResourceId:   resource.PhysicalResourceId,
+				ResourceStatusReason: resource.ResourceStatusReason,
+				StackName:            resource.StackName,
+				StackId:              resource.StackId,
+			}
+			d.StreamListItem(ctx, resourceDetails)
 
 			// Context can be cancelled due to manual cancellation or the limit has been hit
 			if d.RowsRemaining(ctx) == 0 {
@@ -254,7 +276,7 @@ func listCloudFormationStackResources(ctx context.Context, d *plugin.QueryData, 
 				return nil, nil
 			}
 
-			return listCloudFormationStackResourcesByStackName(ctx, d, svc, *stack.StackName)
+			return listCloudFormationStackResourcesByStackName(ctx, d, svc, stack)
 		}
 	}
 
@@ -269,11 +291,11 @@ func listCloudFormationStackResources(ctx context.Context, d *plugin.QueryData, 
 // This approach is used for:
 // - Queries with stack_name qualifier
 // - General stack resource listing (when no physical_resource_id is specified)
-func listCloudFormationStackResourcesByStackName(ctx context.Context, d *plugin.QueryData, svc *cloudformation.Client, stackName string) (interface{}, error) {
+func listCloudFormationStackResourcesByStackName(ctx context.Context, d *plugin.QueryData, svc *cloudformation.Client, stack types.StackSummary) (interface{}, error) {
 
 	// Use ListStackResources to get resources for the stack
 	listInput := &cloudformation.ListStackResourcesInput{
-		StackName: aws.String(stackName),
+		StackName: stack.StackName,
 	}
 
 	paginator := cloudformation.NewListStackResourcesPaginator(svc, listInput, func(o *cloudformation.ListStackResourcesPaginatorOptions) {
@@ -300,7 +322,8 @@ func listCloudFormationStackResourcesByStackName(ctx context.Context, d *plugin.
 				ModuleInfo:           resourceSummary.ModuleInfo,
 				PhysicalResourceId:   resourceSummary.PhysicalResourceId,
 				ResourceStatusReason: resourceSummary.ResourceStatusReason,
-				StackName:            aws.String(stackName),
+				StackName:            stack.StackName,
+				StackId:              stack.StackId,
 			})
 			// Context can be cancelled due to manual cancellation or the limit has been hit
 			if d.RowsRemaining(ctx) == 0 {
