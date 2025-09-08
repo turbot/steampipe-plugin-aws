@@ -5,7 +5,7 @@ go 1.24
 toolchain go1.24.1
 
 require (
-	github.com/aws/aws-sdk-go-v2 v1.36.6
+	github.com/aws/aws-sdk-go-v2 v1.38.3
 	github.com/aws/aws-sdk-go-v2/config v1.29.14
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.67
 	github.com/aws/aws-sdk-go-v2/feature/s3/manager v1.16.21
@@ -82,6 +82,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/inspector2 v1.24.4
 	github.com/aws/aws-sdk-go-v2/service/iot v1.53.3
 	github.com/aws/aws-sdk-go-v2/service/kafka v1.31.2
+	github.com/aws/aws-sdk-go-v2/service/kafkaconnect v1.23.6
 	github.com/aws/aws-sdk-go-v2/service/keyspaces v1.10.8
 	github.com/aws/aws-sdk-go-v2/service/kinesis v1.27.4
 	github.com/aws/aws-sdk-go-v2/service/kinesisanalyticsv2 v1.25.2
@@ -109,7 +110,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/redshift v1.43.5
 	github.com/aws/aws-sdk-go-v2/service/redshiftserverless v1.17.4
 	github.com/aws/aws-sdk-go-v2/service/resourceexplorer2 v1.17.4
-	github.com/aws/aws-sdk-go-v2/service/resourcegroupstaggingapi v1.21.4
+	github.com/aws/aws-sdk-go-v2/service/resourcegroupstaggingapi v1.30.2
 	github.com/aws/aws-sdk-go-v2/service/rolesanywhere v1.11.4
 	github.com/aws/aws-sdk-go-v2/service/route53 v1.40.4
 	github.com/aws/aws-sdk-go-v2/service/route53domains v1.23.4
@@ -144,7 +145,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/wafv2 v1.48.2
 	github.com/aws/aws-sdk-go-v2/service/wellarchitected v1.29.4
 	github.com/aws/aws-sdk-go-v2/service/workspaces v1.38.4
-	github.com/aws/smithy-go v1.22.5
+	github.com/aws/smithy-go v1.23.0
 	github.com/gocarina/gocsv v0.0.0-20201208093247-67c824bc04d4
 	github.com/goccy/go-yaml v1.11.3
 	github.com/golang/protobuf v1.5.4
@@ -160,7 +161,6 @@ require golang.org/x/xerrors v0.0.0-20231012003039-104605ab7028 // indirect
 
 require (
 	github.com/aws/aws-sdk-go v1.44.183 // indirect
-	github.com/aws/aws-sdk-go-v2/service/kafkaconnect v1.23.6 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/go-playground/validator/v10 v10.20.0 // indirect
@@ -183,8 +183,8 @@ require (
 	github.com/apparentlymart/go-textseg/v15 v15.0.0 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.6.10 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.16.30 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.37 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.6.37 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/configsources v1.4.6 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.7.6 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/ini v1.8.3 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/v4a v1.3.34 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.13.0 // indirect
