@@ -133,6 +133,7 @@ func tableAwsCloudFormationStackResource(_ context.Context) *plugin.Table {
 }
 
 //// PARENT HYDRATE FUNCTION
+// For more details please see, https://github.com/turbot/steampipe-plugin-aws/issues/2627
 
 // Parent hydrate function that optimizes the query flow based on the provided qualifiers
 // This function implements the performance optimization strategy described in the design:
