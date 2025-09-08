@@ -6,7 +6,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
-
+	ec2v1 "github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
@@ -27,9 +27,8 @@ func tableAwsAvailabilityZone(_ context.Context) *plugin.Table {
 			Tags:    map[string]string{"service": "ec2", "action": "DescribeAvailabilityZones"},
 		},
 		List: &plugin.ListConfig{
-			ParentHydrate: listAwsRegions,
-			Hydrate:       listAwsAvailabilityZones,
-			Tags:          map[string]string{"service": "ec2", "action": "DescribeAvailabilityZones"},
+			Hydrate: listAwsAvailabilityZones,
+			Tags:    map[string]string{"service": "ec2", "action": "DescribeAvailabilityZones"},
 			KeyColumns: []*plugin.KeyColumn{
 				{
 					Name:    "name",
@@ -41,6 +40,7 @@ func tableAwsAvailabilityZone(_ context.Context) *plugin.Table {
 				},
 			},
 		},
+		GetMatrixItemFunc: SupportedRegionMatrix(ec2v1.EndpointsID),
 		Columns: []*plugin.Column{
 			{
 				Name:        "name",
@@ -108,15 +108,8 @@ func tableAwsAvailabilityZone(_ context.Context) *plugin.Table {
 //// LIST FUNCTION
 
 func listAwsAvailabilityZones(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	region := h.Item.(types.Region)
-
-	// If a region is not opted-in, we cannot list the availability zones
-	if *region.OptInStatus == "not-opted-in" {
-		return nil, nil
-	}
-
 	// Create Session
-	svc, err := EC2ClientForRegion(ctx, d, *region.RegionName)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_availability_zone.listAwsAvailabilityZones", "connection_error", err)
 		return nil, err
@@ -124,12 +117,6 @@ func listAwsAvailabilityZones(ctx context.Context, d *plugin.QueryData, h *plugi
 
 	input := &ec2.DescribeAvailabilityZonesInput{
 		AllAvailabilityZones: aws.Bool(true),
-		Filters: []types.Filter{
-			{
-				Name:   aws.String("region-name"),
-				Values: []string{*region.RegionName},
-			},
-		},
 	}
 
 	// Additonal Filter
@@ -164,10 +151,9 @@ func listAwsAvailabilityZones(ctx context.Context, d *plugin.QueryData, h *plugi
 
 func getAwsAvailabilityZone(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	name := d.EqualsQuals["name"].GetStringValue()
-	regionName := d.EqualsQuals["region_name"].GetStringValue()
 
 	// Create Session
-	svc, err := EC2ClientForRegion(ctx, d, regionName)
+	svc, err := EC2Client(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_availability_zone.getAwsAvailabilityZone", "connection_error", err)
 		return nil, err
