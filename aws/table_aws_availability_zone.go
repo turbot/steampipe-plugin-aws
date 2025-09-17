@@ -144,6 +144,10 @@ func listAwsAvailabilityZones(ctx context.Context, d *plugin.QueryData, h *plugi
 	// execute list call
 	resp, err := svc.DescribeAvailabilityZones(ctx, input)
 	if err != nil {
+		// Due to parent hydrate use the default ignore error code configured in connection config is not respecting so we need to handle it here
+		if shouldIgnoreErrorPluginDefault()(ctx, d, h, err) {
+			return nil, nil
+		}
 		plugin.Logger(ctx).Error("aws_availability_zone.listAwsAvailabilityZones", "api_error", err)
 		return nil, err
 	}
