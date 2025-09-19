@@ -175,6 +175,30 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 				Scope:      []string{"connection", "service", "action"},
 				Where:      "service = 'iam' and action = 'ListRolePolicies'",
 			},
+			{
+				// GetFunction API has a limit of 100 requests per second
+				Name:       "aws_lambda_get_function",
+				FillRate:   100,
+				BucketSize: 100,
+				Scope:      []string{"connection", "region", "service", "action"},
+				Where:      "service = 'lambda' and action = 'GetFunction'",
+			},
+			{
+				// GetPolicy API has a limit of 15 requests per second
+				Name:       "aws_lambda_get_policy",
+				FillRate:   15,
+				BucketSize: 15,
+				Scope:      []string{"connection", "region", "service", "action"},
+				Where:      "service = 'lambda' and action = 'GetPolicy'",
+			},
+			{
+				// All other control plane APIs (including ListFunctions) share a limit of 15 requests per second
+				Name:       "aws_lambda_list_functions_and_get_function_url_config",
+				FillRate:   10,
+				BucketSize: 10,
+				Scope:      []string{"connection", "region", "service", "action"},
+				Where:      "service = 'lambda' and action in ('ListFunctions', 'GetFunctionUrlConfig')",
+			},
 		},
 		TableMap: map[string]*plugin.Table{
 			"aws_accessanalyzer_analyzer":                                  tableAwsAccessAnalyzer(ctx),
