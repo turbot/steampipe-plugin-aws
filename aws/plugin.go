@@ -193,19 +193,11 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			},
 			{
 				// All other control plane APIs (including ListFunctions) share a limit of 15 requests per second
-				Name:       "aws_lambda_list_functions",
+				Name:       "aws_lambda_list_functions_and_get_function_url_config",
 				FillRate:   10,
 				BucketSize: 10,
 				Scope:      []string{"connection", "region", "service", "action"},
-				Where:      "service = 'lambda' and action = 'ListFunctions'",
-			},
-			{
-				// GetFunctionUrlConfig is part of the control plane APIs sharing 15 rps limit
-				Name:       "aws_lambda_get_function_url_config",
-				FillRate:   10,
-				BucketSize: 10,
-				Scope:      []string{"connection", "region", "service", "action"},
-				Where:      "service = 'lambda' and action = 'GetFunctionUrlConfig'",
+				Where:      "service = 'lambda' and action in ('ListFunctions', 'GetFunctionUrlConfig')",
 			},
 		},
 		TableMap: map[string]*plugin.Table{
