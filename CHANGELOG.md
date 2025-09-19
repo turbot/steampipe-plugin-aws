@@ -1,3 +1,15 @@
+## v1.24.0 [2025-09-19]
+
+_Enhancements_
+
+- Added `physical_resource_id` column as an optional qualifier to the `aws_cloudformation_stack_resource` table. ([#2635](https://github.com/turbot/steampipe-plugin-aws/pull/2635))
+- Added `metadata` column to `aws_cloudformation_stack_resource` table. ([#2635](https://github.com/turbot/steampipe-plugin-aws/pull/2635))
+- Added default rate limit configuration for `AWS Lambda` service tables. ([#2561](https://github.com/turbot/steampipe-plugin-aws/pull/2561))
+
+_Bug fixes_
+
+- Fixed the `aws_availability_zone` table to respect `ignore_error_codes` and  `ignore_error_messages` connection config arguments. ([#2640](https://github.com/turbot/steampipe-plugin-aws/pull/2640))
+
 ## v1.23.0 [2025-08-22]
 
 _What's new?_
