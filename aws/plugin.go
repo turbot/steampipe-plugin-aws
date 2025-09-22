@@ -86,12 +86,22 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			// For the Amazon Kinesis Streams APIs, five requests per second per account or stream (not available as a scope).
 			// https://docs.aws.amazon.com/streams/latest/dev/service-sizes-and-limits.html#kds-api-limits
 			{
-				Name:           "aws_kinesis",
+				Name:           "aws_kinesis_10tps",
 				MaxConcurrency: 10,
 				FillRate:       5,
 				BucketSize:     10,
 				Scope:          []string{"connection", "service", "action"},
-				Where:          "service = 'kinesis' and action in ('ListStreamConsumers', 'ListStreams', 'ListTagsForStream')",
+				Where:          "service = 'kinesis' and action in ('DescribeStream', 'ListStreamConsumers', 'ListStreams', 'ListTagsForStream')",
+			},
+			// For the Amazon Kinesis Streams APIs, five requests per second per account or stream (not available as a scope).
+			// https://docs.aws.amazon.com/streams/latest/dev/service-sizes-and-limits.html#kds-api-limits
+			{
+				Name:           "aws_kinesis_20tps",
+				MaxConcurrency: 20,
+				FillRate:       5,
+				BucketSize:     20,
+				Scope:          []string{"connection", "service", "action"},
+				Where:          "service = 'kinesis' and action in ('DescribeStreamSummary')",
 			},
 			// For the Amazon Route 53 APIs five requests per second per AWS account.
 			// https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/DNSLimitations.html#limits-api-requests
