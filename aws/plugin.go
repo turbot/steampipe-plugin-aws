@@ -98,7 +98,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			{
 				Name:           "aws_kinesis_10tps",
 				MaxConcurrency: 10,
-				FillRate:       5,
+				FillRate:       10,
 				BucketSize:     10,
 				Scope:          []string{"connection", "service", "action"},
 				Where:          "service = 'kinesis' and action in ('DescribeStream')",
@@ -108,7 +108,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			{
 				Name:           "aws_kinesis_20tps",
 				MaxConcurrency: 20,
-				FillRate:       5,
+				FillRate:       20,
 				BucketSize:     20,
 				Scope:          []string{"connection", "service", "action"},
 				Where:          "service = 'kinesis' and action in ('DescribeStreamSummary')",
