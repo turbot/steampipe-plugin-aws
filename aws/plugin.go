@@ -83,7 +83,17 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 				Scope:          []string{"connection", "service"},
 				Where:          "service = 'cloudfront'",
 			},
-			// For the Amazon Kinesis Streams APIs, five requests per second per account or stream (not available as a scope).
+			// For these Amazon KDS Control Plane APIs, five requests per second per account.
+			// https://docs.aws.amazon.com/streams/latest/dev/service-sizes-and-limits.html#kds-api-limits
+			{
+				Name:           "aws_kinesis_5tps",
+				MaxConcurrency: 5,
+				FillRate:       5,
+				BucketSize:     5,
+				Scope:          []string{"connection", "service", "action"},
+				Where:          "service = 'kinesis' and action in ('ListStreamConsumers', 'ListStreams', 'ListTagsForStream')",
+			},
+			// For these Amazon KDS Control Plane APIs, ten requests per second per account.
 			// https://docs.aws.amazon.com/streams/latest/dev/service-sizes-and-limits.html#kds-api-limits
 			{
 				Name:           "aws_kinesis_10tps",
@@ -91,9 +101,9 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 				FillRate:       5,
 				BucketSize:     10,
 				Scope:          []string{"connection", "service", "action"},
-				Where:          "service = 'kinesis' and action in ('DescribeStream', 'ListStreamConsumers', 'ListStreams', 'ListTagsForStream')",
+				Where:          "service = 'kinesis' and action in ('DescribeStream')",
 			},
-			// For the Amazon Kinesis Streams APIs, five requests per second per account or stream (not available as a scope).
+			// For these Amazon KDS Control Plane APIs, twenty requests per second per account.
 			// https://docs.aws.amazon.com/streams/latest/dev/service-sizes-and-limits.html#kds-api-limits
 			{
 				Name:           "aws_kinesis_20tps",
