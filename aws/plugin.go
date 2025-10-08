@@ -96,7 +96,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			// For these Amazon KDS Control Plane APIs, ten requests per second per account.
 			// https://docs.aws.amazon.com/streams/latest/dev/service-sizes-and-limits.html#kds-api-limits
 			{
-				Name:           "aws_kinesis_10tps",
+				Name:           "aws_kinesis_describe_stream",
 				MaxConcurrency: 10,
 				FillRate:       10,
 				BucketSize:     10,
