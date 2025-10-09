@@ -138,6 +138,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/servicediscovery"
 	"github.com/aws/aws-sdk-go-v2/service/servicequotas"
 	"github.com/aws/aws-sdk-go-v2/service/ses"
+	"github.com/aws/aws-sdk-go-v2/service/sesv2"
 	"github.com/aws/aws-sdk-go-v2/service/sfn"
 	"github.com/aws/aws-sdk-go-v2/service/shield"
 	"github.com/aws/aws-sdk-go-v2/service/simspaceweaver"
@@ -1560,6 +1561,17 @@ func SESClient(ctx context.Context, d *plugin.QueryData) (*ses.Client, error) {
 		return nil, nil
 	}
 	return ses.NewFromConfig(*cfg), nil
+}
+
+func SESV2Client(ctx context.Context, d *plugin.QueryData) (*sesv2.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, AWS_EMAIL_SERVICE_ID)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return sesv2.NewFromConfig(*cfg), nil
 }
 
 func ServerlessApplicationRepositoryClient(ctx context.Context, d *plugin.QueryData) (*serverlessapplicationrepository.Client, error) {
