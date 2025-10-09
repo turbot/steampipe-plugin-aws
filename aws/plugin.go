@@ -83,15 +83,35 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 				Scope:          []string{"connection", "service"},
 				Where:          "service = 'cloudfront'",
 			},
-			// For the Amazon Kinesis Streams APIs, five requests per second per account or stream (not available as a scope).
+			// For these Amazon KDS Control Plane APIs, five requests per second per account.
 			// https://docs.aws.amazon.com/streams/latest/dev/service-sizes-and-limits.html#kds-api-limits
 			{
-				Name:           "aws_kinesis",
-				MaxConcurrency: 10,
+				Name:           "aws_kinesis_list_streams_list_stream_consumers_list_tags_for_stream",
+				MaxConcurrency: 5,
 				FillRate:       5,
-				BucketSize:     10,
+				BucketSize:     5,
 				Scope:          []string{"connection", "service", "action"},
 				Where:          "service = 'kinesis' and action in ('ListStreamConsumers', 'ListStreams', 'ListTagsForStream')",
+			},
+			// For these Amazon KDS Control Plane APIs, ten requests per second per account.
+			// https://docs.aws.amazon.com/streams/latest/dev/service-sizes-and-limits.html#kds-api-limits
+			{
+				Name:           "aws_kinesis_describe_stream",
+				MaxConcurrency: 10,
+				FillRate:       10,
+				BucketSize:     10,
+				Scope:          []string{"connection", "service", "action"},
+				Where:          "service = 'kinesis' and action in ('DescribeStream')",
+			},
+			// For these Amazon KDS Control Plane APIs, twenty requests per second per account.
+			// https://docs.aws.amazon.com/streams/latest/dev/service-sizes-and-limits.html#kds-api-limits
+			{
+				Name:           "aws_kinesis_describe_stream_summary",
+				MaxConcurrency: 20,
+				FillRate:       20,
+				BucketSize:     20,
+				Scope:          []string{"connection", "service", "action"},
+				Where:          "service = 'kinesis' and action in ('DescribeStreamSummary')",
 			},
 			// For the Amazon Route 53 APIs five requests per second per AWS account.
 			// https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/DNSLimitations.html#limits-api-requests
