@@ -1,0 +1,8 @@
+[
+  {
+    "cluster_name": "{{ resourceName }}",
+    "principal_arn": "{{ output.principal_arn.value }}",
+    "policy_arn": "{{ output.policy_arn.value }}",
+    "access_scope_type": "{{ output.access_scope_type.value }}"
+  }
+]

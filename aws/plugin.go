@@ -393,6 +393,8 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_efs_access_point":                                         tableAwsEfsAccessPoint(ctx),
 			"aws_efs_file_system":                                          tableAwsElasticFileSystem(ctx),
 			"aws_efs_mount_target":                                         tableAwsEfsMountTarget(ctx),
+			"aws_eks_access_entry":                                         tableAwsEksAccessEntry(ctx),
+			"aws_eks_access_policy_association":                            tableAwsEksAccessPolicyAssociation(ctx),
 			"aws_eks_addon_version":                                        tableAwsEksAddonVersion(ctx),
 			"aws_eks_addon":                                                tableAwsEksAddon(ctx),
 			"aws_eks_cluster":                                              tableAwsEksCluster(ctx),

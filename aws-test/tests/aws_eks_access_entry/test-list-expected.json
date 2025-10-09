@@ -1,0 +1,8 @@
+[
+  {
+    "cluster_name": "{{ resourceName }}",
+    "principal_arn": "{{ output.principal_arn.value }}",
+    "type": "{{ output.type.value }}",
+    "username": "{{ output.username.value }}"
+  }
+]

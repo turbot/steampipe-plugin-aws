@@ -1,0 +1,13 @@
+[
+  {
+    "cluster_name": "{{ resourceName }}",
+    "principal_arn": "{{ output.principal_arn.value }}",
+    "title": "{{ output.principal_arn.value }}",
+    "akas": [
+      "{{ output.access_entry_arn.value }}"
+    ],
+    "tags": {
+      "Name": "{{ resourceName }}"
+    }
+  }
+]
