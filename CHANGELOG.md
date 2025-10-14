@@ -1,3 +1,17 @@
+## v1.25.0 [2025-10-14]
+
+_Enhancements_
+
+- Added `full_snapshot_size_in_bytes` column to `aws_ebs_snapshot` table. ([#2652](https://github.com/turbot/steampipe-plugin-aws/pull/2652)) (Thanks [@bahybintang](https://github.com/bahybintang) for the contribution!)
+
+_Bug fixes_
+
+- Fixed the default rate limiter configuration for `AWS Kinesis` service tables. ([#2644](https://github.com/turbot/steampipe-plugin-aws/pull/2644))  (Thanks [@pdecat](https://github.com/pdecat) for the contribution!)
+
+_Dependencies_
+
+- Recompiled plugin with [steampipe-plugin-sdk v5.13.1](https://github.com/turbot/steampipe-plugin-sdk/blob/develop/CHANGELOG.md#v5131-2025-09-25) that addresses critical and high vulnerabilities in dependent packages. ([#2649](https://github.com/turbot/steampipe-plugin-aws/pull/2649))
+
 ## v1.24.0 [2025-09-19]
 
 _Enhancements_
