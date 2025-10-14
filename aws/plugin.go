@@ -694,6 +694,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_ses_domain_identity":                                      tableAwsSESDomainIdentity(ctx),
 			"aws_ses_email_identity":                                       tableAwsSESEmailIdentity(ctx),
 			"aws_ses_template":                                             tableAwsSESTemplate(ctx),
+			"aws_sesv2_suppressed_destination":                             tableAwsSesV2SuppressedDestination(ctx),
 			"aws_sfn_state_machine_execution_history":                      tableAwsStepFunctionsStateMachineExecutionHistory(ctx),
 			"aws_sfn_state_machine_execution":                              tableAwsStepFunctionsStateMachineExecution(ctx),
 			"aws_sfn_state_machine":                                        tableAwsStepFunctionsStateMachine(ctx),
