@@ -36,11 +36,6 @@ func tableAwsEksAccessEntry(_ context.Context) *plugin.Table {
 				Func: getEksAccessEntry,
 				Tags: map[string]string{"service": "eks", "action": "DescribeAccessEntry"},
 			},
-			{
-				Func:    listEksAccessEntryAssociatedPolicies,
-				Depends: []plugin.HydrateFunc{getEksAccessEntry},
-				Tags:    map[string]string{"service": "eks", "action": "ListAssociatedAccessPolicies"},
-			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(AWS_EKS_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -90,13 +85,6 @@ func tableAwsEksAccessEntry(_ context.Context) *plugin.Table {
 				Description: "The username to authenticate to Kubernetes with.",
 				Type:        proto.ColumnType_STRING,
 				Hydrate:     getEksAccessEntry,
-			},
-			{
-				Name:        "access_policies",
-				Description: "The access policies associated with the access entry.",
-				Type:        proto.ColumnType_JSON,
-				Hydrate:     listEksAccessEntryAssociatedPolicies,
-				Transform:   transform.FromValue(),
 			},
 
 			// Steampipe standard columns
@@ -185,7 +173,7 @@ func listEKSAccessEntries(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 		}
 	}
 
-	return nil, err
+	return nil, nil
 }
 
 //// HYDRATE FUNCTIONS
@@ -223,49 +211,6 @@ func getEksAccessEntry(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	}
 
 	return op.AccessEntry, nil
-}
-
-func listEksAccessEntryAssociatedPolicies(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	// Get access entry from the getEksAccessEntry hydrate function
-	accessEntry := h.HydrateResults["getEksAccessEntry"].(*types.AccessEntry)
-	clusterName := accessEntry.ClusterName
-	principalArn := accessEntry.PrincipalArn
-
-	// create service
-	svc, err := EKSClient(ctx, d)
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_eks_access_entry.listEksAccessEntryAssociatedPolicies", "get_client_error", err)
-		return nil, err
-	}
-	if svc == nil {
-		// Unsupported region check
-		return nil, nil
-	}
-
-	input := &eks.ListAssociatedAccessPoliciesInput{
-		ClusterName:  clusterName,
-		PrincipalArn: principalArn,
-		MaxResults:   aws.Int32(100),
-	}
-
-	var policies []types.AssociatedAccessPolicy
-
-	paginator := eks.NewListAssociatedAccessPoliciesPaginator(svc, input, func(o *eks.ListAssociatedAccessPoliciesPaginatorOptions) {
-		o.Limit = *input.MaxResults
-		o.StopOnDuplicateToken = true
-	})
-
-	for paginator.HasMorePages() {
-		output, err := paginator.NextPage(ctx)
-		if err != nil {
-			plugin.Logger(ctx).Error("aws_eks_access_entry.listEksAccessEntryAssociatedPolicies", "api_error", err)
-			return nil, err
-		}
-
-		policies = append(policies, output.AssociatedAccessPolicies...)
-	}
-
-	return policies, nil
 }
 
 // AccessEntryInfo is a struct to hold cluster name and principal ARN for list operations
