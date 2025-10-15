@@ -278,33 +278,3 @@ from
     on apa.cluster_name = ae.cluster_name
     and apa.principal_arn = ae.principal_arn;
 ```
-
-### List policy associations with specific policy ARN
-Find all associations using a specific AWS-managed access policy.
-
-```sql+postgres
-select
-  cluster_name,
-  principal_arn,
-  policy_arn,
-  access_scope_type,
-  associated_at
-from
-  aws_eks_access_policy_association
-where
-  policy_arn like '%AmazonEKSClusterAdminPolicy';
-```
-
-```sql+sqlite
-select
-  cluster_name,
-  principal_arn,
-  policy_arn,
-  access_scope_type,
-  associated_at
-from
-  aws_eks_access_policy_association
-where
-  policy_arn like '%AmazonEKSClusterAdminPolicy';
-```
-

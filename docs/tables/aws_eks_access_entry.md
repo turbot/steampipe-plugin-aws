@@ -120,35 +120,6 @@ group by
   cluster_name;
 ```
 
-### List access entries with associated access policies
-Explore which IAM principals have access policies associated with their access entries.
-
-```sql+postgres
-select
-  cluster_name,
-  principal_arn,
-  type,
-  jsonb_pretty(access_policies) as policies
-from
-  aws_eks_access_entry
-where
-  access_policies is not null
-  and jsonb_array_length(access_policies) > 0;
-```
-
-```sql+sqlite
-select
-  cluster_name,
-  principal_arn,
-  type,
-  access_policies as policies
-from
-  aws_eks_access_entry
-where
-  access_policies is not null
-  and json_array_length(access_policies) > 0;
-```
-
 ### List access entries created in the last 30 days
 Identify recently created access entries to monitor new cluster access grants.
 
