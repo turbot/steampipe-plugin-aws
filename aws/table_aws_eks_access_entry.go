@@ -48,7 +48,6 @@ func tableAwsEksAccessEntry(_ context.Context) *plugin.Table {
 				Name:        "principal_arn",
 				Description: "The ARN of the IAM principal for the AccessEntry.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getEksAccessEntry,
 			},
 			{
 				Name:        "access_entry_arn",
