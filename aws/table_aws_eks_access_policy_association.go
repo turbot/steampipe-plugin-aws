@@ -24,7 +24,7 @@ func tableAwsEksAccessPolicyAssociation(_ context.Context) *plugin.Table {
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "InvalidParameterException", "InvalidParameter"}),
 			},
 			Hydrate: getEksAccessPolicyAssociation,
-			Tags:    map[string]string{"service": "eks", "action": "DescribeAccessPolicyAssociation"},
+			Tags:    map[string]string{"service": "eks", "action": "ListAssociatedAccessPolicies"},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listEKSAccessPolicyAssociations,
