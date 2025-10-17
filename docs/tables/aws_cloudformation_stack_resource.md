@@ -162,3 +162,36 @@ from
 where
   resource_status = 'UPDATE_FAILED';
 ```
+
+### Find stack resource by physical resource ID
+Quickly locate a specific CloudFormation resource using its physical resource ID (e.g., ARN, instance ID, etc.). This is useful for mapping physical AWS resources back to their CloudFormation stack and logical resource definition.
+
+```sql+postgres
+select
+  stack_name,
+  stack_id,
+  logical_resource_id,
+  physical_resource_id,
+  resource_type,
+  resource_status,
+  last_updated_timestamp
+from
+  aws_cloudformation_stack_resource
+where
+  physical_resource_id = 'arn:aws:elasticloadbalancing:us-east-1:123456789012:targetgroup/my-target-group/1234567890123456';
+```
+
+```sql+sqlite
+select
+  stack_name,
+  stack_id,
+  logical_resource_id,
+  physical_resource_id,
+  resource_type,
+  resource_status,
+  last_updated_timestamp
+from
+  aws_cloudformation_stack_resource
+where
+  physical_resource_id = 'arn:aws:elasticloadbalancing:us-east-1:123456789012:targetgroup/my-target-group/1234567890123456';
+```

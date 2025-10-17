@@ -11,6 +11,7 @@
       }
     ],
     "volume_id": "{{ output.volume_id.value }}",
-    "volume_size": 1
+    "volume_size": 1,
+    "full_snapshot_size_in_bytes": 1073741824
   }
 ]

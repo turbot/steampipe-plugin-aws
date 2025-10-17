@@ -1,3 +1,29 @@
+## v1.25.0 [2025-10-14]
+
+_Enhancements_
+
+- Added `full_snapshot_size_in_bytes` column to `aws_ebs_snapshot` table. ([#2652](https://github.com/turbot/steampipe-plugin-aws/pull/2652)) (Thanks [@bahybintang](https://github.com/bahybintang) for the contribution!)
+
+_Bug fixes_
+
+- Fixed the default rate limiter configuration for `AWS Kinesis` service tables. ([#2644](https://github.com/turbot/steampipe-plugin-aws/pull/2644))  (Thanks [@pdecat](https://github.com/pdecat) for the contribution!)
+
+_Dependencies_
+
+- Recompiled plugin with [steampipe-plugin-sdk v5.13.1](https://github.com/turbot/steampipe-plugin-sdk/blob/develop/CHANGELOG.md#v5131-2025-09-25) that addresses critical and high vulnerabilities in dependent packages. ([#2649](https://github.com/turbot/steampipe-plugin-aws/pull/2649))
+
+## v1.24.0 [2025-09-19]
+
+_Enhancements_
+
+- Added `physical_resource_id` column as an optional qualifier to the `aws_cloudformation_stack_resource` table. ([#2635](https://github.com/turbot/steampipe-plugin-aws/pull/2635))
+- Added `metadata` column to `aws_cloudformation_stack_resource` table. ([#2635](https://github.com/turbot/steampipe-plugin-aws/pull/2635))
+- Added default rate limit configuration for `AWS Lambda` service tables. ([#2561](https://github.com/turbot/steampipe-plugin-aws/pull/2561))
+
+_Bug fixes_
+
+- Fixed the `aws_availability_zone` table to respect `ignore_error_codes` and  `ignore_error_messages` connection config arguments. ([#2640](https://github.com/turbot/steampipe-plugin-aws/pull/2640))
+
 ## v1.23.0 [2025-08-22]
 
 _What's new?_

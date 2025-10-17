@@ -101,6 +101,11 @@ func tableAwsEBSSnapshot(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "full_snapshot_size_in_bytes",
+				Description: "The full size of the snapshot, in bytes.",
+				Type:        proto.ColumnType_INT,
+			},
+			{
 				Name:        "encrypted",
 				Description: "Indicates whether the snapshot is encrypted.",
 				Type:        proto.ColumnType_BOOL,
