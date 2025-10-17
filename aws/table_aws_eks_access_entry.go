@@ -136,11 +136,7 @@ func listEKSAccessEntries(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 	if d.QueryContext.Limit != nil {
 		limit := int32(*d.QueryContext.Limit)
 		if limit < *input.MaxResults {
-			if limit < 1 {
-				input.MaxResults = aws.Int32(1)
-			} else {
-				input.MaxResults = aws.Int32(limit)
-			}
+			input.MaxResults = aws.Int32(limit)
 		}
 	}
 
@@ -187,12 +183,18 @@ func getEksAccessEntry(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 		principalArn = d.EqualsQuals["principal_arn"].GetStringValue()
 	}
 
+	// check for empty parameters
+	if clusterName == "" || principalArn == "" {
+		return nil, nil
+	}
+
 	// create service
 	svc, err := EKSClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_eks_access_entry.getEksAccessEntry", "get_client_error", err)
 		return nil, err
 	}
+
 	if svc == nil {
 		// Unsupported region check
 		return nil, nil
