@@ -3,6 +3,7 @@
 _Enhancements_
 
 - Added `full_snapshot_size_in_bytes` column to `aws_ebs_snapshot` table. ([#2652](https://github.com/turbot/steampipe-plugin-aws/pull/2652)) (Thanks [@bahybintang](https://github.com/bahybintang) for the contribution!)
+- Added `code` column to `aws_lambda_version` table. ([#2649](https://github.com/turbot/steampipe-plugin-aws/pull/2649))
 
 _Bug fixes_
 
