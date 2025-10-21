@@ -105,6 +105,12 @@ func tableAwsLambdaAlias(_ context.Context) *plugin.Table {
 				Hydrate:     getLambdaAliasUrlConfig,
 				Transform:   transform.FromValue(),
 			},
+			{
+				Name:        "routing_config",
+				Description: "The routing configuration of the alias, including additional version weights for traffic splitting.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("Alias.RoutingConfig"),
+			},
 
 			// Steampipe standard columns
 			{
