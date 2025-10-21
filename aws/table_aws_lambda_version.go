@@ -488,6 +488,5 @@ func getFunctionVersionCode(ctx context.Context, d *plugin.QueryData, h *plugin.
 		return nil, err
 	}
 
-	// Return just the Code field since that's what we want
-	return op.Code, nil
+	return op, nil
 }
