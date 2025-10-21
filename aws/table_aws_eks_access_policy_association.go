@@ -18,17 +18,10 @@ func tableAwsEksAccessPolicyAssociation(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_eks_access_policy_association",
 		Description: "AWS EKS Access Policy Association",
-		Get: &plugin.GetConfig{
-			KeyColumns: plugin.AllColumns([]string{"cluster_name", "principal_arn", "policy_arn"}),
-			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "InvalidParameterException", "InvalidParameter"}),
-			},
-			Hydrate: getEksAccessPolicyAssociation,
-			Tags:    map[string]string{"service": "eks", "action": "ListAssociatedAccessPolicies"},
-		},
 		List: &plugin.ListConfig{
-			Hydrate: listEKSAccessPolicyAssociations,
-			Tags:    map[string]string{"service": "eks", "action": "ListAssociatedAccessPolicies"},
+			ParentHydrate: listEKSClusters,
+			Hydrate:       listEKSAccessPolicyAssociations,
+			Tags:          map[string]string{"service": "eks", "action": "ListAssociatedAccessPolicies"},
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "cluster_name", Require: plugin.Optional},
 				{Name: "principal_arn", Require: plugin.Optional},
@@ -50,25 +43,21 @@ func tableAwsEksAccessPolicyAssociation(_ context.Context) *plugin.Table {
 				Name:        "policy_arn",
 				Description: "The ARN of the access policy.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("AssociatedAccessPolicy.PolicyArn"),
 			},
 			{
 				Name:        "associated_at",
 				Description: "The date and time that the access policy was associated.",
 				Type:        proto.ColumnType_TIMESTAMP,
-				Transform:   transform.FromField("AssociatedAccessPolicy.AssociatedAt"),
 			},
 			{
 				Name:        "modified_at",
 				Description: "The date and time that the access policy association was last modified.",
 				Type:        proto.ColumnType_TIMESTAMP,
-				Transform:   transform.FromField("AssociatedAccessPolicy.ModifiedAt"),
 			},
 			{
 				Name:        "access_scope",
 				Description: "The scope of the access policy association.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("AssociatedAccessPolicy.AccessScope"),
 			},
 			{
 				Name:        "access_scope_type",
@@ -100,13 +89,20 @@ func tableAwsEksAccessPolicyAssociation(_ context.Context) *plugin.Table {
 	}
 }
 
+type AssociatedAccessPolicyInfo struct {
+	ClusterName  *string
+	PrincipalArn *string
+	types.AssociatedAccessPolicy
+}
+
 //// LIST FUNCTION
 
 func listEKSAccessPolicyAssociations(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	clusterName := *h.Item.(types.Cluster).Name
 	// Create service
 	svc, err := EKSClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_eks_access_policy_association.listEKSAccessPolicyAssociations", "get_client_error", err)
+		plugin.Logger(ctx).Error("aws_eks_access_policy_association.listEKSAccessPolicyAssociations", "connection_error", err)
 		return nil, err
 	}
 	if svc == nil {
@@ -114,97 +110,64 @@ func listEKSAccessPolicyAssociations(ctx context.Context, d *plugin.QueryData, h
 		return nil, nil
 	}
 
+	accessEntries, err := listAccessEntriesByClusterName(ctx, svc, clusterName)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_eks_access_policy_association.listAccessEntriesByClusterName", "api_error", err)
+		return nil, err
+	}
 	// Get optional filter values
-	filterClusterName := d.EqualsQuals["cluster_name"]
-	filterPrincipalArn := d.EqualsQuals["principal_arn"]
+	filterClusterName := d.EqualsQuals["cluster_name"].GetStringValue()
+	filterPrincipalArn := d.EqualsQuals["principal_arn"].GetStringValue()
 
-	// Step 1: List all clusters (or specific cluster if filtered)
-	clusterInput := &eks.ListClustersInput{
-		MaxResults: aws.Int32(100),
+	if filterClusterName != "" && filterClusterName != clusterName {
+		return nil, nil
 	}
 
-	clusterPaginator := eks.NewListClustersPaginator(svc, clusterInput, func(o *eks.ListClustersPaginatorOptions) {
-		o.Limit = *clusterInput.MaxResults
-		o.StopOnDuplicateToken = true
-	})
+	for _, accessEntry := range accessEntries {
 
-	for clusterPaginator.HasMorePages() {
-		d.WaitForListRateLimit(ctx)
-
-		clusterOutput, err := clusterPaginator.NextPage(ctx)
-		if err != nil {
-			plugin.Logger(ctx).Error("aws_eks_access_policy_association.listEKSAccessPolicyAssociations", "list_clusters_error", err)
-			return nil, err
+		if filterPrincipalArn != "" && filterPrincipalArn != accessEntry {
+			return nil, nil
 		}
 
-		for _, clusterName := range clusterOutput.Clusters {
-			// Skip if cluster name filter doesn't match
-			if filterClusterName != nil && filterClusterName.GetStringValue() != clusterName {
-				continue
-			}
+		input := &eks.ListAssociatedAccessPoliciesInput{
+			ClusterName:  aws.String(clusterName),
+			PrincipalArn: aws.String(accessEntry),
+			MaxResults:   aws.Int32(100),
+		}
 
-			// Step 2: List access entries for this cluster
-			accessEntryInput := &eks.ListAccessEntriesInput{
-				ClusterName: &clusterName,
-				MaxResults:  aws.Int32(100),
-			}
-
-			accessEntryPaginator := eks.NewListAccessEntriesPaginator(svc, accessEntryInput, func(o *eks.ListAccessEntriesPaginatorOptions) {
-				o.Limit = *accessEntryInput.MaxResults
-				o.StopOnDuplicateToken = true
-			})
-
-			for accessEntryPaginator.HasMorePages() {
-				d.WaitForListRateLimit(ctx)
-
-				accessEntryOutput, err := accessEntryPaginator.NextPage(ctx)
-				if err != nil {
-					plugin.Logger(ctx).Error("aws_eks_access_policy_association.listEKSAccessPolicyAssociations", "list_access_entries_error", err)
-					// Continue with next cluster if this one fails
-					break
+		if d.QueryContext.Limit != nil {
+			limit := int32(*d.QueryContext.Limit)
+			if limit < *input.MaxResults {
+				if limit < 1 {
+					input.MaxResults = aws.Int32(1)
+				} else {
+					input.MaxResults = aws.Int32(limit)
 				}
+			}
+		}
 
-				for _, principalArn := range accessEntryOutput.AccessEntries {
-					// Skip if principal ARN filter doesn't match
-					if filterPrincipalArn != nil && filterPrincipalArn.GetStringValue() != principalArn {
-						continue
-					}
+		paginator := eks.NewListAssociatedAccessPoliciesPaginator(svc, input, func(o *eks.ListAssociatedAccessPoliciesPaginatorOptions) {
+			o.Limit = *input.MaxResults
+			o.StopOnDuplicateToken = true
+		})
 
-					// Step 3: List associated access policies for this access entry
-					policyInput := &eks.ListAssociatedAccessPoliciesInput{
-						ClusterName:  &clusterName,
-						PrincipalArn: &principalArn,
-						MaxResults:   aws.Int32(100),
-					}
+		for paginator.HasMorePages() {
+			// apply rate limiting
+			d.WaitForListRateLimit(ctx)
 
-					policyPaginator := eks.NewListAssociatedAccessPoliciesPaginator(svc, policyInput, func(o *eks.ListAssociatedAccessPoliciesPaginatorOptions) {
-						o.Limit = *policyInput.MaxResults
-						o.StopOnDuplicateToken = true
-					})
+			output, err := paginator.NextPage(ctx)
+			if err != nil {
+				plugin.Logger(ctx).Error("aws_eks_access_policy_association.listEKSAccessPolicyAssociations", "api_error", err)
+				return nil, err
+			}
 
-					for policyPaginator.HasMorePages() {
-						d.WaitForListRateLimit(ctx)
+			for _, item := range output.AssociatedAccessPolicies {
 
-						policyOutput, err := policyPaginator.NextPage(ctx)
-						if err != nil {
-							plugin.Logger(ctx).Error("aws_eks_access_policy_association.listEKSAccessPolicyAssociations", "list_policies_error", err)
-							// Continue with next access entry if this one fails
-							break
-						}
+				d.StreamListItem(ctx, &AssociatedAccessPolicyInfo{output.ClusterName, output.PrincipalArn, item})
 
-						for _, policy := range policyOutput.AssociatedAccessPolicies {
-							d.StreamListItem(ctx, &AccessPolicyAssociationInfo{
-								ClusterName:            &clusterName,
-								PrincipalArn:           &principalArn,
-								AssociatedAccessPolicy: policy,
-							})
-
-							// Context can be cancelled due to manual cancellation or the limit has been hit
-							if d.RowsRemaining(ctx) == 0 {
-								return nil, nil
-							}
-						}
-					}
+				// Context can be cancelled due to manual cancellation or the limit has been hit
+				if d.RowsRemaining(ctx) == 0 {
+					return nil, nil
 				}
 			}
 		}
@@ -213,41 +176,15 @@ func listEKSAccessPolicyAssociations(ctx context.Context, d *plugin.QueryData, h
 	return nil, nil
 }
 
-//// HYDRATE FUNCTIONS
+func listAccessEntriesByClusterName(ctx context.Context, svc *eks.Client, clusterName string) ([]string, error) {
 
-func getEksAccessPolicyAssociation(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	var clusterName, principalArn, policyArn string
-	if h.Item != nil {
-		item := h.Item.(*AccessPolicyAssociationInfo)
-		clusterName = *item.ClusterName
-		principalArn = *item.PrincipalArn
-		policyArn = *item.AssociatedAccessPolicy.PolicyArn
-	} else {
-		clusterName = d.EqualsQuals["cluster_name"].GetStringValue()
-		principalArn = d.EqualsQuals["principal_arn"].GetStringValue()
-		policyArn = d.EqualsQuals["policy_arn"].GetStringValue()
+	accessEntries := make([]string, 0)
+	input := &eks.ListAccessEntriesInput{
+		ClusterName: &clusterName,
+		MaxResults:  aws.Int32(100),
 	}
 
-	// create service
-	svc, err := EKSClient(ctx, d)
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_eks_access_policy_association.getEksAccessPolicyAssociation", "get_client_error", err)
-		return nil, err
-	}
-	if svc == nil {
-		// Unsupported region check
-		return nil, nil
-	}
-
-	// Use ListAssociatedAccessPolicies and filter for the specific policy
-	// since there's no direct DescribeAccessPolicyAssociation API
-	input := &eks.ListAssociatedAccessPoliciesInput{
-		ClusterName:  &clusterName,
-		PrincipalArn: &principalArn,
-		MaxResults:   aws.Int32(100),
-	}
-
-	paginator := eks.NewListAssociatedAccessPoliciesPaginator(svc, input, func(o *eks.ListAssociatedAccessPoliciesPaginatorOptions) {
+	paginator := eks.NewListAccessEntriesPaginator(svc, input, func(o *eks.ListAccessEntriesPaginatorOptions) {
 		o.Limit = *input.MaxResults
 		o.StopOnDuplicateToken = true
 	})
@@ -255,27 +192,13 @@ func getEksAccessPolicyAssociation(ctx context.Context, d *plugin.QueryData, h *
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_eks_access_policy_association.getEksAccessPolicyAssociation", "api_error", err)
+			plugin.Logger(ctx).Error("aws_eks_access_policy_association.listAccessEntriesByClusterName", "api_error", err)
 			return nil, err
 		}
 
-		for _, item := range output.AssociatedAccessPolicies {
-			if *item.PolicyArn == policyArn {
-				return &AccessPolicyAssociationInfo{
-					ClusterName:            &clusterName,
-					PrincipalArn:           &principalArn,
-					AssociatedAccessPolicy: item,
-				}, nil
-			}
-		}
+		accessEntries = append(accessEntries, output.AccessEntries...)
 	}
 
-	return nil, nil
-}
+	return accessEntries, nil
 
-// AccessPolicyAssociationInfo is a struct to hold cluster name, principal ARN, and policy details
-type AccessPolicyAssociationInfo struct {
-	ClusterName            *string
-	PrincipalArn           *string
-	AssociatedAccessPolicy types.AssociatedAccessPolicy
 }
