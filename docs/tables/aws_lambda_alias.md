@@ -97,3 +97,30 @@ select
 from
   aws_lambda_alias;
 ```
+
+### List aliases with traffic routing configurations
+Identify Lambda aliases that use traffic routing between multiple function versions. This helps in understanding and managing gradual deployments and version transitions.
+
+```sql+postgres
+select
+  name,
+  function_name,
+  function_version as primary_version,
+  jsonb_pretty(routing_config) as routing_config
+from
+  aws_lambda_alias
+where
+  routing_config is not null;
+```
+
+```sql+sqlite
+select
+  name,
+  function_name,
+  function_version as primary_version,
+  routing_config
+from
+  aws_lambda_alias
+where
+  routing_config is not null;
+```
