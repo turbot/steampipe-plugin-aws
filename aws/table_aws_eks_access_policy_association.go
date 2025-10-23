@@ -16,7 +16,7 @@ import (
 
 func tableAwsEksAccessPolicyAssociation(_ context.Context) *plugin.Table {
 	return &plugin.Table{
-		Name:        "",
+		Name:        "aws_eks_access_policy_association",
 		Description: "AWS EKS Access Policy Association",
 		List: &plugin.ListConfig{
 			ParentHydrate: listEKSClusters,
