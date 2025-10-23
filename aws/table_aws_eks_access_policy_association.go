@@ -16,7 +16,7 @@ import (
 
 func tableAwsEksAccessPolicyAssociation(_ context.Context) *plugin.Table {
 	return &plugin.Table{
-		Name:        "aws_eks_access_policy_association",
+		Name:        "",
 		Description: "AWS EKS Access Policy Association",
 		List: &plugin.ListConfig{
 			ParentHydrate: listEKSClusters,
@@ -123,6 +123,7 @@ func listEKSAccessPolicyAssociations(ctx context.Context, d *plugin.QueryData, h
 		return nil, nil
 	}
 
+	// The accessEntry corresponds to the PrincipalArn.
 	for _, accessEntry := range accessEntries {
 
 		if filterPrincipalArn != "" && filterPrincipalArn != accessEntry {
