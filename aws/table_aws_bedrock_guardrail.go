@@ -22,11 +22,9 @@ func tableAwsBedrockGuardrail(_ context.Context) *plugin.Table {
 		},
 		Get: &plugin.GetConfig{
 			// allow lookup by ID or ARN (both map to GuardrailIdentifier)
-			KeyColumns: []*plugin.KeyColumn{
-				{Name: "guardrail_id", Require: plugin.Required},
-			},
-			Hydrate: getBedrockGuardrail,
-			Tags:    map[string]string{"service": "bedrock", "action": "GetGuardrail"},
+			KeyColumns: plugin.SingleColumn("arn"),
+			Hydrate:    getBedrockGuardrail,
+			Tags:       map[string]string{"service": "bedrock", "action": "GetGuardrail"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
@@ -123,21 +121,6 @@ func listBedrockGuardrails(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 
 func getBedrockGuardrail(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
-	var guardrailId string
-
-	if h.Item != nil {
-		// Retrieve guardrailId from the List call
-		guardrail := h.Item.(types.GuardrailSummary)
-		guardrailId = *guardrail.Id
-	} else {
-		guardrailId = d.EqualsQuals["guardrail_id"].GetStringValue()
-	}
-
-	// Empty check
-	if guardrailId == "" {
-		return nil, nil
-	}
-
 	// Create service
 	svc, err := BedrockClient(ctx, d)
 
@@ -151,13 +134,32 @@ func getBedrockGuardrail(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 		return nil, err
 	}
 
+	var guardrailId string
+
+	if h.Item != nil {
+		// Retrieve guardrailId from the List call
+		guardrail := h.Item.(types.GuardrailSummary)
+		guardrailId = *guardrail.Arn
+	} else {
+		guardrailId = d.EqualsQuals["arn"].GetStringValue()
+	}
+
+	// Empty check
+	if guardrailId == "" {
+		plugin.Logger(ctx).Debug("aws_bedrock_guardrail.getBedrockGuardrail", "guardrail_id is empty")
+		return nil, nil
+	}
+
 	// Build the params
-	data, err := svc.GetGuardrail(ctx, &bedrock.GetGuardrailInput{
-		GuardrailIdentifier: aws.String(guardrailId), // accepts ID or ARN
-	})
+	params := &bedrock.GetGuardrailInput{
+		GuardrailIdentifier: aws.String(guardrailId),
+	}
+
+	data, err := svc.GetGuardrail(ctx, params)
 
 	if err != nil {
 		if strings.Contains(strings.ToLower(err.Error()), strings.ToLower("ValidationException")) {
+			plugin.Logger(ctx).Debug("aws_bedrock_guardrail.getBedrockGuardrail", "apple")
 			return nil, nil
 		}
 		plugin.Logger(ctx).Error("aws_bedrock_guardrail.getBedrockGuardrail", "api_error", err)
