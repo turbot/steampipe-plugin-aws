@@ -21,19 +21,24 @@ func tableAwsBedrockGuardrail(_ context.Context) *plugin.Table {
 			Tags:    map[string]string{"service": "bedrock", "action": "ListGuardrails"},
 		},
 		Get: &plugin.GetConfig{
-			// allow lookup by ID or ARN (both map to GuardrailIdentifier)
-			KeyColumns: plugin.SingleColumn("arn"),
+			KeyColumns: plugin.SingleColumn("guardrail_id"),
 			Hydrate:    getBedrockGuardrail,
 			Tags:       map[string]string{"service": "bedrock", "action": "GetGuardrail"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
 		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getBedrockGuardrail,
+				Tags: map[string]string{"service": "bedrock", "action": "GetGuardrail"},
+			},
+		},
 		GetMatrixItemFunc: SupportedRegionMatrix(AWS_BEDROCK_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			// String columns (available in List)
-			{Name: "arn", Type: proto.ColumnType_STRING, Description: "ARN of the guardrail."},
-			{Name: "guardrail_id", Type: proto.ColumnType_STRING, Description: "ID of the guardrail.", Transform: transform.FromField("Id")},
+			{Name: "arn", Type: proto.ColumnType_STRING, Description: "ARN of the guardrail.", Transform: transform.From(guardrailArn)},
+			{Name: "guardrail_id", Type: proto.ColumnType_STRING, Description: "ID of the guardrail.", Transform: transform.From(guardrailID)},
 			{Name: "name", Type: proto.ColumnType_STRING, Description: "Name of the guardrail."},
 			{Name: "description", Type: proto.ColumnType_STRING, Description: "Description of the guardrail."},
 			{Name: "status", Type: proto.ColumnType_STRING, Description: "Status of the guardrail."},
@@ -60,7 +65,7 @@ func tableAwsBedrockGuardrail(_ context.Context) *plugin.Table {
 
 			// Steampipe standard columns
 			{Name: "title", Type: proto.ColumnType_STRING, Description: resourceInterfaceDescription("title"), Transform: transform.FromField("Name")},
-			{Name: "akas", Type: proto.ColumnType_JSON, Description: resourceInterfaceDescription("akas"), Transform: transform.FromField("Arn").Transform(transform.EnsureStringArray)},
+			{Name: "akas", Type: proto.ColumnType_JSON, Description: resourceInterfaceDescription("akas"), Transform: transform.From(guardrailArn).Transform(transform.EnsureStringArray)},
 		}),
 	}
 }
@@ -139,14 +144,12 @@ func getBedrockGuardrail(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	if h.Item != nil {
 		// Retrieve guardrailId from the List call
 		guardrail := h.Item.(types.GuardrailSummary)
-		guardrailId = *guardrail.Arn
+		guardrailId = *guardrail.Id
 	} else {
-		guardrailId = d.EqualsQuals["arn"].GetStringValue()
+		guardrailId = d.EqualsQuals["guardrail_id"].GetStringValue()
 	}
 
-	// Empty check
-	if guardrailId == "" {
-		plugin.Logger(ctx).Debug("aws_bedrock_guardrail.getBedrockGuardrail", "guardrail_id is empty")
+	if strings.TrimSpace(guardrailId) == "" {
 		return nil, nil
 	}
 
@@ -159,7 +162,7 @@ func getBedrockGuardrail(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 
 	if err != nil {
 		if strings.Contains(strings.ToLower(err.Error()), strings.ToLower("ValidationException")) {
-			plugin.Logger(ctx).Debug("aws_bedrock_guardrail.getBedrockGuardrail", "apple")
+			plugin.Logger(ctx).Debug("aws_bedrock_guardrail.getBedrockGuardrail", "validation_exception", err)
 			return nil, nil
 		}
 		plugin.Logger(ctx).Error("aws_bedrock_guardrail.getBedrockGuardrail", "api_error", err)
@@ -167,4 +170,25 @@ func getBedrockGuardrail(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	}
 
 	return data, nil
+}
+
+// Transform functions to handle field name differences between GuardrailSummary (List) and GetGuardrailOutput (Get)
+func guardrailID(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+	switch item := d.HydrateItem.(type) {
+	case types.GuardrailSummary:
+		return item.Id, nil
+	case *bedrock.GetGuardrailOutput:
+		return item.GuardrailId, nil
+	}
+	return nil, nil
+}
+
+func guardrailArn(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+	switch item := d.HydrateItem.(type) {
+	case types.GuardrailSummary:
+		return item.Arn, nil
+	case *bedrock.GetGuardrailOutput:
+		return item.GuardrailArn, nil
+	}
+	return nil, nil
 }
