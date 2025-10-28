@@ -2,25 +2,15 @@ package aws
 
 import (
 	"context"
-	"time"
+	"strings"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/bedrock"
+	"github.com/aws/aws-sdk-go-v2/service/bedrock/types"
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
-
-// unified row used for both List and Get paths
-type bedrockGuardrailRow struct {
-	Arn         string    `json:"Arn"`
-	GuardrailId string    `json:"GuardrailId"`
-	Name        string    `json:"Name"`
-	Description string    `json:"Description"`
-	Status      string    `json:"Status"`
-	Version     string    `json:"Version"`
-	CreatedAt   time.Time `json:"CreatedAt"`
-	UpdatedAt   time.Time `json:"UpdatedAt"`
-}
 
 func tableAwsBedrockGuardrail(_ context.Context) *plugin.Table {
 	return &plugin.Table{
@@ -32,74 +22,97 @@ func tableAwsBedrockGuardrail(_ context.Context) *plugin.Table {
 		},
 		Get: &plugin.GetConfig{
 			// allow lookup by ID or ARN (both map to GuardrailIdentifier)
-			KeyColumns: plugin.AnyColumn([]string{"guardrail_id", "arn"}),
-			Hydrate:    getBedrockGuardrail,
-			Tags:       map[string]string{"service": "bedrock", "action": "GetGuardrail"},
+			KeyColumns: []*plugin.KeyColumn{
+				{Name: "guardrail_id", Require: plugin.Required},
+			},
+			Hydrate: getBedrockGuardrail,
+			Tags:    map[string]string{"service": "bedrock", "action": "GetGuardrail"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(AWS_BEDROCK_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
-			// identifiers
-			{Name: "arn", Type: proto.ColumnType_STRING, Description: "ARN of the guardrail.", Transform: transform.FromField("Arn")},
-			{Name: "guardrail_id", Type: proto.ColumnType_STRING, Description: "ID of the guardrail.", Transform: transform.FromField("GuardrailId")},
+			// String columns (available in List)
+			{Name: "arn", Type: proto.ColumnType_STRING, Description: "ARN of the guardrail."},
+			{Name: "guardrail_id", Type: proto.ColumnType_STRING, Description: "ID of the guardrail.", Transform: transform.FromField("Id")},
+			{Name: "name", Type: proto.ColumnType_STRING, Description: "Name of the guardrail."},
+			{Name: "description", Type: proto.ColumnType_STRING, Description: "Description of the guardrail."},
+			{Name: "status", Type: proto.ColumnType_STRING, Description: "Status of the guardrail."},
+			{Name: "version", Type: proto.ColumnType_STRING, Description: "Version (DRAFT or a number)."},
 
-			// metadata
-			{Name: "name", Type: proto.ColumnType_STRING, Description: "Name of the guardrail.", Transform: transform.FromField("Name")},
-			{Name: "description", Type: proto.ColumnType_STRING, Description: "Description of the guardrail.", Transform: transform.FromField("Description")},
+			// Timestamp columns (available in List)
+			{Name: "created_at", Type: proto.ColumnType_TIMESTAMP, Description: "The time at which the guardrail was created."},
+			{Name: "updated_at", Type: proto.ColumnType_TIMESTAMP, Description: "The time at which the guardrail was last updated."},
 
-			// status / version
-			{Name: "status", Type: proto.ColumnType_STRING, Description: "Status of the guardrail.", Transform: transform.FromField("Status")},
-			{Name: "version", Type: proto.ColumnType_STRING, Description: "Version (DRAFT or a number).", Transform: transform.FromField("Version")},
+			// Additional fields from Get call
+			{Name: "blocked_input_messaging", Type: proto.ColumnType_STRING, Description: "The message that the guardrail returns when it blocks a prompt.", Hydrate: getBedrockGuardrail},
+			{Name: "blocked_outputs_messaging", Type: proto.ColumnType_STRING, Description: "The message that the guardrail returns when it blocks a model response.", Hydrate: getBedrockGuardrail},
+			{Name: "kms_key_arn", Type: proto.ColumnType_STRING, Description: "The ARN of the KMS key that encrypts the guardrail.", Hydrate: getBedrockGuardrail},
 
-			// timestamps
-			{Name: "created_at", Type: proto.ColumnType_TIMESTAMP, Transform: transform.FromField("CreatedAt")},
-			{Name: "updated_at", Type: proto.ColumnType_TIMESTAMP, Transform: transform.FromField("UpdatedAt")},
+			// JSON columns (from Get call)
+			{Name: "content_policy", Type: proto.ColumnType_JSON, Description: "The content policy configuration for the guardrail.", Hydrate: getBedrockGuardrail},
+			{Name: "contextual_grounding_policy", Type: proto.ColumnType_JSON, Description: "The contextual grounding policy settings.", Hydrate: getBedrockGuardrail},
+			{Name: "sensitive_information_policy", Type: proto.ColumnType_JSON, Description: "The policy for handling sensitive information.", Hydrate: getBedrockGuardrail},
+			{Name: "topic_policy", Type: proto.ColumnType_JSON, Description: "The topic-based policy configuration.", Hydrate: getBedrockGuardrail},
+			{Name: "word_policy", Type: proto.ColumnType_JSON, Description: "The word-based policy settings.", Hydrate: getBedrockGuardrail},
+			{Name: "cross_region_details", Type: proto.ColumnType_JSON, Description: "Details about system-defined guardrail profile across regions.", Hydrate: getBedrockGuardrail},
+			{Name: "failure_recommendations", Type: proto.ColumnType_JSON, Description: "List of recommendations if guardrail creation/update failed.", Hydrate: getBedrockGuardrail},
+			{Name: "status_reasons", Type: proto.ColumnType_JSON, Description: "Reasons for failure status if applicable.", Hydrate: getBedrockGuardrail},
 
-			// steampipe standard
-			{Name: "title", Type: proto.ColumnType_STRING, Transform: transform.FromField("Name")},
-			{Name: "akas", Type: proto.ColumnType_JSON, Transform: transform.FromField("Arn").Transform(transform.EnsureStringArray)},
+			// Steampipe standard columns
+			{Name: "title", Type: proto.ColumnType_STRING, Description: resourceInterfaceDescription("title"), Transform: transform.FromField("Name")},
+			{Name: "akas", Type: proto.ColumnType_JSON, Description: resourceInterfaceDescription("akas"), Transform: transform.FromField("Arn").Transform(transform.EnsureStringArray)},
 		}),
 	}
 }
 
-// LIST: map GuardrailSummary -> bedrockGuardrailRow (ensures Arn/Id are set)
 func listBedrockGuardrails(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	// Create Session
 	svc, err := BedrockClient(ctx, d)
+
 	if svc == nil {
+		// Unsupported region, return no data
 		return nil, nil
 	}
+
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_bedrock_guardrail.listBedrockGuardrails", "connection_error", err)
-		return nil, err
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_bedrock_guardrail.listBedrockGuardrails", "connection_error", err)
-		return nil, err
-	}
-	if svc == nil {
 		return nil, err
 	}
 
-	p := bedrock.NewListGuardrailsPaginator(svc, &bedrock.ListGuardrailsInput{})
-	for p.HasMorePages() {
-		out, err := p.NextPage(ctx)
+	// Limiting the results
+	maxLimit := int32(1000)
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			maxLimit = limit
+		}
+	}
+
+	input := &bedrock.ListGuardrailsInput{
+		MaxResults: aws.Int32(maxLimit),
+	}
+
+	paginator := bedrock.NewListGuardrailsPaginator(svc, input, func(o *bedrock.ListGuardrailsPaginatorOptions) {
+		o.Limit = maxLimit
+		o.StopOnDuplicateToken = true
+	})
+
+	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
+		output, err := paginator.NextPage(ctx)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_bedrock_guardrail.listBedrockGuardrails", "api_error", err)
 			return nil, err
 		}
-		for _, s := range out.Guardrails {
-			row := bedrockGuardrailRow{
-				Arn:         str(s.Arn),
-				GuardrailId: str(s.Id),
-				Name:        str(s.Name),
-				Description: str(s.Description),
-				Status:      string(s.Status),
-				Version:     str(s.Version),
-				CreatedAt:   t(s.CreatedAt),
-				UpdatedAt:   t(s.UpdatedAt),
-			}
-			d.StreamListItem(ctx, row)
+
+		for _, guardrail := range output.Guardrails {
+			d.StreamListItem(ctx, guardrail)
+
+			// Context can be cancelled due to manual cancellation or the limit has been hit
 			if d.RowsRemaining(ctx) == 0 {
 				return nil, nil
 			}
@@ -108,74 +121,48 @@ func listBedrockGuardrails(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 	return nil, nil
 }
 
-// GET: map GetGuardrailOutput -> bedrockGuardrailRow (ensures Arn/Id are set)
-func getBedrockGuardrail(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
-	id := d.EqualsQualString("guardrail_id")
-	if id == "" {
-		id = d.EqualsQualString("arn")
+func getBedrockGuardrail(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+
+	var guardrailId string
+
+	if h.Item != nil {
+		// Retrieve guardrailId from the List call
+		guardrail := h.Item.(types.GuardrailSummary)
+		guardrailId = *guardrail.Id
+	} else {
+		guardrailId = d.EqualsQuals["guardrail_id"].GetStringValue()
 	}
-	if id == "" {
+
+	// Empty check
+	if guardrailId == "" {
 		return nil, nil
 	}
 
+	// Create service
 	svc, err := BedrockClient(ctx, d)
+
 	if svc == nil {
-		return nil, nil
-	}
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_bedrock_guardrail.getBedrockGuardrail", "connection_error", err)
-		return nil, err
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_bedrock_guardrail.getBedrockGuardrail", "connection_error", err)
-		return nil, err
-	}
-	if svc == nil {
+		// Unsupported region, return no data
 		return nil, nil
 	}
 
-	out, err := svc.GetGuardrail(ctx, &bedrock.GetGuardrailInput{
-		GuardrailIdentifier: &id, // accepts ID or ARN
-	})
 	if err != nil {
+		plugin.Logger(ctx).Error("aws_bedrock_guardrail.getBedrockGuardrail", "connection_error", err)
+		return nil, err
+	}
+
+	// Build the params
+	data, err := svc.GetGuardrail(ctx, &bedrock.GetGuardrailInput{
+		GuardrailIdentifier: aws.String(guardrailId), // accepts ID or ARN
+	})
+
+	if err != nil {
+		if strings.Contains(strings.ToLower(err.Error()), strings.ToLower("ValidationException")) {
+			return nil, nil
+		}
 		plugin.Logger(ctx).Error("aws_bedrock_guardrail.getBedrockGuardrail", "api_error", err)
 		return nil, err
 	}
 
-	row := bedrockGuardrailRow{
-		Arn:         str(out.GuardrailArn),
-		GuardrailId: str(out.GuardrailId),
-		Name:        str(out.Name),
-		Description: str(out.Description),
-		Status:      string(out.Status),
-		Version:     str(out.Version),
-		CreatedAt:   t(out.CreatedAt),
-		UpdatedAt:   t(out.UpdatedAt),
-	}
-	return row, nil
+	return data, nil
 }
-
-// small ptr helpers (avoid extra deps)
-func str(p *string) string {
-	if p == nil {
-		return ""
-	}
-	return *p
-}
-func t(p *time.Time) time.Time {
-	if p == nil {
-		return time.Time{}
-	}
-	return *p
-}
-		Arn:         aws.ToString(out.GuardrailArn),
-		GuardrailId: aws.ToString(out.GuardrailId),
-		Name:        aws.ToString(out.Name),
-		Description: aws.ToString(out.Description),
-		Status:      string(out.Status),
-		Version:     aws.ToString(out.Version),
-		CreatedAt:   aws.ToTime(out.CreatedAt),
-		UpdatedAt:   aws.ToTime(out.UpdatedAt),
-	}
-	return row, nil
-}
-
