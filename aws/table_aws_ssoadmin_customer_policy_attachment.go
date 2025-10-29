@@ -124,7 +124,7 @@ func listSsoAdminCustomerPolicyAttachments(ctx context.Context, d *plugin.QueryD
 		}
 	}
 
-	return nil, err
+	return nil, nil
 }
 
 type CustomerPolicyAttachment struct {
