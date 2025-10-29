@@ -64,7 +64,7 @@ func tableAwsOpenSearchReservedInstance(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "fixed_price",
-				Description: "The upfront fixed charge you will paid to purchase the specific Reserved Instance offering.",
+				Description: "The upfront fixed charge you will pay to purchase the specific Reserved Instance offering.",
 				Type:        proto.ColumnType_DOUBLE,
 			},
 			{
