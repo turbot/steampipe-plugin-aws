@@ -146,7 +146,7 @@ func listOpenSearchReservedInstances(ctx context.Context, d *plugin.QueryData, _
 	}
 
 	input := &opensearch.DescribeReservedInstancesInput{
-		MaxResults: maxLimit,
+		MaxResults: aws.Int32(maxLimit),
 	}
 
 	// API doesn't support aws-go-sdk-v2 paginator as of date
