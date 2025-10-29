@@ -129,3 +129,32 @@ from
   aws_ec2_target_group,
   json_each(target_health_descriptions) as target;
 ```
+
+### Target group attributes
+Explore the configuration attributes of target groups such as deregistration delay, stickiness settings, and load balancing algorithm. This is useful for understanding and auditing the behavior of your load balancers.
+
+```sql+postgres
+select
+  target_group_name,
+  target_type,
+  attributes ->> 'deregistration_delay.timeout_seconds' as deregistration_delay,
+  attributes ->> 'stickiness.enabled' as stickiness_enabled,
+  attributes ->> 'stickiness.type' as stickiness_type,
+  attributes ->> 'load_balancing.algorithm.type' as load_balancing_algorithm,
+  attributes ->> 'preserve_client_ip.enabled' as preserve_client_ip
+from
+  aws_ec2_target_group;
+```
+
+```sql+sqlite
+select
+  target_group_name,
+  target_type,
+  json_extract(attributes, '$.deregistration_delay.timeout_seconds') as deregistration_delay,
+  json_extract(attributes, '$.stickiness.enabled') as stickiness_enabled,
+  json_extract(attributes, '$.stickiness.type') as stickiness_type,
+  json_extract(attributes, '$.load_balancing.algorithm.type') as load_balancing_algorithm,
+  json_extract(attributes, '$.preserve_client_ip.enabled') as preserve_client_ip
+from
+  aws_ec2_target_group;
+```
