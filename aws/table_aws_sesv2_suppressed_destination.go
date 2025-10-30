@@ -15,7 +15,7 @@ import (
 func tableAwsSesV2SuppressedDestination(_ context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "aws_sesv2_suppressed_destination",
-		Description: "Lists the email addresses that are on the suppression list for your account.",
+		Description: "AWS SESv2 Suppressed Destination",
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("email_address"),
 			Hydrate:    getSuppressedDestination,
@@ -214,7 +214,6 @@ func getSuppressedDestination(ctx context.Context, d *plugin.QueryData, h *plugi
 		EmailAddress: &emailAddress,
 	}
 
-	d.WaitForListRateLimit(ctx)
 	output, err := svc.GetSuppressedDestination(ctx, params)
 	if err != nil {
 		var notFoundErr *types.NotFoundException
