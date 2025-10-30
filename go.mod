@@ -129,6 +129,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/servicediscovery v1.29.5
 	github.com/aws/aws-sdk-go-v2/service/servicequotas v1.21.4
 	github.com/aws/aws-sdk-go-v2/service/ses v1.22.4
+	github.com/aws/aws-sdk-go-v2/service/sesv2 v1.54.0
 	github.com/aws/aws-sdk-go-v2/service/sfn v1.26.4
 	github.com/aws/aws-sdk-go-v2/service/shield v1.25.7
 	github.com/aws/aws-sdk-go-v2/service/simspaceweaver v1.10.4
@@ -186,7 +187,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.4.11 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.7.11 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/ini v1.8.3 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/v4a v1.3.34 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/v4a v1.4.11 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.13.0 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.7.2 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/endpoint-discovery v1.9.8 // indirect
