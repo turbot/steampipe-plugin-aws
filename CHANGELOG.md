@@ -1,3 +1,17 @@
+## v1.27.0 [2025-10-30]
+
+_What's new?_
+
+- New tables added
+  - [aws_bedrock_guardrail](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_bedrock_guardrail) ([#2661](https://github.com/turbot/steampipe-plugin-aws/pull/2661)) (Thanks [@SatoriSec](https://github.com/SatoriSec) for the contribution!)
+  - [aws_opensearch_reserved_instance](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_opensearch_reserved_instance) ([#2665](https://github.com/turbot/steampipe-plugin-aws/pull/2665))
+  - [aws_sesv2_suppressed_destination](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_sesv2_suppressed_destination) ([#2667](https://github.com/turbot/steampipe-plugin-aws/pull/2667))) (Thanks [@jramosf](https://github.com/jramosf) for the contribution!)
+  - [aws_ssoadmin_customer_managed_policy_attachment](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_ssoadmin_customer_managed_policy_attachment) ([#2663](https://github.com/turbot/steampipe-plugin-aws/pull/2663)) (Thanks [@nickthejagger](https://github.com/nickthejagger) for the contribution!)
+
+_Enhancements_
+
+- Added the column `attributes` to `aws_ec2_target_group` table. ([#2664](https://github.com/turbot/steampipe-plugin-aws/pull/2664))
+
 ## v1.26.0 [2025-10-23]
 
 _What's new?_
