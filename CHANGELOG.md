@@ -1,3 +1,24 @@
+## v1.26.0 [2025-10-23]
+
+_What's new?_
+
+- New tables added
+  - [aws_eks_access_entry](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_eks_access_entry) ([#2651](https://github.com/turbot/steampipe-plugin-aws/pull/2651))
+  - [aws_eks_access_policy_association](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_eks_access_policy_association) ([#2651](https://github.com/turbot/steampipe-plugin-aws/pull/2651))
+
+_Enhancements_
+
+- Added the column `routing_config` to `aws_lambda_alias` table. ([#2657](https://github.com/turbot/steampipe-plugin-aws/pull/2657))
+
+_Bug fixes_
+
+- Fixed the `code` column in `aws_lambda_version` table to correctly return data instead of `null`. ([#2656](https://github.com/turbot/steampipe-plugin-aws/pull/2656))
+
+_Dependencies_
+
+- Recompiled plugin with [aws-sdk-go-v2 v1.39.3](https://github.com/aws/aws-sdk-go-v2/blob/main/CHANGELOG.md). ([#2658](https://github.com/turbot/steampipe-plugin-aws/pull/2658))
+- Updated the `OpenSearch` tables to use [github.com/aws/aws-sdk-go-v2/service/opensearch v1.52.6](https://github.com/aws/aws-sdk-go-v2/blob/main/service/opensearch/CHANGELOG.md#v1526-2025-10-16) module. ([#2658](https://github.com/turbot/steampipe-plugin-aws/pull/2658))
+
 ## v1.25.0 [2025-10-14]
 
 _Enhancements_
