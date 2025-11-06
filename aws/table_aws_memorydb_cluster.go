@@ -210,6 +210,7 @@ func listAwsMemoryDBClusters(ctx context.Context, d *plugin.QueryData, h *plugin
 	// Page size must be greater than 0 and less than or equal to 1000
 	input := &memorydb.DescribeClustersInput{
 		MaxResults: aws.Int32(maxLimit),
+		ShowShardDetails: aws.Bool(true),
 	}
 
 	paginator := memorydb.NewDescribeClustersPaginator(svc, input, func(o *memorydb.DescribeClustersPaginatorOptions) {
