@@ -80,8 +80,13 @@ func tableAwsOrganizationsAccount(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_STRING,
 			},
 			{
+				Name:        "state",
+				Description: "The state of the account in the organization.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "status",
-				Description: "The status of the account in the organization.",
+				Description: "The status of the account in the organization (deprecated).",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
