@@ -110,7 +110,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/redshift v1.43.5
 	github.com/aws/aws-sdk-go-v2/service/redshiftserverless v1.17.4
 	github.com/aws/aws-sdk-go-v2/service/resourceexplorer2 v1.17.4
-	github.com/aws/aws-sdk-go-v2/service/resourcegroupstaggingapi v1.21.4
+	github.com/aws/aws-sdk-go-v2/service/resourcegroupstaggingapi v1.30.9
 	github.com/aws/aws-sdk-go-v2/service/rolesanywhere v1.11.4
 	github.com/aws/aws-sdk-go-v2/service/route53 v1.40.4
 	github.com/aws/aws-sdk-go-v2/service/route53domains v1.23.4
