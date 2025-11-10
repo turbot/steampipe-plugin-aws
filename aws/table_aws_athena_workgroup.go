@@ -170,13 +170,6 @@ func tableAwsAthenaWorkGroup(_ context.Context) *plugin.Table {
 				Hydrate:     getAwsAthenaWorkGroup,
 				Transform:   transform.FromField("Configuration.EnableMinimumEncryptionConfiguration"),
 			},
-			{
-				Name:        "query_results_s3_access_grants_enabled",
-				Description: "Specifies whether Amazon S3 access grants are enabled for query results.",
-				Type:        proto.ColumnType_BOOL,
-				Hydrate:     getAwsAthenaWorkGroup,
-				Transform:   transform.FromField("Configuration.QueryResultsS3AccessGrantsConfiguration.EnableS3AccessGrants"),
-			},
 		}),
 	}
 }
