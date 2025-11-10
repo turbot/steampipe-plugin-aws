@@ -18,28 +18,28 @@ The `aws_athena_workgroup` table in Steampipe provides you with information abou
 Explore the various workgroups within your AWS Athena service to gain insights into their basic details such as name, description, and creation time. This can be useful for understanding your workgroup configuration and identifying any potential areas for optimization or reorganization.
 
 ```sql+postgres
-select 
-  name, 
-  description, 
-  effective_engine_version, 
-  output_location, 
-  creation_time 
-from 
-  aws_athena_workgroup 
-order by 
+select
+  name,
+  description,
+  effective_engine_version,
+  output_location,
+  creation_time
+from
+  aws_athena_workgroup
+order by
   creation_time;
 ```
 
 ```sql+sqlite
-select 
-  name, 
-  description, 
-  effective_engine_version, 
-  output_location, 
-  creation_time 
-from 
-  aws_athena_workgroup 
-order by 
+select
+  name,
+  description,
+  effective_engine_version,
+  output_location,
+  creation_time
+from
+  aws_athena_workgroup
+order by
   creation_time;
 ```
 
@@ -47,22 +47,22 @@ order by
 Determine the areas in which workgroups are utilizing a specific version of the Athena engine. This is useful for assessing upgrade needs or understanding the distribution of engine versions across your workgroups.
 
 ```sql+postgres
-select 
-  name, 
-  description 
-from 
-  aws_athena_workgroup 
-where 
+select
+  name,
+  description
+from
+  aws_athena_workgroup
+where
   effective_engine_version = 'Athena engine version 3';
 ```
 
 ```sql+sqlite
-select 
-  name, 
-  description 
-from 
-  aws_athena_workgroup 
-where 
+select
+  name,
+  description
+from
+  aws_athena_workgroup
+where
   effective_engine_version = 'Athena engine version 3';
 ```
 
@@ -70,22 +70,22 @@ where
 Assess the distribution of workgroups across different regions to understand workload allocation and capacity planning. This can assist in identifying regions that may be under or over-utilized.
 
 ```sql+postgres
-select 
-  region, 
-  count(*) 
-from 
-  aws_athena_workgroup 
-group by 
+select
+  region,
+  count(*)
+from
+  aws_athena_workgroup
+group by
   region;
 ```
 
 ```sql+sqlite
-select 
-  region, 
-  count(*) 
-from 
-  aws_athena_workgroup 
-group by 
+select
+  region,
+  count(*)
+from
+  aws_athena_workgroup
+group by
   region;
 ```
 
@@ -93,23 +93,52 @@ group by
 Determine the areas in which workgroups are inactive, providing insights into resource usage and potential areas for optimization or re-allocation.
 
 ```sql+postgres
-select 
-  name, 
-  description, 
+select
+  name,
+  description,
   creation_time
-from 
-  aws_athena_workgroup 
+from
+  aws_athena_workgroup
 where
   state = 'DISABLED';
 ```
 
 ```sql+sqlite
-select 
-  name, 
-  description, 
+select
+  name,
+  description,
   creation_time
-from 
-  aws_athena_workgroup 
+from
+  aws_athena_workgroup
 where
   state = 'DISABLED';
+```
+
+### List workgroups without encryption at rest
+Detect workgroups that are not encrypting query results at rest so you can remediate resources that violate the AWS Config rule `athena-workgroup-encrypted-at-rest`.
+
+```sql+postgres
+select
+  name,
+  region,
+  encryption_option,
+  result_configuration_kms_key
+from
+  aws_athena_workgroup
+where
+  encryption_option is null
+  or encryption_option = '';
+```
+
+```sql+sqlite
+select
+  name,
+  region,
+  encryption_option,
+  result_configuration_kms_key
+from
+  aws_athena_workgroup
+where
+  encryption_option is null
+  or encryption_option = '';
 ```
