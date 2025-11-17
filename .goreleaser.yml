@@ -9,7 +9,6 @@ builds:
       - GO111MODULE=on
       - GOPRIVATE=github.com/turbot
     goos:
-      - linux
       - darwin
 
     goarch:
