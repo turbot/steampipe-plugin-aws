@@ -7,7 +7,7 @@ on:
 
 jobs:
   registry_publish_workflow_ghcr:
-    uses: turbot/steampipe-workflows/.github/workflows/registry-publish-ghcr-large-runners.yml@main
+    uses: turbot/steampipe-workflows/.github/workflows/registry-publish-ghcr-large-runners.yml@update-workflow-test-aws-plugin
     secrets: inherit
     with:
       releaseTimeout: 60m
