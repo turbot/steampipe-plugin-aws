@@ -37,6 +37,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/batch"
 	"github.com/aws/aws-sdk-go-v2/service/bedrock"
 	"github.com/aws/aws-sdk-go-v2/service/bedrockagent"
+	"github.com/aws/aws-sdk-go-v2/service/budgets"
 	"github.com/aws/aws-sdk-go-v2/service/cloudcontrol"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/aws-sdk-go-v2/service/cloudfront"
@@ -557,6 +558,16 @@ func ConnectClient(ctx context.Context, d *plugin.QueryData) (*connect.Client, e
 		return nil, nil
 	}
 	return connect.NewFromConfig(*cfg), nil
+}
+
+func BudgetsClient(ctx context.Context, d *plugin.QueryData) (*budgets.Client, error) {
+	// AWS Budgets is a global service.
+	// https://docs.aws.amazon.com/general/latest/gr/billing.html
+	cfg, err := getClientForDefaultRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return budgets.NewFromConfig(*cfg), nil
 }
 
 func CostExplorerClient(ctx context.Context, d *plugin.QueryData) (*costexplorer.Client, error) {
