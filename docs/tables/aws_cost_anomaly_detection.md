@@ -1,16 +1,16 @@
 ---
-title: "Steampipe Table: aws_ce_cost_anomaly_detection - Query AWS Cost Explorer Cost Anomaly Detection using SQL"
-description: "Allows users to query Cost Anomaly Detection monitors from AWS Cost Explorer, providing information about anomaly detection configurations, monitor status, and evaluation dates. Useful for cost governance and optimization."
-folder: "Cost Explorer"
+title: "Steampipe Table: aws_cost_anomaly_detection - Query AWS Cost Anomaly Detection using SQL"
+description: "Allows users to query Cost Anomaly Detection monitors, providing information about anomaly detection configurations, monitor status, and evaluation dates. Useful for cost governance and optimization."
+folder: "Cost Management"
 ---
 
-# Table: aws_ce_cost_anomaly_detection - Query AWS Cost Explorer Cost Anomaly Detection using SQL
+# Table: aws_cost_anomaly_detection - Query AWS Cost Anomaly Detection using SQL
 
 AWS Cost Anomaly Detection automatically monitors your AWS spending and alerts you when spending patterns are unusual. This helps you quickly identify and investigate unexpected cost spikes.
 
 ## Table Usage Guide
 
-The `aws_ce_cost_anomaly_detection` table in Steampipe provides you with information about Cost Anomaly Detection monitors in your AWS account. This table allows you to query monitor-specific details, including monitor status, frequency, detection specifications, and evaluation dates. You can utilize this table to gather insights on active anomaly monitors, their configurations, and their evaluation history. The schema outlines the various attributes of an anomaly detection monitor including the monitor ARN, name, status, and frequency.
+The `aws_cost_anomaly_detection` table in Steampipe provides you with information about Cost Anomaly Detection monitors in your AWS account. This table allows you to query monitor-specific details, including monitor status, frequency, detection specifications, and evaluation dates. You can utilize this table to gather insights on active anomaly monitors, their configurations, and their evaluation history. The schema outlines the various attributes of an anomaly detection monitor including the monitor ARN, name, status, and frequency.
 
 ## Examples
 

@@ -1,16 +1,16 @@
 ---
-title: "Steampipe Table: aws_ce_cost_allocation_tags - Query AWS Cost Allocation Tags using SQL"
-description: "Allows users to query Cost Allocation Tags from AWS Cost Explorer, providing information about tag keys, types, and active/inactive status. Useful for cost governance and tag-based cost allocation."
-folder: "Cost Explorer"
+title: "Steampipe Table: aws_cost_allocation_tags - Query AWS Cost Allocation Tags using SQL"
+description: "Allows users to query Cost Allocation Tags, providing information about tag keys, types, and active/inactive status. Useful for cost governance and tag-based cost allocation."
+folder: "Cost Management"
 ---
 
-# Table: aws_ce_cost_allocation_tags - Query AWS Cost Allocation Tags using SQL
+# Table: aws_cost_allocation_tags - Query AWS Cost Allocation Tags using SQL
 
 AWS Cost Allocation Tags help you organize and track your AWS costs by adding user-defined or AWS-generated tags to your resources. Cost Allocation Tags can be activated or deactivated to control which tags are included in your cost allocation reports and Cost Explorer analysis.
 
 ## Table Usage Guide
 
-The `aws_ce_cost_allocation_tags` table in Steampipe provides you with information about Cost Allocation Tags in your AWS account. This table allows you to query tag-specific details, including tag keys, tag types (user-defined or AWS-generated), and active/inactive status. You can utilize this table to gather insights on which tags are actively being used for cost allocation, last used dates, and tag metadata. The schema outlines the various attributes of a cost allocation tag including the tag key, type, status, and update dates.
+The `aws_cost_allocation_tags` table in Steampipe provides you with information about Cost Allocation Tags in your AWS account. This table allows you to query tag-specific details, including tag keys, tag types (user-defined or AWS-generated), and active/inactive status. You can utilize this table to gather insights on which tags are actively being used for cost allocation, last used dates, and tag metadata. The schema outlines the various attributes of a cost allocation tag including the tag key, type, status, and update dates.
 
 ## Examples
 

@@ -13,10 +13,10 @@ import (
 
 //// TABLE DEFINITION
 
-func tableAwsCECostAllocationTags(_ context.Context) *plugin.Table {
+func tableAwsCostAllocationTags(_ context.Context) *plugin.Table {
 	return &plugin.Table{
-		Name:        "aws_ce_cost_allocation_tags",
-		Description: "AWS Cost Explorer - Cost Allocation Tags",
+		Name:        "aws_cost_allocation_tags",
+		Description: "AWS Cost Allocation Tags",
 		List: &plugin.ListConfig{
 			KeyColumns: []*plugin.KeyColumn{
 				{
@@ -25,7 +25,7 @@ func tableAwsCECostAllocationTags(_ context.Context) *plugin.Table {
 					Require:    plugin.Optional,
 				},
 			},
-			Hydrate: listCECostAllocationTags,
+			Hydrate: listCostAllocationTags,
 			Tags:    map[string]string{"service": "ce", "action": "ListCostAllocationTags"},
 		},
 		Columns: awsGlobalRegionColumns([]*plugin.Column{
@@ -72,10 +72,10 @@ func tableAwsCECostAllocationTags(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listCECostAllocationTags(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listCostAllocationTags(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	client, err := CostExplorerClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_ce_cost_allocation_tags.listCECostAllocationTags", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_cost_allocation_tags.listCostAllocationTags", "connection_error", err)
 		return nil, err
 	}
 

@@ -14,24 +14,24 @@ import (
 
 //// TABLE DEFINITION
 
-func tableAwsCECostAnomalyDetection(_ context.Context) *plugin.Table {
+func tableAwsCostAnomalyDetection(_ context.Context) *plugin.Table {
 	return &plugin.Table{
-		Name:        "aws_ce_cost_anomaly_detection",
-		Description: "AWS Cost Explorer - Cost Anomaly Detection",
+		Name:        "aws_cost_anomaly_detection",
+		Description: "AWS Cost Anomaly Detection",
 		List: &plugin.ListConfig{
-			Hydrate: listCECostAnomalyDetections,
+			Hydrate: listCostAnomalyDetections,
 			Tags:    map[string]string{"service": "ce", "action": "ListCostAnomalyDetectors"},
 		},
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"monitor_arn"}),
-			Hydrate:    getCECostAnomalyDetection,
+			Hydrate:    getCostAnomalyDetection,
 			Tags:       map[string]string{"service": "ce", "action": "DescribeCostAnomalyDetectors"},
 		},
 		HydrateConfig: []plugin.HydrateConfig{
-			{
-				Func: getCECostAnomalyDetectionDetails,
-				Tags: map[string]string{"service": "ce", "action": "DescribeCostAnomalyDetectors"},
-			},
+		{
+			Func: getCostAnomalyDetectionDetails,
+			Tags: map[string]string{"service": "ce", "action": "DescribeCostAnomalyDetectors"},
+		},
 		},
 		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
@@ -62,7 +62,7 @@ func tableAwsCECostAnomalyDetection(_ context.Context) *plugin.Table {
 				Name:        "monitor_specification",
 				Description: "The dimensions and tags used to detect cost anomalies.",
 				Type:        proto.ColumnType_JSON,
-				Hydrate:     getCECostAnomalyDetectionDetails,
+				Hydrate:     getCostAnomalyDetectionDetails,
 				Transform:   transform.FromField("MonitorSpecification"),
 			},
 			{
@@ -108,10 +108,10 @@ func tableAwsCECostAnomalyDetection(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listCECostAnomalyDetections(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listCostAnomalyDetections(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	client, err := CostExplorerClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_ce_cost_anomaly_detection.listCECostAnomalyDetections", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_cost_anomaly_detection.listCostAnomalyDetections", "connection_error", err)
 		return nil, err
 	}
 
@@ -140,7 +140,7 @@ func listCECostAnomalyDetections(ctx context.Context, d *plugin.QueryData, _ *pl
 
 //// GET FUNCTION
 
-func getCECostAnomalyDetection(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func getCostAnomalyDetection(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	monitorArn := d.EqualsQualString("monitor_arn")
 	if monitorArn == "" {
 		return nil, nil
@@ -148,7 +148,7 @@ func getCECostAnomalyDetection(ctx context.Context, d *plugin.QueryData, _ *plug
 
 	client, err := CostExplorerClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_ce_cost_anomaly_detection.getCECostAnomalyDetection", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_cost_anomaly_detection.getCostAnomalyDetection", "connection_error", err)
 		return nil, err
 	}
 
@@ -171,12 +171,12 @@ func getCECostAnomalyDetection(ctx context.Context, d *plugin.QueryData, _ *plug
 
 //// HYDRATE FUNCTIONS
 
-func getCECostAnomalyDetectionDetails(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func getCostAnomalyDetectionDetails(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	detector := h.Item.(types.CostAnomalyDetector)
 
 	client, err := CostExplorerClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_ce_cost_anomaly_detection.getCECostAnomalyDetectionDetails", "connection_error", err)
+		plugin.Logger(ctx).Error("aws_cost_anomaly_detection.getCostAnomalyDetectionDetails", "connection_error", err)
 		return nil, err
 	}
 
