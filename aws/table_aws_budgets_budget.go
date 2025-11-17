@@ -127,15 +127,23 @@ func tableAwsBudgetsBudget(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listBudgetsBudgets(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+func listBudgetsBudgets(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	client, err := BudgetsClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_budgets_budget.listBudgetsBudgets", "connection_error", err)
 		return nil, err
 	}
 
+	// Get account ID from common columns
+	commonColumnData, err := getCommonColumnsUncached(ctx, d, h)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_budgets_budget.listBudgetsBudgets", "get_account_id_error", err)
+		return nil, err
+	}
+	accountID := commonColumnData.(*awsCommonColumnData).AccountId
+
 	input := &budgets.DescribeBudgetsInput{
-		AccountId: aws.String(d.Connection.Config.(*AwsConfig).AccountID),
+		AccountId: aws.String(accountID),
 	}
 
 	paginator := budgets.NewDescribeBudgetsPaginator(client, input)
@@ -193,7 +201,14 @@ func getBudgetsBudget(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 
 func listBudgetsNotifications(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	budget := h.Item.(types.Budget)
-	accountID := d.Connection.Config.(*AwsConfig).AccountID
+	
+	// Get account ID from common columns
+	commonColumnData, err := getCommonColumnsUncached(ctx, d, h)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_budgets_budget.listBudgetsNotifications", "get_account_id_error", err)
+		return nil, err
+	}
+	accountID := commonColumnData.(*awsCommonColumnData).AccountId
 
 	client, err := BudgetsClient(ctx, d)
 	if err != nil {
@@ -217,9 +232,15 @@ func listBudgetsNotifications(ctx context.Context, d *plugin.QueryData, h *plugi
 
 func getBudgetArn(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	budget := h.Item.(types.Budget)
-	accountID := d.Connection.Config.(*AwsConfig).AccountID
+	
+	// Get account ID from common columns
+	commonColumnData, err := getCommonColumnsUncached(ctx, d, h)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_budgets_budget.getBudgetArn", "get_account_id_error", err)
+		return nil, err
+	}
+	accountID := commonColumnData.(*awsCommonColumnData).AccountId
 
 	arn := "arn:aws:budgets::" + accountID + ":budget/" + *budget.BudgetName
 	return []string{arn}, nil
 }
-
