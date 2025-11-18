@@ -23,7 +23,6 @@ select
   type,
   limit,
   time_unit,
-  status
 from
   aws_budgets_budget;
 ```
@@ -34,7 +33,6 @@ select
   type,
   limit,
   time_unit,
-  status
 from
   aws_budgets_budget;
 ```
