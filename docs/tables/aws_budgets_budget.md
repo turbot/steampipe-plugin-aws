@@ -15,6 +15,7 @@ The `aws_budgets_budget` table in Steampipe provides you with information about 
 ## Examples
 
 ### List all budgets
+Retrieve all budgets in your AWS account to get an overview of your cost management setup.
 
 ```sql+postgres
 select
@@ -39,6 +40,7 @@ from
 ```
 
 ### Get budget spending details
+View detailed spending information for each budget, including actual spending and forecasted amounts.
 
 ```sql+postgres
 select
@@ -65,6 +67,7 @@ from
 ```
 
 ### List budgets with notifications
+Find all budgets that have associated notifications configured for cost alerts.
 
 ```sql+postgres
 select
@@ -91,6 +94,7 @@ where
 ```
 
 ### Find budgets approaching their limit
+Identify budgets that have reached 80% or more of their configured limit to enable proactive cost management.
 
 ```sql+postgres
 select
@@ -119,6 +123,7 @@ where
 ```
 
 ### List monthly budgets
+Query all budgets configured with a monthly time unit for tracking recurring costs.
 
 ```sql+postgres
 select
@@ -147,4 +152,5 @@ from
 where
   time_unit = 'MONTHLY';
 ```
+
 
