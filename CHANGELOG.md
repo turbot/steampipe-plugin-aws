@@ -1,16 +1,21 @@
-## v1.27.0 [TBD]
+## v1.27.0 [2025-11-18]
 
 _What's new?_
 
 - New tables added
   - [aws_bedrock_guardrail](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_bedrock_guardrail) ([#2661](https://github.com/turbot/steampipe-plugin-aws/pull/2661)) (Thanks [@SatoriSec](https://github.com/SatoriSec) for the contribution!)
   - [aws_opensearch_reserved_instance](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_opensearch_reserved_instance) ([#2665](https://github.com/turbot/steampipe-plugin-aws/pull/2665))
-  - [aws_sesv2_suppressed_destination](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_sesv2_suppressed_destination) ([#2667](https://github.com/turbot/steampipe-plugin-aws/pull/2667))) (Thanks [@jramosf](https://github.com/jramosf) for the contribution!)
+  - [aws_sesv2_suppressed_destination](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_sesv2_suppressed_destination) ([#2667](https://github.com/turbot/steampipe-plugin-aws/pull/2667)) (Thanks [@jramosf](https://github.com/jramosf) for the contribution!)
   - [aws_ssoadmin_customer_managed_policy_attachment](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_ssoadmin_customer_managed_policy_attachment) ([#2663](https://github.com/turbot/steampipe-plugin-aws/pull/2663)) (Thanks [@nickthejagger](https://github.com/nickthejagger) for the contribution!)
 
 _Enhancements_
 
 - Added the column `attributes` to `aws_ec2_target_group` table. ([#2664](https://github.com/turbot/steampipe-plugin-aws/pull/2664))
+- Added the column `state` to `aws_organizations_account` table. ([#2677](https://github.com/turbot/steampipe-plugin-aws/pull/2677)) (Thanks [@pdecat](https://github.com/pdecat) for the contribution!)
+
+_Deprecations_
+
+- Deprecated the `status` column in `aws_organizations_account` table. ([#2677](https://github.com/turbot/steampipe-plugin-aws/pull/2677)) (Thanks [@pdecat](https://github.com/pdecat) for the contribution!)
 
 ## v1.26.0 [2025-10-23]
 
