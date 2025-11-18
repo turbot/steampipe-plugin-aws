@@ -275,6 +275,8 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_bedrock_imported_model":                                   tableAwsBedrockImportedModel(ctx),
 			"aws_bedrock_guardrail":                                        tableAwsBedrockGuardrail(ctx),
 			"aws_budgets_budget":                                           tableAwsBudgetsBudget(ctx),
+			"aws_ce_anomaly_monitor":                                       tableAwsCEAnomalyMonitor(ctx),
+			"aws_ce_cost_allocation_tags":                                   tableAwsCECostAllocationTags(ctx),
 			"aws_cloudcontrol_resource":                                    tableAwsCloudControlResource(ctx),
 			"aws_cloudformation_stack_resource":                            tableAwsCloudFormationStackResource(ctx),
 			"aws_cloudformation_stack_set":                                 tableAwsCloudFormationStackSet(ctx),
