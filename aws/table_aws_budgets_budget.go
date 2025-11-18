@@ -127,7 +127,7 @@ func tableAwsBudgetsBudget(_ context.Context) *plugin.Table {
 
 //// LIST FUNCTION
 
-func listBudgetsBudgets(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listBudgetsBudgets(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	client, err := BudgetsClient(ctx, d)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_budgets_budget.listBudgetsBudgets", "connection_error", err)
