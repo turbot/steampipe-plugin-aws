@@ -1,0 +1,154 @@
+---
+title: "Steampipe Table: aws_budgets_budget - Query AWS Budgets using SQL"
+description: "Allows users to query AWS Budgets data, providing detailed information about cost and usage budgets, budget limits, and spending notifications. Useful for cost governance, alerting, and optimization workflows."
+folder: "Budgets"
+---
+
+# Table: aws_budgets_budget - Query AWS Budgets using SQL
+
+AWS Budgets enables you to set custom cost and usage budgets and receive notifications when your usage exceeds the budgeted amounts. This helps you track and control spending across your AWS environment.
+
+## Table Usage Guide
+
+The `aws_budgets_budget` table in Steampipe provides you with information about each budget in your AWS account. This table allows you to query budget-specific details, including budget limits, spending amounts, notification settings, and associated metadata. You can utilize this table to gather insights on budget types, time periods, cost filters, and spending forecasts. The schema outlines the various attributes of a budget including the budget name, type, limit, calculated spend, and associated notifications.
+
+## Examples
+
+### List all budgets
+Retrieve all budgets in your AWS account to get an overview of your cost management setup.
+
+```sql+postgres
+select
+  name,
+  type,
+  limit_amount,
+  time_unit
+from
+  aws_budgets_budget;
+```
+
+```sql+sqlite
+select
+  name,
+  type,
+  limit_amount,
+  time_unit
+from
+  aws_budgets_budget;
+```
+
+### Get budget spending details
+View detailed spending information for each budget, including actual spending and forecasted amounts.
+
+```sql+postgres
+select
+  name,
+  limit_amount,
+  calculated_spend_actual_spend,
+  calculated_spend_forecasted_spend,
+  time_period_start,
+  time_period_end
+from
+  aws_budgets_budget;
+```
+
+```sql+sqlite
+select
+  name,
+  limit_amount,
+  calculated_spend_actual_spend,
+  calculated_spend_forecasted_spend,
+  time_period_start,
+  time_period_end
+from
+  aws_budgets_budget;
+```
+
+### List budgets with notifications
+Find all budgets that have associated notifications configured for cost alerts.
+
+```sql+postgres
+select
+  name,
+  type,
+  limit_amount,
+  notifications
+from
+  aws_budgets_budget
+where
+  notifications is not null;
+```
+
+```sql+sqlite
+select
+  name,
+  type,
+  limit_amount,
+  notifications
+from
+  aws_budgets_budget
+where
+  notifications is not null;
+```
+
+### Find budgets approaching their limit
+Identify budgets that have reached 80% or more of their configured limit to enable proactive cost management.
+
+```sql+postgres
+select
+  name,
+  type,
+  limit_amount,
+  calculated_spend_actual_spend,
+  (cast(calculated_spend_actual_spend as float) / cast(limit_amount as float) * 100) as percent_of_budget
+from
+  aws_budgets_budget
+where
+  cast(calculated_spend_actual_spend as float) > (cast(limit_amount as float) * 0.8);
+```
+
+```sql+sqlite
+select
+  name,
+  type,
+  limit_amount,
+  calculated_spend_actual_spend,
+  (cast(calculated_spend_actual_spend as float) / cast(limit_amount as float) * 100) as percent_of_budget
+from
+  aws_budgets_budget
+where
+  cast(calculated_spend_actual_spend as float) > (cast(limit_amount as float) * 0.8);
+```
+
+### List monthly budgets
+Query all budgets configured with a monthly time unit for tracking recurring costs.
+
+```sql+postgres
+select
+  name,
+  type,
+  limit_amount,
+  time_unit,
+  time_period_start,
+  time_period_end
+from
+  aws_budgets_budget
+where
+  time_unit = 'MONTHLY';
+```
+
+```sql+sqlite
+select
+  name,
+  type,
+  limit_amount,
+  time_unit,
+  time_period_start,
+  time_period_end
+from
+  aws_budgets_budget
+where
+  time_unit = 'MONTHLY';
+```
+
+
