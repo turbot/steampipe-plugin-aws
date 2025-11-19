@@ -21,14 +21,14 @@ func tableAwsCECostAllocationTags(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			KeyColumns: []*plugin.KeyColumn{
 				{
-					Name:       "status",
-					Operators:  []string{"="},
-					Require:    plugin.Optional,
+					Name:      "status",
+					Operators: []string{"="},
+					Require:   plugin.Optional,
 				},
 				{
-					Name:       "type",
-					Operators:  []string{"="},
-					Require:    plugin.Optional,
+					Name:      "type",
+					Operators: []string{"="},
+					Require:   plugin.Optional,
 				},
 			},
 			Hydrate: listCECostAllocationTags,
@@ -39,26 +39,31 @@ func tableAwsCECostAllocationTags(_ context.Context) *plugin.Table {
 				Name:        "tag_key",
 				Description: "The cost allocation tag key.",
 				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("TagKey"),
 			},
 			{
 				Name:        "status",
 				Description: "The status of the cost allocation tag (Active or Inactive).",
 				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Status"),
 			},
 			{
 				Name:        "type",
 				Description: "The type of the cost allocation tag (AWSGenerated or UserDefined).",
 				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Type"),
 			},
 			{
 				Name:        "last_updated_date",
 				Description: "The last date that the tag was activated or deactivated.",
-				Type:        proto.ColumnType_STRING,
+				Type:        proto.ColumnType_TIMESTAMP,
+				Transform:   transform.FromField("LastUpdatedDate"),
 			},
 			{
 				Name:        "last_used_date",
 				Description: "The last month that the tag was used on an AWS resource.",
-				Type:        proto.ColumnType_STRING,
+				Type:        proto.ColumnType_TIMESTAMP,
+				Transform:   transform.FromField("LastUsedDate"),
 			},
 			// Standard columns
 			{

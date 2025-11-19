@@ -21,8 +21,8 @@ Retrieve all budgets in your AWS account to get an overview of your cost managem
 select
   name,
   type,
-  limit,
-  time_unit,
+  limit_amount,
+  time_unit
 from
   aws_budgets_budget;
 ```
@@ -31,8 +31,8 @@ from
 select
   name,
   type,
-  limit,
-  time_unit,
+  limit_amount,
+  time_unit
 from
   aws_budgets_budget;
 ```
@@ -43,7 +43,7 @@ View detailed spending information for each budget, including actual spending an
 ```sql+postgres
 select
   name,
-  limit,
+  limit_amount,
   calculated_spend_actual_spend,
   calculated_spend_forecasted_spend,
   time_period_start,
@@ -55,7 +55,7 @@ from
 ```sql+sqlite
 select
   name,
-  limit,
+  limit_amount,
   calculated_spend_actual_spend,
   calculated_spend_forecasted_spend,
   time_period_start,
@@ -71,7 +71,7 @@ Find all budgets that have associated notifications configured for cost alerts.
 select
   name,
   type,
-  limit,
+  limit_amount,
   notifications
 from
   aws_budgets_budget
@@ -83,7 +83,7 @@ where
 select
   name,
   type,
-  limit,
+  limit_amount,
   notifications
 from
   aws_budgets_budget
@@ -98,26 +98,26 @@ Identify budgets that have reached 80% or more of their configured limit to enab
 select
   name,
   type,
-  limit,
+  limit_amount,
   calculated_spend_actual_spend,
-  (cast(calculated_spend_actual_spend as float) / cast(limit as float) * 100) as percent_of_budget
+  (cast(calculated_spend_actual_spend as float) / cast(limit_amount as float) * 100) as percent_of_budget
 from
   aws_budgets_budget
 where
-  cast(calculated_spend_actual_spend as float) > (cast(limit as float) * 0.8);
+  cast(calculated_spend_actual_spend as float) > (cast(limit_amount as float) * 0.8);
 ```
 
 ```sql+sqlite
 select
   name,
   type,
-  limit,
+  limit_amount,
   calculated_spend_actual_spend,
-  (cast(calculated_spend_actual_spend as float) / cast(limit as float) * 100) as percent_of_budget
+  (cast(calculated_spend_actual_spend as float) / cast(limit_amount as float) * 100) as percent_of_budget
 from
   aws_budgets_budget
 where
-  cast(calculated_spend_actual_spend as float) > (cast(limit as float) * 0.8);
+  cast(calculated_spend_actual_spend as float) > (cast(limit_amount as float) * 0.8);
 ```
 
 ### List monthly budgets
@@ -127,7 +127,7 @@ Query all budgets configured with a monthly time unit for tracking recurring cos
 select
   name,
   type,
-  limit,
+  limit_amount,
   time_unit,
   time_period_start,
   time_period_end
@@ -141,7 +141,7 @@ where
 select
   name,
   type,
-  limit,
+  limit_amount,
   time_unit,
   time_period_start,
   time_period_end

@@ -47,7 +47,7 @@ func tableAwsBudgetsBudget(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("BudgetType"),
 			},
 			{
-				Name:        "limit",
+				Name:        "limit_amount",
 				Description: "The budgeted amount for the budget.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("BudgetLimit.Amount"),
@@ -73,13 +73,13 @@ func tableAwsBudgetsBudget(_ context.Context) *plugin.Table {
 			{
 				Name:        "time_period_start",
 				Description: "The start date of the budget.",
-				Type:        proto.ColumnType_STRING,
+				Type:        proto.ColumnType_TIMESTAMP,
 				Transform:   transform.FromField("TimePeriod.Start"),
 			},
 			{
 				Name:        "time_period_end",
 				Description: "The end date of the budget.",
-				Type:        proto.ColumnType_STRING,
+				Type:        proto.ColumnType_TIMESTAMP,
 				Transform:   transform.FromField("TimePeriod.End"),
 			},
 			{
@@ -201,7 +201,7 @@ func getBudgetsBudget(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrat
 
 func listBudgetsNotifications(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	budget := h.Item.(types.Budget)
-	
+
 	// Get account ID from common columns
 	commonColumnData, err := getCommonColumnsUncached(ctx, d, h)
 	if err != nil {
@@ -232,15 +232,16 @@ func listBudgetsNotifications(ctx context.Context, d *plugin.QueryData, h *plugi
 
 func getBudgetArn(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	budget := h.Item.(types.Budget)
-	
-	// Get account ID from common columns
+
+	// Get account ID and partition from common columns
 	commonColumnData, err := getCommonColumnsUncached(ctx, d, h)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_budgets_budget.getBudgetArn", "get_account_id_error", err)
 		return nil, err
 	}
 	accountID := commonColumnData.(*awsCommonColumnData).AccountId
+	partition := commonColumnData.(*awsCommonColumnData).Partition
 
-	arn := "arn:aws:budgets::" + accountID + ":budget/" + *budget.BudgetName
+	arn := "arn:" + partition + ":budgets::" + accountID + ":budget/" + *budget.BudgetName
 	return []string{arn}, nil
 }

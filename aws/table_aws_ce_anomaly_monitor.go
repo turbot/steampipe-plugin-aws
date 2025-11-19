@@ -59,19 +59,19 @@ func tableAwsCEAnomalyMonitor(_ context.Context) *plugin.Table {
 			{
 				Name:        "creation_date",
 				Description: "The creation date of the anomaly monitor.",
-				Type:        proto.ColumnType_STRING,
+				Type:        proto.ColumnType_TIMESTAMP,
 				Transform:   transform.FromField("CreationDate"),
 			},
 			{
 				Name:        "last_updated_date",
 				Description: "The last update date of the anomaly monitor.",
-				Type:        proto.ColumnType_STRING,
+				Type:        proto.ColumnType_TIMESTAMP,
 				Transform:   transform.FromField("LastUpdatedDate"),
 			},
 			{
 				Name:        "last_evaluated_date",
 				Description: "The last evaluation date of the anomaly monitor.",
-				Type:        proto.ColumnType_STRING,
+				Type:        proto.ColumnType_TIMESTAMP,
 				Transform:   transform.FromField("LastEvaluatedDate"),
 			},
 			{
