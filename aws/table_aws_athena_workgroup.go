@@ -149,6 +149,27 @@ func tableAwsAthenaWorkGroup(_ context.Context) *plugin.Table {
 				Hydrate:     getAwsAthenaWorkGroup,
 				Transform:   transform.FromField("Configuration.ResultConfiguration.OutputLocation"),
 			},
+			{
+				Name:        "managed_query_results_enabled",
+				Description: "Indicates whether Athena managed query results are enabled. If set to true, allows you to store query results in Athena owned storage.",
+				Type:        proto.ColumnType_BOOL,
+				Hydrate:     getAwsAthenaWorkGroup,
+				Transform:   transform.FromField("Configuration.ManagedQueryResultsConfiguration.Enabled"),
+			},
+			{
+				Name:        "managed_query_results_kms_key",
+				Description: "The KMS key ARN used to encrypt managed query results in Athena owned storage.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getAwsAthenaWorkGroup,
+				Transform:   transform.FromField("Configuration.ManagedQueryResultsConfiguration.EncryptionConfiguration.KmsKey"),
+			},
+			{
+				Name:        "enable_minimum_encryption_configuration",
+				Description: "Enforces a minimal level of encryption for the workgroup.",
+				Type:        proto.ColumnType_BOOL,
+				Hydrate:     getAwsAthenaWorkGroup,
+				Transform:   transform.FromField("Configuration.EnableMinimumEncryptionConfiguration"),
+			},
 		}),
 	}
 }
