@@ -96,6 +96,13 @@ func tableAwsEc2TransitGatewayVpcAttachment(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Association.TransitGatewayRouteTableId"),
 			},
 			{
+				Name:        "options",
+				Description: "The options for the VPC attachment.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getEc2TransitGatewayVpcAttachmentOptions,
+				Transform:   transform.FromValue(),
+			},
+			{
 				Name:        "tags_src",
 				Description: "A list of tags assigned.",
 				Type:        proto.ColumnType_JSON,
@@ -233,6 +240,39 @@ func getAwsEc2TransitGatewayVpcAttachmentAkas(ctx context.Context, d *plugin.Que
 	akas := []string{"arn:" + commonColumnData.Partition + ":ec2:" + region + ":" + commonColumnData.AccountId + ":transit-gateway-attachment/" + *transitGatewayAttachment.TransitGatewayAttachmentId}
 
 	return akas, nil
+}
+
+func getEc2TransitGatewayVpcAttachmentOptions(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	transitGatewayAttachment := h.Item.(types.TransitGatewayAttachment)
+
+	// Only fetch options for VPC attachments
+	if transitGatewayAttachment.ResourceType != types.TransitGatewayAttachmentResourceTypeVpc {
+		return nil, nil
+	}
+
+	// Create Session
+	svc, err := EC2Client(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_transit_gateway_vpc_attachment.getEc2TransitGatewayVpcAttachmentOptions", "connection_error", err)
+		return nil, err
+	}
+
+	// Build params
+	params := &ec2.DescribeTransitGatewayVpcAttachmentsInput{
+		TransitGatewayAttachmentIds: []string{*transitGatewayAttachment.TransitGatewayAttachmentId},
+	}
+
+	op, err := svc.DescribeTransitGatewayVpcAttachments(ctx, params)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_transit_gateway_vpc_attachment.getEc2TransitGatewayVpcAttachmentOptions", "api_error", err)
+		return nil, err
+	}
+
+	if len(op.TransitGatewayVpcAttachments) > 0 && op.TransitGatewayVpcAttachments[0].Options != nil {
+		return op.TransitGatewayVpcAttachments[0].Options, nil
+	}
+
+	return nil, nil
 }
 
 //// TRANSFORM FUNCTIONS
