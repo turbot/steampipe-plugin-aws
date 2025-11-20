@@ -64,3 +64,26 @@ from
 group by
   resource_type;
 ```
+
+### View attachment options configuration
+Query the configuration options for your transit gateway VPC attachments, including DNS support, IPv6 support, security group referencing, and appliance mode settings.
+
+```sql+postgres
+select
+  transit_gateway_attachment_id,
+  resource_id,
+  state,
+  options
+from
+  aws_ec2_transit_gateway_vpc_attachment;
+```
+
+```sql+sqlite
+select
+  transit_gateway_attachment_id,
+  resource_id,
+  state,
+  options
+from
+  aws_ec2_transit_gateway_vpc_attachment;
+```
