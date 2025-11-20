@@ -335,6 +335,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_config_delivery_channel":                                  tableAwsConfigDeliveryChannel(ctx),
 			"aws_config_retention_configuration":                           tableAwsConfigRetentionConfiguration(ctx),
 			"aws_config_rule":                                              tableAwsConfigRule(ctx),
+			"aws_config_rule_compliance_detail":                            tableAwsConfigRuleComplianceDetail(ctx),
 			"aws_cost_by_account_daily":                                    tableAwsCostByLinkedAccountDaily(ctx),
 			"aws_cost_by_account_monthly":                                  tableAwsCostByLinkedAccountMonthly(ctx),
 			"aws_cost_by_record_type_daily":                                tableAwsCostByRecordTypeDaily(ctx),
