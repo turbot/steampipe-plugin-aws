@@ -1,3 +1,19 @@
+## v1.28.0 [2025-11-20]
+
+_What's new?_
+
+- New tables added
+  - [aws_budgets_budget](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_budgets_budget) ([#2681](https://github.com/turbot/steampipe-plugin-aws/pull/2681))
+  - [aws_ce_anomaly_monitor](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_ce_anomaly_monitor) ([#2681](https://github.com/turbot/steampipe-plugin-aws/pull/2681))
+  - [aws_ce_cost_allocation_tags](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_ce_cost_allocation_tags) ([#2681](https://github.com/turbot/steampipe-plugin-aws/pull/2681))
+  - [aws_config_rule_compliance_detail](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_config_rule_compliance_detail) ([#2668](https://github.com/turbot/steampipe-plugin-aws/pull/2668))
+
+_Enhancements_
+
+- Added `options` column to `aws_ec2_transit_gateway_vpc_attachment` table. ([#2683](https://github.com/turbot/steampipe-plugin-aws/pull/2683))
+- Added `managed_query_results_enabled`, `managed_query_results_kms_key`, and `enable_minimum_encryption_configuration` columns to `aws_athena_workgroup` table. ([#2678](https://github.com/turbot/steampipe-plugin-aws/pull/2678))
+- Updated `aws_memorydb_cluster` table to retrieve detailed information about shards associated with the cluster. ([#2676](https://github.com/turbot/steampipe-plugin-aws/pull/2676)) (Thanks [@ustndagsemih](https://github.com/ustndagsemih) for the contribution!)
+
 ## v1.27.0 [2025-11-18]
 
 _What's new?_
