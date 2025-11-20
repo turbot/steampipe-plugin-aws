@@ -116,6 +116,12 @@ func tableAwsConfigRuleComplianceDetail(_ context.Context) *plugin.Table {
 func listConfigRuleComplianceDetails(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Get config rule details from parent hydrate
 	configRule := h.Item.(types.ConfigRule)
+
+	// Check if ConfigRuleName is nil to avoid nil pointer dereference
+	if configRule.ConfigRuleName == nil {
+		return nil, nil
+	}
+
 	configRuleName := *configRule.ConfigRuleName
 
 	// Check if there's an optional filter for config_rule_name
