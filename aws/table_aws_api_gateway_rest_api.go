@@ -115,6 +115,31 @@ func tableAwsAPIGatewayRestAPI(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("EndpointConfiguration.VpcEndpointIds"),
 			},
 			{
+				Name:        "api_status",
+				Description: "The status of the API",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "api_status_message",
+				Description: "The status message of the API",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "disable_execute_api_endpoint",
+				Description: "Specifies whether clients can invoke the API by using the default execute-api endpoint",
+				Type:        proto.ColumnType_BOOL,
+			},
+			{
+				Name:        "endpoint_access_mode",
+				Description: "The endpoint access mode of the API",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "security_policy",
+				Description: "The Transport Layer Security (TLS) version and cipher suite for this RestApi",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
 				Name:        "warnings",
 				Description: "The warning messages reported when failonwarnings is turned on during API import",
 				Type:        proto.ColumnType_JSON,
