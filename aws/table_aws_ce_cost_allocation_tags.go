@@ -34,12 +34,25 @@ func tableAwsCECostAllocationTags(_ context.Context) *plugin.Table {
 			Hydrate: listCECostAllocationTags,
 			Tags:    map[string]string{"service": "ce", "action": "ListCostAllocationTags"},
 		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getTagValues,
+				Tags: map[string]string{"service": "ce", "action": "GetCostAndUsageByTag"},
+			},
+		},
 		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
 				Name:        "tag_key",
 				Description: "The cost allocation tag key.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromField("TagKey"),
+			},
+			{
+				Name:        "tag_value",
+				Description: "The cost allocation tag value. Returns all unique values for this tag key.",
+				Type:        proto.ColumnType_STRING,
+				Hydrate:     getTagValues,
+				Transform:   transform.FromValue(),
 			},
 			{
 				Name:        "status",
@@ -119,4 +132,62 @@ func listCECostAllocationTags(ctx context.Context, d *plugin.QueryData, _ *plugi
 	}
 
 	return nil, nil
+}
+
+//// HYDRATE FUNCTIONS
+
+func getTagValues(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	tag := h.Item.(types.CostAllocationTag)
+	tagKey := *tag.TagKey
+
+	client, err := CostExplorerClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_ce_cost_allocation_tags.getTagValues", "connection_error", err)
+		return nil, err
+	}
+
+	// Use GetCostAndUsage API to get tag values for this specific tag key
+	// This requires querying the cost data with GroupBy dimension set to TAG
+	input := &costexplorer.GetCostAndUsageInput{
+		TimePeriod: &types.DateInterval{
+			Start: aws.String("2025-01-01"),
+			End:   aws.String("2025-12-31"),
+		},
+		Granularity: types.GranularityMonthly,
+		Metrics:     []string{"UnblendedCost"},
+		GroupBy: []types.GroupDefinition{
+			{
+				Type: types.GroupDefinitionTypeDimension,
+				Key:  aws.String("TAG"),
+			},
+		},
+		Filter: &types.Expression{
+			Tags: &types.TagValues{
+				Key: aws.String(tagKey),
+				Values: []string{
+					"*", // Wildcard to get all values
+				},
+			},
+		},
+	}
+
+	output, err := client.GetCostAndUsage(ctx, input)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_ce_cost_allocation_tags.getTagValues", "api_error", err)
+		return nil, err
+	}
+
+	// Extract unique tag values from the results
+	tagValues := make([]interface{}, 0)
+	for _, result := range output.ResultsByTime {
+		for _, group := range result.Groups {
+			if group.Keys != nil && len(group.Keys) > 0 {
+				// Tag values are in format "TAG$tagkey$tagvalue"
+				tagValue := group.Keys[0]
+				tagValues = append(tagValues, tagValue)
+			}
+		}
+	}
+
+	return tagValues, nil
 }
