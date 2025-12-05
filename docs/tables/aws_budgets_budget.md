@@ -151,4 +151,297 @@ where
   time_unit = 'MONTHLY';
 ```
 
+### View cost filters
+Display all budgets with their cost filter settings to understand how budgets are scoped to specific services or dimensions.
+
+```sql+postgres
+select
+  name,
+  type,
+  limit_amount,
+  cost_filters
+from
+  aws_budgets_budget;
+```
+
+```sql+sqlite
+select
+  name,
+  type,
+  limit_amount,
+  cost_filters
+from
+  aws_budgets_budget;
+```
+
+### View cost types
+Show all budgets and the cost types they include (such as taxes, support, recurring charges, upfront costs, etc.).
+
+```sql+postgres
+select
+  name,
+  type,
+  limit_amount,
+  cost_types
+from
+  aws_budgets_budget;
+```
+
+```sql+sqlite
+select
+  name,
+  type,
+  limit_amount,
+  cost_types
+from
+  aws_budgets_budget;
+```
+
+### Filter budgets by service using cost_filters
+Query budgets that are filtered to monitor specific AWS services.
+
+```sql+postgres
+select
+  name,
+  type,
+  limit_amount,
+  cost_filters
+from
+  aws_budgets_budget
+where
+  cost_filters is not null;
+```
+
+```sql+sqlite
+select
+  name,
+  type,
+  limit_amount,
+  cost_filters
+from
+  aws_budgets_budget
+where
+  cost_filters is not null;
+```
+
+### View cost type breakdown
+Examine detailed cost type configurations to understand what is included in budget calculations (blended vs. unblended costs, taxes, support, etc.).
+
+```sql+postgres
+select
+  name,
+  cost_types->'IncludeTax' as include_tax,
+  cost_types->'IncludeSupport' as include_support,
+  cost_types->'IncludeUpfront' as include_upfront,
+  cost_types->'IncludeRecurring' as include_recurring,
+  cost_types->'UseBlended' as use_blended,
+  cost_types->'UseAmortized' as use_amortized
+from
+  aws_budgets_budget;
+```
+
+```sql+sqlite
+select
+  name,
+  json_extract(cost_types, '$.IncludeTax') as include_tax,
+  json_extract(cost_types, '$.IncludeSupport') as include_support,
+  json_extract(cost_types, '$.IncludeUpfront') as include_upfront,
+  json_extract(cost_types, '$.IncludeRecurring') as include_recurring,
+  json_extract(cost_types, '$.UseBlended') as use_blended,
+  json_extract(cost_types, '$.UseAmortized') as use_amortized
+from
+  aws_budgets_budget;
+```
+
+### Budgets using blended costs vs amortized costs
+Compare budgets configured with different cost calculation methods to understand cost accounting approaches.
+
+```sql+postgres
+select
+  name,
+  limit_amount,
+  cost_types->>'UseBlended' as use_blended,
+  cost_types->>'UseAmortized' as use_amortized
+from
+  aws_budgets_budget;
+```
+
+```sql+sqlite
+select
+  name,
+  limit_amount,
+  json_extract(cost_types, '$.UseBlended') as use_blended,
+  json_extract(cost_types, '$.UseAmortized') as use_amortized
+from
+  aws_budgets_budget;
+```
+
+### Budgets that include support costs
+Find all budgets that are configured to include AWS support costs in budget calculations.
+
+```sql+postgres
+select
+  name,
+  limit_amount,
+  cost_types->>'IncludeSupport' as include_support,
+  cost_types->>'IncludeTax' as include_tax
+from
+  aws_budgets_budget
+where
+  (cost_types->>'IncludeSupport')::boolean = true;
+```
+
+```sql+sqlite
+select
+  name,
+  limit_amount,
+  json_extract(cost_types, '$.IncludeSupport') as include_support,
+  json_extract(cost_types, '$.IncludeTax') as include_tax
+from
+  aws_budgets_budget
+where
+  json_extract(cost_types, '$.IncludeSupport') = 'true';
+```
+
+### Budgets with service-specific cost filters
+Query budgets that filter spending by specific AWS services or service groups.
+
+```sql+postgres
+select
+  name,
+  type,
+  limit_amount,
+  cost_filters->'Service' as filtered_services
+from
+  aws_budgets_budget
+where
+  cost_filters ? 'Service';
+```
+
+```sql+sqlite
+select
+  name,
+  type,
+  limit_amount,
+  json_extract(cost_filters, '$.Service') as filtered_services
+from
+  aws_budgets_budget
+where
+  json_extract(cost_filters, '$.Service') is not null;
+```
+
+### Budgets filtered by linked account
+Find budgets that are scoped to specific AWS linked accounts in an organization.
+
+```sql+postgres
+select
+  name,
+  type,
+  limit_amount,
+  cost_filters->'LinkedAccount' as linked_accounts
+from
+  aws_budgets_budget
+where
+  cost_filters ? 'LinkedAccount';
+```
+
+```sql+sqlite
+select
+  name,
+  type,
+  limit_amount,
+  json_extract(cost_filters, '$.LinkedAccount') as linked_accounts
+from
+  aws_budgets_budget
+where
+  json_extract(cost_filters, '$.LinkedAccount') is not null;
+```
+
+### Budgets filtered by region
+Query budgets that are scoped to monitor costs in specific AWS regions.
+
+```sql+postgres
+select
+  name,
+  type,
+  limit_amount,
+  cost_filters->'Region' as regions
+from
+  aws_budgets_budget
+where
+  cost_filters ? 'Region';
+```
+
+```sql+sqlite
+select
+  name,
+  type,
+  limit_amount,
+  json_extract(cost_filters, '$.Region') as regions
+from
+  aws_budgets_budget
+where
+  json_extract(cost_filters, '$.Region') is not null;
+```
+
+### Budgets that exclude refunds and credits
+Find budgets that are configured without refunds or credits in their cost calculations.
+
+```sql+postgres
+select
+  name,
+  limit_amount,
+  cost_types->>'IncludeRefund' as include_refund,
+  cost_types->>'IncludeCredit' as include_credit
+from
+  aws_budgets_budget
+where
+  (cost_types->>'IncludeRefund')::boolean = false
+  or (cost_types->>'IncludeCredit')::boolean = false;
+```
+
+```sql+sqlite
+select
+  name,
+  limit_amount,
+  json_extract(cost_types, '$.IncludeRefund') as include_refund,
+  json_extract(cost_types, '$.IncludeCredit') as include_credit
+from
+  aws_budgets_budget
+where
+  json_extract(cost_types, '$.IncludeRefund') = 'false'
+  or json_extract(cost_types, '$.IncludeCredit') = 'false';
+```
+
+### Cost types summary by budget
+Get a summary view of how different cost types are configured across all budgets.
+
+```sql+postgres
+select
+  name,
+  (cost_types->>'IncludeTax')::boolean as include_tax,
+  (cost_types->>'IncludeSupport')::boolean as include_support,
+  (cost_types->>'IncludeSubscription')::boolean as include_subscription,
+  (cost_types->>'IncludeRefund')::boolean as include_refund,
+  (cost_types->>'UseBlended')::boolean as use_blended
+from
+  aws_budgets_budget
+order by
+  name;
+```
+
+```sql+sqlite
+select
+  name,
+  json_extract(cost_types, '$.IncludeTax') as include_tax,
+  json_extract(cost_types, '$.IncludeSupport') as include_support,
+  json_extract(cost_types, '$.IncludeSubscription') as include_subscription,
+  json_extract(cost_types, '$.IncludeRefund') as include_refund,
+  json_extract(cost_types, '$.UseBlended') as use_blended
+from
+  aws_budgets_budget
+order by
+  name;
+```
+
 

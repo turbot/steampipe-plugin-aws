@@ -164,3 +164,89 @@ where
 order by
   creation_date desc;
 ```
+
+### View complete monitor specifications
+Get all details including the monitor specification which contains cost categories, tags, or dimensions configuration.
+
+```sql+postgres
+select
+  monitor_name,
+  monitor_type,
+  monitor_specification,
+  dimensional_value_count,
+  creation_date
+from
+  aws_ce_anomaly_monitor;
+```
+
+```sql+sqlite
+select
+  monitor_name,
+  monitor_type,
+  monitor_specification,
+  dimensional_value_count,
+  creation_date
+from
+  aws_ce_anomaly_monitor;
+```
+
+### Find monitors by dimension
+Retrieve monitors configured to track a specific dimension for anomaly detection.
+
+```sql+postgres
+select
+  monitor_name,
+  monitor_type,
+  monitor_dimension,
+  dimensional_value_count
+from
+  aws_ce_anomaly_monitor
+where
+  monitor_dimension = 'SERVICE'
+order by
+  dimensional_value_count desc;
+```
+
+```sql+sqlite
+select
+  monitor_name,
+  monitor_type,
+  monitor_dimension,
+  dimensional_value_count
+from
+  aws_ce_anomaly_monitor
+where
+  monitor_dimension = 'SERVICE'
+order by
+  dimensional_value_count desc;
+```
+
+### Get recently updated monitors
+List anomaly monitors sorted by their most recent update to track recent configuration changes.
+
+```sql+postgres
+select
+  monitor_name,
+  monitor_type,
+  last_updated_date,
+  last_evaluated_date,
+  creation_date
+from
+  aws_ce_anomaly_monitor
+order by
+  last_updated_date desc;
+```
+
+```sql+sqlite
+select
+  monitor_name,
+  monitor_type,
+  last_updated_date,
+  last_evaluated_date,
+  creation_date
+from
+  aws_ce_anomaly_monitor
+order by
+  last_updated_date desc;
+```
+

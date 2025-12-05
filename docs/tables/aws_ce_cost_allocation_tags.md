@@ -294,3 +294,140 @@ where
 order by
   last_used_date desc;
 ```
+
+### List all cost allocation tag keys and their values
+Get a complete view of tag keys and all their associated values used across your AWS resources.
+
+```sql+postgres
+select
+  tag_key,
+  tag_value,
+  status,
+  type
+from
+  aws_ce_cost_allocation_tags
+where
+  tag_value is not null
+order by
+  tag_key,
+  tag_value;
+```
+
+```sql+sqlite
+select
+  tag_key,
+  tag_value,
+  status,
+  type
+from
+  aws_ce_cost_allocation_tags
+where
+  tag_value is not null
+order by
+  tag_key,
+  tag_value;
+```
+
+### Get all values for a specific tag key
+Retrieve all unique values that are being used for a specific tag key in your account.
+
+```sql+postgres
+select
+  tag_key,
+  tag_value,
+  status
+from
+  aws_ce_cost_allocation_tags
+where
+  tag_key = 'Environment'
+  and tag_value is not null
+order by
+  tag_value;
+```
+
+```sql+sqlite
+select
+  tag_key,
+  tag_value,
+  status
+from
+  aws_ce_cost_allocation_tags
+where
+  tag_key = 'Environment'
+  and tag_value is not null
+order by
+  tag_value;
+```
+
+### List active tag values for cost center allocation
+Get all active values for cost center tags to understand cost allocation distribution.
+
+```sql+postgres
+select
+  tag_key,
+  tag_value,
+  status,
+  last_used_date
+from
+  aws_ce_cost_allocation_tags
+where
+  tag_key = 'CostCenter'
+  and status = 'Active'
+  and tag_value is not null
+order by
+  tag_value;
+```
+
+```sql+sqlite
+select
+  tag_key,
+  tag_value,
+  status,
+  last_used_date
+from
+  aws_ce_cost_allocation_tags
+where
+  tag_key = 'CostCenter'
+  and status = 'Active'
+  and tag_value is not null
+order by
+  tag_value;
+```
+
+### Count unique tag values per tag key
+Analyze tag usage distribution to understand how many distinct values each tag key has.
+
+```sql+postgres
+select
+  tag_key,
+  status,
+  count(distinct tag_value) as unique_values
+from
+  aws_ce_cost_allocation_tags
+where
+  tag_value is not null
+group by
+  tag_key,
+  status
+order by
+  tag_key,
+  status;
+```
+
+```sql+sqlite
+select
+  tag_key,
+  status,
+  count(distinct tag_value) as unique_values
+from
+  aws_ce_cost_allocation_tags
+where
+  tag_value is not null
+group by
+  tag_key,
+  status
+order by
+  tag_key,
+  status;
+```
+
