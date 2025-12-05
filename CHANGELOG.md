@@ -1,3 +1,9 @@
+## v1.29.0 [2025-12-05]
+
+_Enhancements_
+
+- Added columns `api_status`, `api_status_message`, `disable_execute_api_endpoint`, `endpoint_access_mode`, and `security_policy` to `aws_api_gateway_rest_api` table. ([#2685](https://github.com/turbot/steampipe-plugin-aws/pull/2685))
+
 ## v1.28.0 [2025-11-20]
 
 _What's new?_
