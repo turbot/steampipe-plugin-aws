@@ -396,6 +396,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_ec2_capacity_reservation":                                 tableAwsEc2CapacityReservation(ctx),
 			"aws_ec2_classic_load_balancer":                                tableAwsEc2ClassicLoadBalancer(ctx),
 			"aws_ec2_client_vpn_endpoint":                                  tableAwsEC2ClientVPNEndpoint(ctx),
+			"aws_ec2_fleet":                                                tableAwsEc2Fleet(ctx),
 			"aws_ec2_gateway_load_balancer":                                tableAwsEc2GatewayLoadBalancer(ctx),
 			"aws_ec2_instance_availability":                                tableAwsInstanceAvailability(ctx),
 			"aws_ec2_instance_metric_cpu_utilization_daily":                tableAwsEc2InstanceMetricCpuUtilizationDaily(ctx),
