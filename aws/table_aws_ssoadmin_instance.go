@@ -32,6 +32,26 @@ func tableAwsSsoAdminInstance(_ context.Context) *plugin.Table {
 				Description: "The identifier of the identity store that is connected to the SSO instance.",
 				Type:        proto.ColumnType_STRING,
 			},
+			{
+				Name:        "name",
+				Description: "The name of the Identity Center instance.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "created_date",
+				Description: "The date and time that the Identity Center instance was created.",
+				Type:        proto.ColumnType_TIMESTAMP,
+			},
+			{
+				Name:        "owner_account_id",
+				Description: "The AWS account ID number of the owner of the Identity Center instance.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "status",
+				Description: "The current status of this Identity Center instance.",
+				Type:        proto.ColumnType_STRING,
+			},
 
 			// Standard columns for all tables
 			{
