@@ -41,6 +41,9 @@ func tableAwsCloudFrontDistribution(_ context.Context) *plugin.Table {
 			{
 				Func: getCloudFrontDistributionMonitoringSubscription,
 				Tags: map[string]string{"service": "cloudfront", "action": "GetMonitoringSubscription"},
+				IgnoreConfig: &plugin.IgnoreConfig{
+					ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NoSuchMonitoringSubscription"}),
+				},
 			},
 		},
 		Columns: awsRegionalColumns([]*plugin.Column{
