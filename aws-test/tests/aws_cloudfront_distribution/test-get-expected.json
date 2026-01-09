@@ -7,7 +7,7 @@
     "id": "{{ output.resource_id.value }}",
     "monitoring_subscription": {
       "RealtimeMetricsSubscriptionConfig": {
-        "RealtimeMetricsStatus": "Enabled"
+        "RealtimeMetricsSubscriptionStatus": "Enabled"
       }
     },
     "price_class": "PriceClass_200",
