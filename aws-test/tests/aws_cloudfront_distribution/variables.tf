@@ -101,6 +101,16 @@ resource "aws_cloudfront_distribution" "named_test_resource" {
   }
 }
 
+resource "aws_cloudfront_monitoring_subscription" "test" {
+  distribution_id = aws_cloudfront_distribution.named_test_resource.id
+
+  monitoring_subscription {
+    realtime_metrics_subscription_config {
+      realtime_metrics_subscription_status = "Enabled"
+    }
+  }
+}
+
 output "resource_aka" {
   value = aws_cloudfront_distribution.named_test_resource.arn
 }
