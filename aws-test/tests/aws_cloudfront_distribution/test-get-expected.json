@@ -5,6 +5,11 @@
     "domain_name": "{{ output.domain_name.value }}",
     "e_tag": "{{ output.etag.value }}",
     "id": "{{ output.resource_id.value }}",
+    "monitoring_subscription": {
+      "RealtimeMetricsSubscriptionConfig": {
+        "RealtimeMetricsSubscriptionStatus": "Enabled"
+      }
+    },
     "price_class": "PriceClass_200",
     "status": "Deployed",
     "tags": {
