@@ -39,7 +39,6 @@ RUN useradd -ms /bin/bash steampipe && \
 USER steampipe
 WORKDIR /home/steampipe
 ENV HOME=/home/steampipe
-ENV STEAMPIPE_LOG_LEVEL=TRACE
 
 # Install the Steampipe engine
 RUN sudo /bin/sh -c "$(curl -fsSL https://steampipe.io/install/steampipe.sh)"
