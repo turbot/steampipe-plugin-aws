@@ -20,6 +20,7 @@ func tableAwsHealthEvent(_ context.Context) *plugin.Table {
 			Hydrate: listHealthEvents,
 			Tags:    map[string]string{"service": "health", "action": "DescribeEvents"},
 			KeyColumns: []*plugin.KeyColumn{
+				{Name: "actionability", Require: plugin.Optional},
 				{Name: "arn", Require: plugin.Optional},
 				{Name: "availability_zone", Require: plugin.Optional},
 				{Name: "end_time", Require: plugin.Optional},
@@ -32,6 +33,11 @@ func tableAwsHealthEvent(_ context.Context) *plugin.Table {
 			},
 		},
 		Columns: awsGlobalRegionColumns([]*plugin.Column{
+			{
+				Name:        "actionability",
+				Description: "The actionability classification of the HealthEvent. Possible values are ACTION_REQUIRED, ACTION_MAY_BE_REQUIRED, and INFORMATIONAL.",
+				Type:        proto.ColumnType_STRING,
+			},
 			{
 				Name:        "arn",
 				Description: "The Amazon Resource Name (ARN) of the HealthEvent.",
@@ -199,6 +205,7 @@ func buildHealthEventFilter(d *plugin.QueryData) *types.EventFilter {
 	filter := &types.EventFilter{}
 
 	filterQuals := map[string]string{
+		"actionability":       "string",
 		"arn":                 "string",
 		"availability_zone":   "string",
 		"status_code":         "string",
@@ -214,6 +221,10 @@ func buildHealthEventFilter(d *plugin.QueryData) *types.EventFilter {
 		if dataType == "string" && d.EqualsQualString(columnName) != "" {
 			value := d.EqualsQualString(columnName)
 			switch columnName {
+			case "actionability":
+				filter.Actionabilities = []types.EventActionability{
+					types.EventActionability(value),
+				}
 			case "arn":
 				filter.EntityArns = ([]string{value})
 			case "availability_zone":

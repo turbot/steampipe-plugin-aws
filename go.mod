@@ -76,7 +76,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/globalaccelerator v1.23.1
 	github.com/aws/aws-sdk-go-v2/service/glue v1.78.0
 	github.com/aws/aws-sdk-go-v2/service/guardduty v1.41.1
-	github.com/aws/aws-sdk-go-v2/service/health v1.24.4
+	github.com/aws/aws-sdk-go-v2/service/health v1.35.0
 	github.com/aws/aws-sdk-go-v2/service/iam v1.31.4
 	github.com/aws/aws-sdk-go-v2/service/identitystore v1.23.5
 	github.com/aws/aws-sdk-go-v2/service/inspector v1.21.4
