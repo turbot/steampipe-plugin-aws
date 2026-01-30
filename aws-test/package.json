@@ -3,7 +3,7 @@
   "dependencies": {
     "chalk": "^4.1.0",
     "custom-env": "^2.0.1",
-    "diff": "^4.0.2",
+    "diff": "^4.0.4",
     "fs-extra": "^9.0.1",
     "json-diff": "^0.5.4",
     "lodash": "^4.17.21",
