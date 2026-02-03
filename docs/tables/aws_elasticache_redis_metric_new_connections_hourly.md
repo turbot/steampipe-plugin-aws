@@ -14,6 +14,15 @@ The `aws_elasticache_redis_metric_new_connections_hourly` table in Steampipe pro
 
 The `aws_elasticache_redis_metric_new_connections_hourly` table provides you with metric statistics at 1 hour intervals for the most recent 60 days.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `elasticache:DescribeCacheClusters` | Required to list ElastiCache clusters (parent hydrate) |
+| `cloudwatch:GetMetricStatistics` | Required to retrieve new connections metric statistics |
+
 ## Examples
 
 ### Basic info

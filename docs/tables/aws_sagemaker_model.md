@@ -12,6 +12,16 @@ An AWS SageMaker Model in Amazon SageMaker represents the Amazon S3 location whe
 
 The `aws_sagemaker_model` table in Steampipe provides you with information about models within AWS SageMaker. This table allows you, as a DevOps engineer, to query model-specific details, including the model name, ARN, creation time, execution role, and more. You can utilize this table to gather insights on models, such as their associated containers, data input configurations, and VPC configurations. The schema outlines the various attributes of the SageMaker model for you, including the model ARN, creation time, model name, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `sagemaker:ListModels` | Required to list models |
+| `sagemaker:DescribeModel` | Required to get model details |
+| `sagemaker:ListTags` | Required to get model tags |
+
 ## Examples
 
 ### Basic info

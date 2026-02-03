@@ -12,6 +12,15 @@ The AWS Config Configuration Recorder is a feature that enables you to record th
 
 The `aws_config_configuration_recorder` table in Steampipe provides you with information about Configuration Recorders within AWS Config. This table allows you, as a DevOps engineer, security analyst, or cloud administrator, to query configuration recorder-specific details, including its current status, associated role ARN, and whether it is recording all resource types. You can utilize this table to gather insights on configuration recorders, such as which resources are being recorded, the recording status, and more. The schema outlines the various attributes of the Configuration Recorder for you, including the name, role ARN, resource types, and recording group.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `config:DescribeConfigurationRecorders` | Required to list and get configuration recorders |
+| `config:DescribeConfigurationRecorderStatus` | Required to get recorder status (for `status` and `status_recording` columns) |
+
 ## Examples
 
 ### Basic info

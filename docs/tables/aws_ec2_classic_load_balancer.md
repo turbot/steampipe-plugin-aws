@@ -12,6 +12,17 @@ The AWS EC2 Classic Load Balancer automatically distributes incoming application
 
 The `aws_ec2_classic_load_balancer` table in Steampipe provides you with information about Classic Load Balancers within Amazon Elastic Compute Cloud (EC2). This table allows you, as a cloud engineer, developer, or administrator, to query load balancer-specific details, including its availability zones, security groups, backend server descriptions, and listener descriptions. You can utilize this table to gather insights on load balancers, such as their configurations, attached instances, health checks, and more. The schema outlines the various attributes of the Classic Load Balancer for you, including the load balancer name, DNS name, created time, and associated tags.
 
+## Required Permissions
+
+Your principal must have the following permissions to use this table:
+
+| Permission | Description |
+|------------|-------------|
+| `elasticloadbalancing:DescribeLoadBalancers` | Required to retrieve load balancer information. |
+| `elasticloadbalancing:DescribeLoadBalancerAttributes` | Required to retrieve attributes such as `access_log_emit_interval`, `access_log_enabled`, `access_log_s3_bucket_name`, `access_log_s3_bucket_prefix`, `additional_attributes`, `connection_draining_enabled`, `connection_draining_timeout`, `connection_settings_idle_timeout`, `cross_zone_load_balancing_enabled`. |
+| `elasticloadbalancing:DescribeTags` | Required to retrieve the `tags` and `tags_src` columns. |
+| `elasticloadbalancing:DescribeLoadBalancerPolicies` | Required to retrieve the `policy_descriptions` column. |
+
 ## Examples
 
 ### Instances associated with classic load balancers

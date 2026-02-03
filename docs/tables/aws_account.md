@@ -12,6 +12,15 @@ The AWS Account is a container for AWS resources. It is used to sign up for, org
 
 The `aws_account` table in Steampipe provides you with information about your AWS Account. This table allows you, as a DevOps engineer, to query account-specific details, including the account status, owner, and associated resources. You can utilize this table to gather insights on your AWS account, such as the account's ARN, creation date, email address, and more. The schema outlines the various attributes of your AWS account, including the account ID, account alias, and whether your account is a root account.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `iam:ListAccountAliases` | Required to list account aliases |
+| `organizations:DescribeOrganization` | Required to get organization details (optional) |
+
 ## Examples
 
 ### Basic AWS account info

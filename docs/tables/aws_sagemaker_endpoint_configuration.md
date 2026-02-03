@@ -12,6 +12,16 @@ The AWS SageMaker Endpoint Configuration is a feature of Amazon SageMaker, a ful
 
 The `aws_sagemaker_endpoint_configuration` table in Steampipe provides you with information about endpoint configurations within AWS SageMaker. This table enables you, as a data scientist, machine learning engineer, or DevOps professional, to query endpoint configuration specific details, including the Amazon Resource Name (ARN), creation time, endpoint configuration name, and production variants. You can utilize this table to gather insights on endpoint configurations, such as the instances count per variant, instance type per variant, variant name, and more. The schema outlines the various attributes of the SageMaker endpoint configuration that are available to you, including the endpoint configuration ARN, creation time, endpoint configuration name, and the production variants.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `sagemaker:ListEndpointConfigs` | Required to list endpoint configurations |
+| `sagemaker:DescribeEndpointConfig` | Required to get endpoint configuration details |
+| `sagemaker:ListTags` | Required to get endpoint configuration tags |
+
 ## Examples
 
 ### Basic info

@@ -17,6 +17,15 @@ The `aws_quicksight_user` table in Steampipe provides you with information about
 - User information for QuickSight is only available from the **identity region** (i.e., the region where the QuickSight account was initially created or enabled).
 - Since there is no direct API to retrieve the identity region, users must provide it manually in the query to retrieve data successfully.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `quicksight:ListUsers` | Required to list users |
+| `quicksight:DescribeUser` | Required to get user details |
+
 ## Examples
 
 ### Basic info

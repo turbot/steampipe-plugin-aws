@@ -12,6 +12,15 @@ The AWS WAF Regional Rule is a feature of AWS WAF, a web application firewall th
 
 The `aws_wafregional_rule` table in Steampipe provides you with information about AWS WAF Regional Rules. This table allows you as a DevOps engineer to query rule-specific details, including its ID, metric name, name, and the predicates associated with it. You can utilize this table to gather insights on rules, such as the types of patterns that AWS WAF searches for, whether AWS WAF is set to allow, block, or count web requests, and more. The schema outlines the various attributes of the AWS WAF Regional Rule for you, including the rule ARN, rule ID, metric name, and associated predicates.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `waf-regional:ListRules` | Required to list rules |
+| `waf-regional:GetRule` | Required to get rule details (metric_name, predicates) |
+
 ## Examples
 
 ### Basic info

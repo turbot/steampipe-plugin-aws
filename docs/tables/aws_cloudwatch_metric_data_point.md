@@ -24,6 +24,14 @@ This table provides metric data points for the specified id. The maximum number 
 - It's recommended that you specify the `period` column in the query to optimize the table output. If you do not specify the `timestamp` then the default value for `period` is 60 seconds. If you specify the `timestamp` then the period will be calculated based on the duration mentioned ([here](https://pkg.go.dev/github.com/aws/aws-sdk-go-v2/service/cloudwatch/types#MetricStat.Period)).
 - Using this table adds to the cost of your monthly bill from AWS. Optimizations have
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `cloudwatch:GetMetricData` | Required to get metric data points |
+
 ## Examples
 
 ### Aggregate maximum CPU utilization of all EC2 instances for the last 24 hrs

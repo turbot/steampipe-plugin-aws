@@ -12,6 +12,16 @@ The AWS AppConfig Application is a feature of AWS AppConfig, which is a service 
 
 The `aws_appconfig_application` table in Steampipe provides you with information about AWS AppConfig Applications. This table allows you, as a DevOps engineer or other technical professional, to query application-specific details, including its ID, name, description, and associated environments. You can utilize this table to gather insights on applications, such as their deployment strategies, associated configurations, and more. The schema outlines the various attributes of the AppConfig application for you, including the application ID, name, description, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `appconfig:ListApplications` | Required to list AppConfig applications |
+| `appconfig:GetApplication` | Required to get application details |
+| `appconfig:ListTagsForResource` | Required to get application tags |
+
 ## Examples
 
 ### Basic info

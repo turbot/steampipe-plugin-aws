@@ -12,6 +12,15 @@ The AWS WorkSpaces Directory is a feature of Amazon WorkSpaces, a managed, secur
 
 The `aws_workspaces_directory` table in Steampipe provides you with information about directories within AWS WorkSpaces. This table allows you, as a DevOps engineer, to query directory-specific details, including directory ID, directory type, workspace creation properties, workspace security group ID, and other associated metadata. You can utilize this table to gather insights on directories, such as the state of the directory, registration code, subnet IDs, and more. The schema outlines the various attributes of the AWS WorkSpaces Directory for you, including the self-service permissions, workspace access properties, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `workspaces:DescribeWorkspaceDirectories` | Required to list and get WorkSpaces directory details. |
+| `workspaces:DescribeTags` | Required to retrieve tags for a directory (for the `tags` and `tags_src` columns). |
+
 ## Examples
 
 ## Basic info

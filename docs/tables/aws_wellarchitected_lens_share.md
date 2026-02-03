@@ -12,6 +12,15 @@ The AWS Well-Architected Tool Lens Shares is a feature of the AWS Well-Architect
 
 The `aws_wellarchitected_lens_share` table in Steampipe provides you with information about Lens Shares within AWS Well-Architected Tool. This table allows you, as a cloud architect or developer, to query details about shared lenses, including the share ARN, share status, and the AWS account ID of the lens owner. You can utilize this table to gather insights on shared lenses, such as the status of shared lenses, the AWS account ID of the lens owner, and more. The schema outlines for you the various attributes of the Lens Share, including the share ARN, share status, and the AWS account ID of the lens owner.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `wellarchitected:ListLenses` | Required to list lenses (parent hydrate) |
+| `wellarchitected:ListLensShares` | Required to list lens shares |
+
 ## Examples
 
 ### Basic info

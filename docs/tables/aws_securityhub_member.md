@@ -12,6 +12,14 @@ The AWS Security Hub Members are a part of AWS Security Hub service that allows 
 
 The `aws_securityhub_member` table in Steampipe provides you with information about each member account within AWS Security Hub. This table allows you, as a DevOps engineer, to query member-specific details, including account ID, email, status, and the timestamp of the invitation. You can utilize this table to gather insights on member accounts, such as their invitation and verification status, the email associated with each account, and more. The schema outlines the various attributes of the Security Hub member for you, including the member account ID, email, status, invited at timestamp, and updated at timestamp.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `securityhub:ListMembers` | Required to list Security Hub member accounts |
+
 ## Examples
 
 ### Basic info

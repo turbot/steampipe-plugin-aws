@@ -12,6 +12,16 @@ The AWS Managed Streaming for Kafka (MSK) Serverless Cluster is a fully managed 
 
 The `aws_msk_serverless_cluster` table in Steampipe provides you with information about serverless clusters within AWS Managed Streaming for Kafka (MSK). This table allows you, as a DevOps engineer, to query cluster-specific details, including the cluster ARN, creation time, and associated metadata. You can utilize this table to gather insights on clusters, such as their current state, the number of brokers, and more. The schema outlines for you the various attributes of the MSK serverless cluster, including the cluster name, tags, and the version of Apache Kafka.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `kafka:ListClusters` | Required to list MSK serverless clusters |
+| `kafka:DescribeCluster` | Required to get details of a specific cluster |
+| `kafka:DescribeClusterOperation` | Required to get cluster operation details |
+
 ## Examples
 
 ### Basic Info

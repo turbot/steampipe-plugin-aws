@@ -12,6 +12,16 @@ The AWS Glue Catalog Tables are a part of AWS Glue, a fully managed extract, tra
 
 The `aws_glue_catalog_table` table in Steampipe provides you with information about AWS Glue Catalog Tables. It allows you, whether you're a DevOps engineer, data engineer, or another technical professional, to query table-specific details, including table names, database names, owner information, creation time, and associated metadata. You can utilize this table to gather insights on tables, such as their storage descriptors, partition keys, and table parameters. The schema outlines the various attributes of the AWS Glue Catalog Table for you, including the catalog ID, database name, table type, storage descriptor, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `glue:GetTables` | Required to list Glue catalog tables |
+| `glue:GetTable` | Required to get details of a specific table |
+| `lakeformation:GetResourceLFTags` | Required to retrieve Lake Formation tags for the `lf_tags` column |
+
 ## Examples
 
 ### Basic info

@@ -14,6 +14,15 @@ The `aws_lambda_function_metric_duration_daily` table in Steampipe provides you 
 
 The `aws_lambda_function_metric_duration_daily` table provides you with metric statistics at 24 hour intervals for the last year.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `lambda:ListFunctions` | Required to list Lambda functions (parent resource) |
+| `cloudwatch:GetMetricStatistics` | Required to retrieve CloudWatch metric statistics for function duration |
+
 ## Examples
 
 ### Basic info

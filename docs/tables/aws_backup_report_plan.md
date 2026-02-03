@@ -12,6 +12,15 @@ The AWS Backup Report Plan is a feature within the AWS Backup service. It allows
 
 The `aws_backup_report_plan` table in Steampipe provides you with information about the report plans within the AWS Backup service. This table allows you, as a DevOps engineer, to query report plan-specific details, including report delivery channel configurations, report jobs, and associated metadata. You can utilize this table to gather insights on report plans, such as report plan status, configurations, and more. The schema outlines the various attributes of the report plan for you, including the report plan ARN, creation time, report delivery channel, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `backup:ListReportPlans` | Required to list report plans |
+| `backup:DescribeReportPlan` | Required to get details of a specific report plan |
+
 ## Examples
 
 ### Basic Info

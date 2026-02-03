@@ -12,6 +12,16 @@ The AWS ECS Cluster is a regional, logical grouping of services in Amazon Elasti
 
 The `aws_ecs_cluster` table in Steampipe provides you with information about clusters within AWS Elastic Container Service (ECS). This table allows you, as a DevOps engineer, to query cluster-specific details, including its configuration, status, and associated resources. You can utilize this table to gather insights on clusters, such as cluster capacity providers, default capacity provider strategy, and more. The schema outlines for you the various attributes of the ECS cluster, including the cluster ARN, cluster name, status, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `ecs:ListClusters` | Required to list ECS clusters |
+| `ecs:DescribeClusters` | Required to get cluster details |
+| `ecs:ListTagsForResource` | Required to get cluster tags |
+
 ## Examples
 
 ### Basic info

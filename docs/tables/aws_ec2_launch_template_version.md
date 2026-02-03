@@ -12,6 +12,15 @@ An AWS EC2 Launch Template Version is a configuration template that helps you av
 
 The `aws_ec2_launch_template_version` table in Steampipe provides you with information about each version of an Amazon EC2 launch template. This table allows you, as a DevOps engineer, system administrator, or other IT professional, to query version-specific details, including the template ID, version number, and associated metadata. You can utilize this table to gather insights on EC2 launch template versions, such as tracking changes between versions, verifying configuration details, and more. The schema outlines the various attributes of the EC2 launch template version for you, including the template ID, version number, creation date, and associated tags.
 
+## Required Permissions
+
+Your principal must have the following permissions to use this table:
+
+| Permission | Description |
+|------------|-------------|
+| `ec2:DescribeLaunchTemplateVersions` | Required to retrieve launch template version information. |
+| `ec2:DescribeLaunchTemplates` | Required to list launch templates for version retrieval. |
+
 ## Examples
 
 ### Basic info

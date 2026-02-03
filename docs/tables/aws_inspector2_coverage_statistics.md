@@ -12,6 +12,14 @@ The AWS Inspector2 Coverage Statistics is a feature of the AWS Inspector service
 
 The `aws_inspector2_coverage_statistics` table in Steampipe provides you with information about AWS Inspector2's coverage statistics. This table allows you as a DevOps engineer, security analyst, or other technical professional to query detailed information about the assessment targets and the number of instances they cover. You can utilize this table to gather insights on assessment targets, including their ARNs, the number of instances they cover, and other associated metadata. The schema outlines the various attributes of the coverage statistics for you, including the assessment target ARN, the instance count, and the agent ID.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `inspector2:ListCoverageStatistics` | Required to list coverage statistics |
+
 ## Examples
 
 ### Basic info

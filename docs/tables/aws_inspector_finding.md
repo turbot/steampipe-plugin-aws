@@ -12,6 +12,15 @@ The AWS Inspector Finding is a resource within AWS Inspector service that allows
 
 The `aws_inspector_finding` table in Steampipe provides you with information about AWS Inspector findings. AWS Inspector is an automated security assessment service that helps you improve the security and compliance of applications deployed on AWS. This table allows you, as a security analyst, developer, or DevOps engineer, to query finding-specific details, including the finding ARN, severity, title, description, recommendation, and associated metadata. You can utilize this table to gather insights on findings, such as findings with high severity, findings associated with a specific rule package, verification of recommendations, and more. The schema outlines the various attributes of the AWS Inspector finding for you, including the finding ARN, severity, title, description, recommendation, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `inspector:ListFindings` | Required to list findings |
+| `inspector:DescribeFindings` | Required to get finding details |
+
 ## Examples
 
 ### Basic info

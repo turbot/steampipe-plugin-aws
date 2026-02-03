@@ -12,6 +12,15 @@ The AWS Health Events service provides personalized information about events tha
 
 The `aws_health_event` table in Steampipe provides you with information about AWS Health Events. These events give you timely information about service disruptions, scheduled changes, and other important AWS-related events that can affect your services and accounts. This table allows you, as a DevOps engineer, to query event-specific details, including event type, start time, end time, and affected services. You can utilize this table to monitor your AWS services, understand the impact of AWS events, and plan necessary actions accordingly. The schema outlines the various attributes of the AWS Health Event for you, including the event ARN, event type category, service, region, start time, and end time.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `health:DescribeEvents` | Required to list health events |
+| `health:DescribeEventDetails` | Required for the `description` column |
+
 ## Examples
 
 ### Basic info

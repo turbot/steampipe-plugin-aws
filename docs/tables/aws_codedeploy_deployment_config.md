@@ -12,6 +12,15 @@ The AWS CodeDeploy Deployment Configurations is a feature of AWS CodeDeploy, a s
 
 The `aws_codedeploy_deployment_config` table in Steampipe provides you with information about deployment configurations within AWS CodeDeploy. This table allows you as a DevOps engineer, developer, or system administrator to query deployment configuration details, including deployment configuration names, minimum healthy hosts, and compute platform. You can utilize this table to gather insights on configurations, such as those with specific compute platforms, minimum healthy host requirements, and more. The schema outlines the various attributes of the deployment configuration for you, including the deployment configuration ID, deployment configuration name, and the compute platform.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `codedeploy:ListDeploymentConfigs` | Required to list deployment configurations. |
+| `codedeploy:GetDeploymentConfig` | Required to get details of a specific deployment configuration. |
+
 ## Examples
 
 ### Basic info

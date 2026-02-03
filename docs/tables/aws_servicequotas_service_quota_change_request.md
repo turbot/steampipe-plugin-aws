@@ -12,6 +12,16 @@ The AWS Service Quotas allows you to view and manage your quotas for AWS service
 
 The `aws_servicequotas_service_quota_change_request` table in Steampipe provides you with information about service quota change requests within AWS Service Quotas. This table enables you, as a DevOps engineer, to query request-specific details, including the status of the request, the requested value, and the associated metadata. You can utilize this table to gather insights on service quota change requests, such as pending requests, details of requested increases in service quotas, and more. The schema outlines the various attributes of the service quota change request for you, including the service name, quota name, request id, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `servicequotas:ListRequestedServiceQuotaChangeHistory` | Required to list service quota change requests |
+| `servicequotas:GetRequestedServiceQuotaChange` | Required to get a specific service quota change request |
+| `servicequotas:ListTagsForResource` | Required to get tags for change requests |
+
 ## Examples
 
 ### Basic info

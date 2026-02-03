@@ -12,6 +12,14 @@ AWS CloudTrail Lookup Events is a feature within AWS CloudTrail, a service that 
 
 The `aws_cloudtrail_lookup_event` table in Steampipe provides you with information about each trail event within AWS CloudTrail. This table allows you, as a DevOps engineer, to query event-specific details, including event time, event name, resources involved, and more. You can utilize this table to gather insights on trail events, such as event source, user identity, and request parameters. The schema outlines the various attributes of the CloudTrail event for you, including the event ID, event version, read only, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `cloudtrail:LookupEvents` | Required to look up CloudTrail events |
+
 **Important notes:**
 
 - For improved performance, it is advised that you use the optional qual `start_time` and `end_time` to limit the result set to a specific time period.

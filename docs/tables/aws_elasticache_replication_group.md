@@ -12,6 +12,14 @@ The AWS ElastiCache Replication Group is a feature of AWS ElastiCache that allow
 
 The `aws_elasticache_replication_group` table in Steampipe provides you with information about replication groups within AWS ElastiCache. This table allows you, as a DevOps engineer, to query group-specific details, including configuration, status, and associated resources. You can utilize this table to gather insights on replication groups, such as their current status, associated cache clusters, node types, and more. The schema outlines the various attributes of the replication group for you, including the replication group ID, status, description, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `elasticache:DescribeReplicationGroups` | Required to list and get ElastiCache replication group details |
+
 ## Examples
 
 ### Basic info

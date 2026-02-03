@@ -12,6 +12,15 @@ AWS CodeBuild Report Groups are used to collect and store test reports from your
 
 The `aws_codebuild_report_group` table in Steampipe provides you with information about report groups within AWS CodeBuild. This table allows you, as a DevOps engineer, to query report group-specific details, including report group ARN, creation date, type, export configuration, and associated metadata. You can utilize this table to gather insights on report groups, such as their configuration, export settings, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `codebuild:ListReportGroups` | Required to list report groups |
+| `codebuild:BatchGetReportGroups` | Required to get report group details |
+
 ## Examples
 
 ### Basic info

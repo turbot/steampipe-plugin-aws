@@ -12,6 +12,15 @@ AWS IoT Core allows for the management and connection of Internet of Things (IoT
 
 The `aws_iot_thing` table facilitates the exploration and management of AWS IoT Things. Utilize this table to access comprehensive details about each IoT Thing, including its name, ID, type, and attributes. This is particularly beneficial for IoT administrators and developers who need to oversee IoT device configurations and statuses within the AWS ecosystem.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `iot:ListThings` | Required to list things |
+| `iot:DescribeThing` | Required to get thing details |
+
 ## Examples
 
 ### Basic Info

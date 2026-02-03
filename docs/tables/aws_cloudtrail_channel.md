@@ -12,6 +12,17 @@ The AWS CloudTrail is a service that enables governance, compliance, operational
 
 The `aws_cloudtrail_channel` table in Steampipe provides you with information about CloudTrail trails within AWS CloudTrail. This table allows you, as a DevOps engineer, to query trail-specific details, including trail configurations, status, and associated metadata. You can utilize this table to gather insights on trails, such as their status, S3 bucket details, encryption status, and more. The schema outlines the various attributes of the CloudTrail trail for you, including the trail ARN, home region, S3 bucket name, and whether log file validation is enabled.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `cloudtrail:ListChannels` | Required to list CloudTrail channels |
+| `cloudtrail:GetChannel` | Required to get channel details |
+
+**Note:** The `cloudtrail:GetChannel` permission is required for the following columns: `apply_to_all_regions`, `source`, `advanced_event_selectors`, `ingestion_status`, `destinations`, `source_config`.
+
 ## Examples
 
 ### Basic info

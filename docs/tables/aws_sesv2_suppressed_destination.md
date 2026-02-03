@@ -12,6 +12,15 @@ AWS Simple Email Service (SES) is a cloud-based email sending service designed t
 
 The `aws_sesv2_suppressed_destination` table in Steampipe provides information about email addresses on the account-level suppression list in AWS SES. This table allows you, as a DevOps engineer or an email administrator, to query suppression details, including the reason for suppression and when the address was last updated. You can use this table to monitor email deliverability health and manage your suppression lists.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `sesv2:ListSuppressedDestinations` | Required to list suppressed destinations |
+| `sesv2:GetSuppressedDestination` | Required to get suppressed destination details |
+
 ## Examples
 
 ### Basic info

@@ -12,6 +12,16 @@ The AWS EC2 Application Load Balancer is a resource within Amazon's Elastic Comp
 
 The `aws_ec2_application_load_balancer` table in Steampipe allows you to gain insights into the Application Load Balancers within your AWS EC2 service. The table provides detailed information about each Application Load Balancer, including its current state, associated security groups, availability zones, type, scheme, and other important attributes. You can use this table to query load balancer-specific details, monitor the health of the load balancers, assess load balancing configurations, and much more. The schema outlines various attributes of the Application Load Balancer, such as the ARN, DNS name, canonical hosted zone ID, and creation date, among others.
 
+## Required Permissions
+
+Your principal must have the following permissions to use this table:
+
+| Permission | Description |
+|------------|-------------|
+| `elasticloadbalancing:DescribeLoadBalancers` | Required to retrieve load balancer information. |
+| `elasticloadbalancing:DescribeLoadBalancerAttributes` | Required to retrieve the `load_balancer_attributes` column. |
+| `elasticloadbalancing:DescribeTags` | Required to retrieve the `tags` and `tags_src` columns. |
+
 ## Examples
 
 ### Security group attached to the application load balancers

@@ -12,6 +12,14 @@ The AWS EC2 Transit Gateway Route Table is a component of Amazon's Elastic Compu
 
 The `aws_ec2_transit_gateway_route_table` table in Steampipe provides you with information about each route table associated with a transit gateway within your Amazon Elastic Compute Cloud (EC2). This table allows you, as a DevOps engineer, to query route table-specific details, including the transit gateway ID, route table ID, state, and associated tags. You can utilize this table to gather insights on transit gateway route tables, such as their current state, associated transit gateways, and more. The schema outlines the various attributes of the transit gateway route table for you, including the route table ID, transit gateway ID, creation time, and associated tags.
 
+## Required Permissions
+
+Your principal must have the following permissions to use this table:
+
+| Permission | Description |
+|------------|-------------|
+| `ec2:DescribeTransitGatewayRouteTables` | Required to retrieve transit gateway route table information. |
+
 ## Examples
 
 ### Basic transit gateway route table info

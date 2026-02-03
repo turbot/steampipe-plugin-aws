@@ -14,6 +14,15 @@ The `aws_rds_db_instance_metric_write_iops_hourly` table in Steampipe provides y
 
 The `aws_rds_db_instance_metric_write_iops_hourly` table provides you with metric statistics at 1 hour intervals for the most recent 60 days.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `rds:DescribeDBInstances` | Required to list DB instances (parent hydrate) |
+| `cloudwatch:GetMetricStatistics` | Required to retrieve write IOPS metrics |
+
 ## Examples
 
 ### Basic info

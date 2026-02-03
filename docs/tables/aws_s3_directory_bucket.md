@@ -12,6 +12,17 @@ An AWS S3 Directory Bucket is a high-performance storage option for applications
 
 The `aws_s3_directory_bucket` table in Steampipe provides you with information about S3 directory buckets within Amazon Simple Storage Service (S3). This table allows you, as a DevOps engineer, to query directory bucket-specific details, including their names, creation dates, and regional information. You can utilize this table to gather insights on directory buckets, such as their distribution across regions and creation timelines.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `s3:ListDirectoryBuckets` | Required to list directory buckets |
+| `s3:GetBucketPolicy` | Required to get bucket policy (policy, policy_std columns) |
+| `s3:GetBucketLifecycleConfiguration` | Required to get lifecycle rules (lifecycle_rules column) |
+| `s3:GetBucketEncryption` | Required to get encryption configuration (server_side_encryption_configuration column) |
+
 ## Examples
 
 ### Basic info

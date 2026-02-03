@@ -12,6 +12,21 @@ The AWS Identity and Access Management (IAM) User is a resource that represents 
 
 The `aws_iam_user` table in Steampipe provides you with information about IAM users within AWS Identity and Access Management (IAM). This table allows you, as a DevOps engineer, to query user-specific details, including user ID, name, path, and creation date. You can utilize this table to gather insights on user permissions, access keys, and associated metadata. The schema outlines the various attributes of the IAM user, including the user ARN, creation date, attached policies, and associated tags for you.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `iam:ListUsers` | Required to list IAM users |
+| `iam:GetUser` | Required to get user details and tags |
+| `iam:GetLoginProfile` | Required to get login profile information |
+| `iam:ListAttachedUserPolicies` | Required to list attached user policies |
+| `iam:ListGroupsForUser` | Required to list groups for a user |
+| `iam:ListMFADevices` | Required to list MFA devices for a user |
+| `iam:ListUserPolicies` | Required to list inline user policies |
+| `iam:GetUserPolicy` | Required to get inline policy documents |
+
 ## Examples
 
 ### Basic IAM user info

@@ -19,6 +19,15 @@ The `aws_wellarchitected_lens_review_report` table in Steampipe provides you wit
 - The `base64_string` column value can be used to get the PDF format of the review report.
 The tool(https://base64.guru/converter/decode/pdf) can be used to decode the `base64_string` value to a PDF format.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `wellarchitected:ListWorkloads` | Required to list workloads (parent hydrate) |
+| `wellarchitected:GetLensReviewReport` | Required to get lens review report data |
+
 ## Examples
 
 ### Basic info

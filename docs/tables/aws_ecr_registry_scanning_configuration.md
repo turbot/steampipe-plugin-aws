@@ -12,6 +12,14 @@ The AWS ECR Registry Scanning Configurations are defined at the private registry
 
 The `aws_ecr_registry_scanning_configuration` table in Steampipe provides you with information about the scanning configurations of Amazon Elastic Container Registry (ECR). This table allows you, as a cloud administrator, security team member, or developer, to query the scanning rules associated with the registry. You can utilize this table to gather insights on scanning configurations, such as the rules, the repository filters, and the region name. The schema outlines the various attributes of the scanning configurations for you, including the region, rules, repository filters, scan type and scan frequency.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `ecr:GetRegistryScanningConfiguration` | Required to get registry scanning configuration |
+
 ## Examples
 
 ### Basic configuration info

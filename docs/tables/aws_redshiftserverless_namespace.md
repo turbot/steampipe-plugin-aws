@@ -12,6 +12,16 @@ The AWS Redshift Serverless Namespace is a component of Amazon Redshift, a fully
 
 The `aws_redshiftserverless_namespace` table in Steampipe provides you with information about each namespace within an AWS Redshift Serverless cluster. This table allows you, as a DevOps engineer, to query namespace-specific details, including the namespace ARN, creation date, and associated metadata. You can utilize this table to gather insights on namespaces, such as the associated database, the owner of the namespace, and more. The schema outlines the various attributes of the Redshift Serverless Namespace for you, including the namespace ARN, creation date, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `redshift-serverless:ListNamespaces` | Required to list namespaces |
+| `redshift-serverless:GetNamespace` | Required to get namespace details |
+| `redshift-serverless:ListTagsForResource` | Required to retrieve tags for namespaces |
+
 ## Examples
 
 ### Basic info

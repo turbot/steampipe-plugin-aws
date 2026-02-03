@@ -12,6 +12,15 @@ An AWS Network Firewall Policy defines the behavior of a firewall in a particula
 
 The `aws_networkfirewall_firewall_policy` table in Steampipe provides you with information about each firewall policy in AWS Network Firewall. This table enables you, as a network administrator, security analyst, or DevOps engineer, to query specific details about firewalls, including firewall policies, subnet mappings, and associated VPCs. You can utilize this table to gain insights into firewall configurations, such as firewall policy ARNs, VPC IDs, subnet IDs, and more. The schema outlines the various attributes of the firewall for you, including the firewall ARN, firewall name, firewall policy ARN, VPC ID, subnet mapping, delete protection status, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `network-firewall:ListFirewallPolicies` | Required to list Network Firewall policies |
+| `network-firewall:DescribeFirewallPolicy` | Required to get details of a specific firewall policy |
+
 ## Examples
 
 ### Basic info

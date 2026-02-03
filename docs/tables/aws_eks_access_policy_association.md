@@ -12,6 +12,16 @@ AWS EKS Access Policy Associations link access policies to IAM principals (users
 
 The `aws_eks_access_policy_association` table in Steampipe provides you with information about access policy associations for each Amazon EKS access entry. This table allows you, as a DevOps engineer or security administrator, to query association-specific details, including the policy ARN, access scope type, namespaces, and association timestamps. You can utilize this table to gather insights on access policy assignments, such as which policies are associated with specific IAM principals, the scope of access granted, and when policies were associated or modified. The schema outlines the various attributes of the EKS access policy association for you, including the cluster name, principal ARN, policy ARN, access scope, and timestamps.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `eks:ListClusters` | Required to list EKS clusters (parent resource) |
+| `eks:ListAccessEntries` | Required to list access entries for each cluster |
+| `eks:ListAssociatedAccessPolicies` | Required to list access policy associations |
+
 ## Examples
 
 ### Basic info

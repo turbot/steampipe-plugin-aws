@@ -12,6 +12,16 @@ The AWS Backup Selection is a component of AWS Backup, a fully managed backup se
 
 The `aws_backup_selection` table in Steampipe provides you with comprehensive information about backup selection resources within the AWS Backup service. This table allows you, as a DevOps engineer, security professional, or system administrator, to query backup selection-specific details, including the selection's ARN, backup plan ID, creation and modification dates, and associated creator request ID. You can utilize this table to gather insights on backup selections, such as identifying backup selections associated with specific backup plans, tracking creation and modification times of backup selections, and more. The schema outlines the various attributes of the backup selection for you, including the backup selection ARN, backup plan ID, creation date, creator request ID, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `backup:ListBackupPlans` | Required to list backup plans (parent hydrate) |
+| `backup:ListBackupSelections` | Required to list backup selections for a plan |
+| `backup:GetBackupSelection` | Required to get details of a specific backup selection including `resources`, `list_of_tags`, `conditions`, and `not_resources` columns |
+
 ## Examples
 
 ### Basic Info

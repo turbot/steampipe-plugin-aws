@@ -12,6 +12,15 @@ An AWS EMR Instance Fleet is a component of Amazon EMR that you use to specify t
 
 The `aws_emr_instance_fleet` table in Steampipe provides you with information about instance fleets within AWS Elastic MapReduce (EMR). This table allows you, as a DevOps engineer, to query instance fleet-specific details, including instance type specifications, target capacities, and associated metadata. You can utilize this table to gather insights on instance fleets, such as the current status of instance fleets, the target and provisioned capacities of on-demand and spot instances, and the instance type configurations. The schema outlines the various attributes of the EMR instance fleet for you, including the fleet ID, cluster ID, name, state, instance type specifications, target capacities, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `elasticmapreduce:ListClusters` | Required to list EMR clusters |
+| `elasticmapreduce:ListInstanceFleets` | Required to list instance fleets within clusters |
+
 ## Examples
 
 ### Basic info

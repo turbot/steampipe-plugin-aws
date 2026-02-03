@@ -12,6 +12,16 @@ The AWS Identity and Access Management (IAM) Access Keys are long-term credentia
 
 The `aws_iam_access_key` table in Steampipe provides you with information about IAM Access Keys within AWS Identity and Access Management (IAM). This table lets you, as a DevOps engineer, query access key-specific details, including the access key ID, status, creation date, and more. You can utilize this table to gather insights on access keys, such as their current status (active/inactive), the IAM user they are associated with, and their creation date. The schema outlines the various attributes of the IAM Access Key for you, including the access key ID, status, creation date, and the IAM user to which it belongs.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `iam:ListUsers` | Required to list IAM users (parent hydrate) |
+| `iam:ListAccessKeys` | Required to list access keys for each user |
+| `iam:GetAccessKeyLastUsed` | Required to get access key last used information |
+
 ## Examples
 
 ### List of access keys with their corresponding user name and date of creation

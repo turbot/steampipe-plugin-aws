@@ -12,6 +12,15 @@ AWS DAX Parameter Groups are a collection of parameters that you apply to all of
 
 The `aws_dax_parameter` table in Steampipe provides you with information about Parameter Groups within AWS DynamoDB Accelerator (DAX). This table allows you, as a DevOps engineer, to query parameter group-specific details, including parameter names, types, values, and whether they are modifiable or not. You can utilize this table to gather insights on parameter groups, such as understanding the configurations that control the behavior of your DAX clusters, and to verify if the parameters are set as per your requirements. The schema outlines the various attributes of the DAX parameter group for you, including the parameter name, value, source, data type, and whether it's modifiable or not.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `dax:DescribeParameterGroups` | Required to list parameter groups (parent hydrate) |
+| `dax:DescribeParameters` | Required to list parameters for each parameter group |
+
 ## Examples
 
 ### Basic info

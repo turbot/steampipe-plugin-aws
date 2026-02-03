@@ -12,6 +12,15 @@ AWS Athena Query Execution is a feature of Amazon Athena that allows you to run 
 
 The `aws_athena_query_execution` table in Steampipe provides you with information about query executions within AWS Athena. This table allows you, as a data analyst or developer, to query execution-specific details, including execution status, result configuration, and associated metadata. You can utilize this table to track the progress of queries, analyze the performance of queries, and understand the cost of running specific queries. The schema outlines the various attributes of the Athena query execution for you, including the query execution id, query, output location, data scanned, and execution time.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `athena:GetQueryExecutions` | Required to list query executions |
+| `athena:GetQueryExecution` | Required to get query execution details |
+
 ## Examples
 
 ### List all queries in error

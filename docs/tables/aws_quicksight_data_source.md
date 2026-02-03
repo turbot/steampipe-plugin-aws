@@ -12,6 +12,15 @@ AWS QuickSight Data Source is a connection to your data that QuickSight uses to 
 
 The `aws_quicksight_data_source` table in Steampipe provides you with information about data sources within AWS QuickSight. This table allows you, as a data analyst or administrator, to query data source-specific details, including connection properties, status, and configuration parameters. You can utilize this table to gather insights on data sources, such as their creation time, last update time, connection status, and type.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `quicksight:ListDataSources` | Required to list data sources |
+| `quicksight:DescribeDataSource` | Required to get data source details |
+
 ## Examples
 
 ### Basic info

@@ -12,6 +12,15 @@ The AWS Service Catalog Portfolio is a part of the AWS Service Catalog that allo
 
 The `aws_servicecatalog_portfolio` table in Steampipe provides you with information about portfolios within AWS Service Catalog. This table allows you, as a DevOps engineer, to query portfolio-specific details, including owner, description, created time, and associated metadata. You can utilize this table to gather insights on portfolios, such as portfolio details, associated products, and more. The schema outlines the various attributes of the portfolio for you, including the portfolio ARN, creation date, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `servicecatalog:ListPortfolios` | Required to list portfolios |
+| `servicecatalog:DescribePortfolio` | Required to get portfolio details including budgets, tag options, and tags |
+
 ## Examples
 
 ### Basic info

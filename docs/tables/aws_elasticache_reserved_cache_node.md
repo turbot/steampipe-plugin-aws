@@ -12,6 +12,14 @@ AWS ElastiCache Reserved Cache Nodes are a type of node that you can purchase fo
 
 The `aws_elasticache_reserved_cache_node` table in Steampipe provides you with information about the reserved cache nodes within AWS ElastiCache. This table allows you, as a DevOps engineer, to query reserved cache node-specific details, including the reservation status, start time, and duration. You can utilize this table to gather insights on reserved cache nodes, such as their current status, the time at which the reservation started, the duration of the reservation, and more. The schema outlines the various attributes of the reserved cache node for you, including the reserved cache node ID, cache node type, start time, duration, fixed price, usage price, cache node count, product description, offering type, state, recurring charges, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `elasticache:DescribeReservedCacheNodes` | Required to list and get ElastiCache reserved cache node details |
+
 ## Examples
 
 ### Basic info

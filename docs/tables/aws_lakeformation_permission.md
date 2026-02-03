@@ -12,6 +12,14 @@ The `aws_lakeformation_permission` table allows you to query **AWS Lake Formatio
 
 The `aws_lakeformation_permission` table provides detailed information about **permissions granted in AWS Lake Formation**, including the **principals** (IAM users, roles, or AWS services) who have permissions, the **resource types** such as databases, tables, columns, LF-tags, and data locations, and the **types of permissions** granted, including `SELECT`, `DESCRIBE`, and `ALL`. It also includes details on **grant options**, indicating whether the principal can delegate permissions to others, and **last updated timestamps** to track permission changes.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `lakeformation:ListPermissions` | Required to list Lake Formation permissions |
+
 ## Examples
 
 ### List all AWS Lake Formation permissions

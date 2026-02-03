@@ -12,6 +12,16 @@ The AWS Step Functions State Machine Execution is a feature of AWS Step Function
 
 The `aws_sfn_state_machine_execution` table in Steampipe provides you with information about the execution of state machines within AWS Step Functions. This table allows you, as a DevOps engineer, to query execution-specific details, including execution status, start and end times, and associated state machine details. You can utilize this table to gather insights on state machine executions, such as execution duration, status, and associated state machine ARN. The schema outlines for you the various attributes of the state machine execution, including the state machine ARN, execution ARN, status, start time, end time, and more.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `states:ListExecutions` | Required to list executions |
+| `states:DescribeExecution` | Required to get execution details |
+| `states:ListStateMachines` | Required to list state machines (parent hydrate) |
+
 ## Examples
 
 ### Basic info

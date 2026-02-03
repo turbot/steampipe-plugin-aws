@@ -12,6 +12,15 @@ An AWS EC2 Load Balancer Listener is a component of the AWS Elastic Load Balanci
 
 The `aws_ec2_load_balancer_listener` table in Steampipe provides you with information about listeners for an Application Load Balancer or Network Load Balancer in Amazon Elastic Compute Cloud (EC2). This table allows you, as a DevOps engineer, to query listener-specific details, including protocol, port, SSL policy, and associated actions. You can utilize this table to gather insights on listeners, such as their current state, default actions, and certificates. The schema outlines the various attributes of the Load Balancer Listener for you, including the listener ARN, load balancer ARN, default actions, and associated tags.
 
+## Required Permissions
+
+Your principal must have the following permissions to use this table:
+
+| Permission | Description |
+|------------|-------------|
+| `elasticloadbalancing:DescribeListeners` | Required to retrieve listener information. |
+| `elasticloadbalancing:DescribeLoadBalancers` | Required to list load balancers for listener retrieval. |
+
 ## Examples
 
 ### Load balancer listener basic info

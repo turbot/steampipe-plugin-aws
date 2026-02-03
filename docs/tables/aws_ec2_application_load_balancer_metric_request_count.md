@@ -14,6 +14,15 @@ The `aws_ec2_application_load_balancer_metric_request_count` table in Steampipe 
 
 The `aws_ec2_application_load_balancer_metric_request_count` table provides you with metric statistics at 5 min intervals for the most recent 5 days.
 
+## Required Permissions
+
+Your principal must have the following permissions to use this table:
+
+| Permission | Description |
+|------------|-------------|
+| `cloudwatch:GetMetricStatistics` | Required to retrieve CloudWatch metric statistics. |
+| `elasticloadbalancing:DescribeLoadBalancers` | Required to list load balancers for metric retrieval. |
+
 ## Examples
 
 ### Basic info

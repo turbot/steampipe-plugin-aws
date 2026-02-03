@@ -12,6 +12,17 @@ The AWS CloudFront Function is a feature of Amazon CloudFront that allows you to
 
 The `aws_cloudfront_function` table in Steampipe provides you with information about functions within AWS CloudFront. This table allows you, as a DevOps engineer, to query function-specific details, including the function's ARN, stage, status, and associated metadata. You can utilize this table to gather insights on functions, such as their status, the events they are associated with, and more. The schema outlines the various attributes of the CloudFront function for you, including the function ARN, creation timestamp, last modified timestamp, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `cloudfront:ListFunctions` | Required to list CloudFront functions |
+| `cloudfront:DescribeFunction` | Required to get function details |
+
+**Note:** The `cloudfront:DescribeFunction` permission is required for the following columns: `status`, `e_tag`, `function_config`.
+
 ## Examples
 
 ### Basic info

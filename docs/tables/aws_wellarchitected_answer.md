@@ -15,6 +15,16 @@ The `aws_wellarchitected_answer` table in Steampipe provides you with informatio
 **Important Notes**
 - For improved performance, it is advisable that you use the optional qual `workload_id`, `pillar_id`, and `lens_alias` to limit the result set to a specific workload, pillar, or lens.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `wellarchitected:ListWorkloads` | Required to list workloads (parent hydrate) |
+| `wellarchitected:ListAnswers` | Required to list answers for a workload |
+| `wellarchitected:GetAnswer` | Required to get answer details and additional columns (`helpful_resource_display_text`, `helpful_resource_url`, `improvement_plan_url`, `notes`, `question_description`, `choice_answers`) |
+
 ## Examples
 
 ### Basic info

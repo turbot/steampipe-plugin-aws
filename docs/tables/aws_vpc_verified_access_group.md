@@ -12,6 +12,14 @@ The AWS VPC Verified Access Groups are used to manage access to your Virtual Pri
 
 The `aws_vpc_verified_access_group` table in Steampipe provides you with information about each verified access group within a VPC in AWS Virtual Private Cloud (VPC). This table enables you, as a network administrator or security personnel, to query group-specific details, including the group ID, group name, and the VPC ID it is associated with. You can utilize this table to gain insights on access groups, such as which VPCs have certain access groups, the names of these groups, and more. The schema outlines for you the various attributes of the verified access group, including the group ID, group name, and associated VPC ID.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `ec2:DescribeVerifiedAccessGroups` | Required to list and get verified access group details |
+
 ## Examples
 
 ### Basic info

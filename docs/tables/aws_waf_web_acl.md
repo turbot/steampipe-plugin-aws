@@ -12,6 +12,17 @@ The AWS WAF WebACL is a resource in AWS WAF service that provides control over h
 
 The `aws_waf_web_acl` table in Steampipe provides you with information about Web Access Control Lists (WebACLs) within AWS WAF. This table allows you, as a security engineer, to query WebACL-specific details, including associated rules, actions, and metadata. You can utilize this table to gather insights on WebACLs, such as what rules are applied, what actions are taken when a rule is matched, and more. The schema outlines the various attributes of the WebACL for you, including the WebACL ARN, ID, default action, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `waf:ListWebACLs` | Required to list web ACLs |
+| `waf:GetWebACL` | Required to get web ACL details (arn, default_action, metric_name, rules) |
+| `waf:GetLoggingConfiguration` | Required to get logging configuration |
+| `waf:ListTagsForResource` | Required to get web ACL tags |
+
 ## Examples
 
 ### Basic info

@@ -12,6 +12,18 @@ The AWS Kinesis Firehose Delivery Stream is a fully managed service that makes i
 
 The `aws_kinesis_firehose_delivery_stream` table in Steampipe provides you with information about each Kinesis Firehose Delivery Stream within AWS. This table allows you, as a DevOps engineer, to query delivery stream-specific details, including the delivery stream name, status, creation time, and associated metadata. You can utilize this table to gather insights on delivery streams, such as the status of the stream, its creation time, and the destinations configured for the stream. The schema outlines the various attributes of the Kinesis Firehose Delivery Stream, including the delivery stream ARN, delivery stream type, delivery stream status, and more for you.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `firehose:ListDeliveryStreams` | Required to list delivery streams |
+| `firehose:DescribeDeliveryStream` | Required to get delivery stream details |
+| `firehose:ListTagsForDeliveryStream` | Required to get delivery stream tags |
+
+**Note:** The `tags`, `tags_src`, and most detail columns require the `firehose:DescribeDeliveryStream` permission.
+
 ## Examples
 
 ### Basic info

@@ -12,6 +12,16 @@ The `aws_acmpca_certificate_authority` table provides detailed information about
 
 This table can be utilized to monitor the configuration and operational health of your private certificate authorities managed through AWS ACM PCA. It enables security analysts, compliance auditors, and cloud administrators to assess the certificate authorities' compliance with policies, investigate issuance metadata, and understand the security standards being applied.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `acm-pca:ListCertificateAuthorities` | Required to list certificate authorities |
+| `acm-pca:DescribeCertificateAuthority` | Required to get certificate authority details |
+| `acm-pca:ListTags` | Required to get certificate authority tags |
+
 ## Examples
 
 ### Basic information

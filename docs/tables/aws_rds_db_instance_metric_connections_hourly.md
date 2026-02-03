@@ -14,6 +14,15 @@ The `aws_rds_db_instance_metric_connections_hourly` table in Steampipe provides 
 
 The `aws_rds_db_instance_metric_connections_hourly` table provides you with metric statistics at 1 hour intervals for the most recent 60 days.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `rds:DescribeDBInstances` | Required to list DB instances (parent hydrate) |
+| `cloudwatch:GetMetricStatistics` | Required to retrieve connection metrics |
+
 ## Examples
 
 ### Basic info

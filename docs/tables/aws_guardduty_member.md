@@ -12,6 +12,16 @@ The AWS GuardDuty Member is a component of the Amazon GuardDuty service which is
 
 The `aws_guardduty_member` table in Steampipe provides you with information about member accounts within AWS GuardDuty. This table allows you, as a security analyst, to query member-specific details, including account details, detector ID, invitation status, and relationship status. You can utilize this table to gather insights on member accounts, such as the status of invitations sent to these accounts, the relationship status between the master and member accounts, and more. The schema outlines the various attributes of the GuardDuty member for you, including the account ID, email, detector ID, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `guardduty:ListDetectors` | Required to list detectors (parent hydrate). |
+| `guardduty:ListMembers` | Required to list members. |
+| `guardduty:GetMembers` | Required to get member details. |
+
 ## Examples
 
 ### Basic info

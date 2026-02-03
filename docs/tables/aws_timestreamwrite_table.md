@@ -12,6 +12,15 @@ AWS Timestream is a fast, scalable, and fully managed time-series database servi
 
 The `aws_timestreamwrite_table` table enables DevOps engineers, cloud administrators, and data analysts to gather detailed insights on their Timestream tables. You can query various aspects of the table, such as its schema, retention policies, and status. This table is particularly useful for monitoring table health, ensuring data retention compliance, and managing table configurations.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `timestream:ListTables` | Required to list Timestream tables. |
+| `timestream:DescribeTable` | Required to get table details. |
+
 ## Examples
 
 ### Basic info

@@ -14,6 +14,17 @@ The `aws_backup_recovery_point` table in Steampipe provides you with information
 
 Note: The value in the `tags` column will be populated only if its resource type has a checkmark for [Full AWS Backup management](https://docs.aws.amazon.com/aws-backup/latest/devguide/whatisbackup.html#full-management) as per AWS Backup docs. This means the recovery point ARN must match the pattern `arn:aws:backup:[a-z0-9\-]+:[0-9]{12}:recovery-point:.*`
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `backup:ListBackupVaults` | Required to list backup vaults (parent hydrate) |
+| `backup:ListRecoveryPointsByBackupVault` | Required to list recovery points in a backup vault |
+| `backup:DescribeRecoveryPoint` | Required to get details of a specific recovery point |
+| `backup:ListTags` | Required to retrieve tags for the recovery point |
+
 ## Examples
 
 ### Basic Info

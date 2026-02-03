@@ -12,6 +12,16 @@ The AWS Glue Catalog Database is a managed service that serves as your integrate
 
 The `aws_glue_catalog_database` table in Steampipe provides you with information about databases within AWS Glue Catalog. This table allows you, as a DevOps engineer, data scientist, or database administrator, to query database-specific details, including the catalog ID, database name, description, location URI, and associated metadata. You can utilize this table to gather insights on databases, such as the creation time, last modified time, and the number of tables in each database. The schema outlines for you the various attributes of the AWS Glue Catalog Database, including the create time, compatibility, data location, parameters, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `glue:GetDatabases` | Required to list Glue catalog databases |
+| `glue:GetDatabase` | Required to get details of a specific database |
+| `glue:GetTags` | Required to retrieve tags for the database |
+
 ## Examples
 
 ### Basic info

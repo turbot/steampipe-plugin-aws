@@ -12,6 +12,14 @@ AWS MemoryDB is a Redis-compatible, fully managed, in-memory database service th
 
 The `aws_memorydb_cluster` table enables DevOps engineers and cloud administrators to gather detailed insights on their MemoryDB clusters. You can query various aspects of the cluster, such as its endpoint configuration, encryption settings, and shard details. This table is particularly useful for monitoring cluster health, ensuring security compliance, and managing cluster configurations.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `memorydb:DescribeClusters` | Required to list and get details of MemoryDB clusters |
+
 ## Examples
 
 ### Basic cluster information

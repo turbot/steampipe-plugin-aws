@@ -14,6 +14,17 @@ Description: AWS RDS DB Instances are a part of Amazon Relational Database Servi
 
 The `aws_rds_db_instance` table in Steampipe provides you with comprehensive information about each database instance within Amazon Relational Database Service (RDS). This table allows you, as a DevOps engineer, database administrator, or other technical professional, to query detailed information about each DB instance, including its configuration, status, performance metrics, and other associated metadata. You can leverage this table to gather insights about DB instances, such as instance specifications, security configurations, backup policies, and more. The schema outlines the various attributes of the DB instance for you, including the DB instance identifier, instance class, engine version, storage type, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `rds:DescribeDBInstances` | Required to list and get DB instance details |
+| `rds:DescribePendingMaintenanceActions` | Required to retrieve pending maintenance actions for the `pending_maintenance_actions` column |
+| `rds:DescribeCertificates` | Required to retrieve certificate details for the `certificate` column |
+| `rds:DescribeOrderableDBInstanceOptions` | Required to retrieve processor features for the `processor_features` column |
+
 ## Examples
 
 ### Basic info

@@ -14,6 +14,14 @@ The `aws_inspector2_finding` table in Steampipe provides you with information ab
 
 When you run an assessment with AWS Inspector, it analyzes your target resources such as EC2 instances, ECS clusters, or RDS databases and generates findings that highlight security vulnerabilities, potential misconfigurations, and other security-related issues. These findings provide you with detailed information about the identified vulnerabilities, including severity levels, affected resources, and recommended remediation steps.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `inspector2:ListFindings` | Required to list findings |
+
 ## Examples
 
 ### Basic info

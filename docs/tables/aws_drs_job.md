@@ -12,6 +12,14 @@ The AWS Data Replication Service (DRS) Jobs are part of AWS's migration tools th
 
 The `aws_drs_job` table in Steampipe provides you with information about jobs within AWS Data Replication Service (DRS). This table allows you, as a DevOps engineer, to query job-specific details, including job status, creation time, end time, and associated metadata. You can utilize this table to gather insights on jobs, such as job progress, replication status, verification of job parameters, and more. The schema outlines the various attributes of the DRS job for you, including the job ID, job type, creation time, end time, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `drs:DescribeJobs` | Required to list and describe jobs |
+
 ## Examples
 
 ### Basic Info

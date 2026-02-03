@@ -12,6 +12,15 @@ The AWS Elastic Beanstalk Application is a component of AWS's platform-as-a-serv
 
 The `aws_elastic_beanstalk_application` table in Steampipe provides you with information about applications within AWS Elastic Beanstalk. This table enables you, as a DevOps engineer, to query application-specific details, including application ARN, description, date created, date updated, and associated metadata. You can utilize this table to gather insights on applications, such as application versions, configurations, associated environments, and more. The schema outlines for you the various attributes of the Elastic Beanstalk application, including the resource lifecycles, configurations, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `elasticbeanstalk:DescribeApplications` | Required to list and get details of Elastic Beanstalk applications. |
+| `elasticbeanstalk:ListTagsForResource` | Required to retrieve tags for applications. |
+
 ## Examples
 
 ### Basic info

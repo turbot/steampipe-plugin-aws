@@ -12,6 +12,15 @@ Amazon Bedrock Imported Models are custom models that have been imported into th
 
 The `aws_bedrock_imported_model` table provides insights into imported models within AWS Bedrock. As a data scientist or ML engineer, explore model-specific details through this table, including model names, architectures, and associated metadata. Utilize it to monitor imported models, verify configurations, and ensure appropriate model deployment and management.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `bedrock:ListImportedModels` | Required to list imported models |
+| `bedrock:GetImportedModel` | Required to get imported model details for the `job_arn`, `job_name`, `model_data_source`, `model_kms_key_arn`, and `custom_model_units` columns |
+
 ## Examples
 
 ### Basic info

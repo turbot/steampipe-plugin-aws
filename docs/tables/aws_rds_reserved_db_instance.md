@@ -12,6 +12,14 @@ The AWS RDS Reserved DB Instance is a reservation of resources within the Amazon
 
 The `aws_rds_reserved_db_instance` table in Steampipe provides you with information about Reserved DB Instances within Amazon Relational Database Service (RDS). This table enables you, as a database administrator or DevOps engineer, to query detailed information about reserved instances, including the reservation identifier, instance type, duration, and associated costs. You can utilize this table to gather insights on your reserved instances, such as understanding cost allocation, planning capacity, and managing reservations. The schema outlines the various attributes of the Reserved DB Instance for you, including the reservation ARN, offering type, recurring charges, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `rds:DescribeReservedDBInstances` | Required to list and get reserved DB instance details |
+
 ## Examples
 
 ### Basic info

@@ -12,6 +12,16 @@ The AWS Redshift Cluster is a fully managed, petabyte-scale data warehouse servi
 
 The `aws_redshift_cluster` table in Steampipe provides you with information about Redshift clusters within Amazon Web Services. This table allows you, as a DevOps engineer, to query cluster-specific details, such as cluster status, node type, number of nodes, and associated metadata. You can utilize this table to gather insights on clusters, including their availability, performance, and security settings. The schema outlines the various attributes of the Redshift cluster for you, including the cluster identifier, creation time, database name, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `redshift:DescribeClusters` | Required to list and get cluster details |
+| `redshift:DescribeLoggingStatus` | Required to get logging status (for `logging_status` column) |
+| `redshift:DescribeScheduledActions` | Required to get scheduled actions (for `scheduled_actions` column) |
+
 ## Examples
 
 ### Basic info

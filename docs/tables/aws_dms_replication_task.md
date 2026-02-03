@@ -10,6 +10,17 @@ AWS Database Migration Service (DMS) Replication Tasks play a critical role in m
 
 The `aws_dms_replication_task` table in Steampipe allows for in-depth analysis of replication tasks, providing details such as task identifiers, status, migration types, settings, and endpoint ARNs. This table proves essential for database administrators and DevOps engineers overseeing database migrations, offering comprehensive insights into each task's configuration, progress, and performance.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `dms:DescribeReplicationTasks` | Required to list replication tasks |
+| `dms:ListTagsForResource` | Required to get replication task tags |
+
+**Note:** The `tags` and `tags_src` columns require the `dms:ListTagsForResource` permission.
+
 ## Examples
 
 ### Basic Info

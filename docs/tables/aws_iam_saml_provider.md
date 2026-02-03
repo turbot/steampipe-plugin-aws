@@ -12,6 +12,15 @@ The AWS IAM SAML Provider is a service that allows you to manage Identity Provid
 
 The `aws_iam_saml_provider` table in Steampipe provides you with information about SAML providers within AWS Identity and Access Management (IAM). This table empowers you, as a DevOps engineer, to query SAML provider-specific details, including the provider's ARN, creation date, validity period, and the SAML metadata document. You can utilize this table to gather insights on SAML providers, such as provider validity, associated metadata, and more. The schema outlines for you the various attributes of the SAML provider, including the provider ARN, creation date, and validity period.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `iam:ListSAMLProviders` | Required to list SAML providers |
+| `iam:GetSAMLProvider` | Required to get SAML provider details and metadata |
+
 ## Examples
 
 ### Basic info

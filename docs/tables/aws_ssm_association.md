@@ -12,6 +12,15 @@ The AWS SSM Association is a component of AWS Systems Manager that allows you to
 
 The `aws_ssm_association` table in Steampipe provides you with information about the AWS Systems Manager (SSM) associations. This table enables you, as a DevOps engineer, to query association-specific details, including the association ID, the instance ID it is associated with, the association version, and the parameters of the association. You can utilize this table to gather insights on associations, such as the status of associations, the targets of associations, and the parameters of associations. The schema outlines the various attributes of the SSM association for you, including the association name, association ID, instance ID, association version, parameters, and more.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `ssm:ListAssociations` | Required to list SSM associations. |
+| `ssm:DescribeAssociation` | Required to get detailed information about a specific association. |
+
 ## Examples
 
 ### Basic info

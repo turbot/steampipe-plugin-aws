@@ -12,6 +12,14 @@ The AWS Lightsail Bucket is part of the Amazon Lightsail service, offering simpl
 
 The `aws_lightsail_bucket` table in Steampipe provides detailed information about the buckets within AWS Lightsail. This table allows DevOps engineers, cloud architects, and developers to query various bucket-specific details, including configuration settings, access permissions, and associated tags. You can use this table to gather insights on buckets, such as those configured with specific access rules, buckets located in particular regions, or buckets with certain tags. The schema outlines various attributes of the Lightsail bucket for you, including the bucket name, creation timestamp, access rules, and more.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `lightsail:GetBuckets` | Required to list and get bucket details |
+
 ## Examples
 
 ### Basic info

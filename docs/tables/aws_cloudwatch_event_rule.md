@@ -12,6 +12,17 @@ AWS CloudWatch Events delivers a near real-time stream of system events that des
 
 The `aws_cloudwatch_event_rule` table in Steampipe provides you with information about CloudWatch Event rules within AWS CloudWatch Events. This table allows you, as a DevOps engineer, to query rule-specific details, including the rule name, ARN, state, description, schedule expression, and associated metadata. You can utilize this table to gather insights on rules, such as the rules associated with a specific event bus, the state of the rules (whether they are enabled or disabled), and more. The schema outlines the various attributes of the CloudWatch Event rule for you, including the rule ARN, event bus name, description, state, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `events:ListRules` | Required to list event rules |
+| `events:DescribeRule` | Required to get event rule details |
+| `events:ListTargetsByRule` | Required for the `targets` column |
+| `events:ListTagsForResource` | Required for the `tags` and `tags_src` columns |
+
 ## Examples
 
 ### Basic info

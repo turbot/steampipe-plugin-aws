@@ -12,6 +12,16 @@ The AWS Directory Service Certificate is a component of the AWS Directory Servic
 
 The `aws_directory_service_certificate` table in Steampipe provides you with information about the certificates associated with AWS Managed Microsoft AD and Simple AD directories. This table allows you as an IT administrator or security professional to query certificate-specific details, including certificate state, expiry date, and associated metadata. You can utilize this table to gather insights on certificates, such as active certificates, expired certificates, and certificates nearing expiry. The schema outlines the various attributes of the Directory Service Certificate for you, including the certificate ID, common name, expiry date, registered date, and the state of the certificate.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `ds:DescribeDirectories` | Required to list directories (parent hydrate). |
+| `ds:ListCertificates` | Required to list certificates for a directory. |
+| `ds:DescribeCertificate` | Required to get details of a specific certificate. |
+
 ## Examples
 
 ### Basic Info

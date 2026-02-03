@@ -12,6 +12,16 @@ AWS Transfer Family is a secure transfer service that enables you to transfer fi
 
 The `aws_transfer_user` table in Steampipe provides you with information about users inside defined servers in the AWS Transfer Family service. This table allows you, as a DevOps engineer, to query user-specific details, including home directories, ssh keys, usernames and IAM roles.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `transfer:ListServers` | Required to list Transfer servers (parent hydrate). |
+| `transfer:ListUsers` | Required to list users in a Transfer server. |
+| `transfer:DescribeUser` | Required to get user details including home directory mappings, SSH public keys, and tags. |
+
 ## Examples
 
 ### Basic info

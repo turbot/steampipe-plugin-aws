@@ -12,6 +12,15 @@ The AWS IAM Service Specific Credentials are a type of AWS credentials that allo
 
 The `aws_iam_service_specific_credential` table in Steampipe provides you with information about service-specific credentials within AWS Identity and Access Management (IAM). This table allows you, as a DevOps engineer, to query credential-specific details, including the associated user, status, creation date, and service name. You can utilize this table to gather insights on credentials, such as those associated with a specific user, the status of each credential, and the services for which they are used. The schema outlines the various attributes of service-specific credentials for you, including the username, status, creation date, and service name.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `iam:ListUsers` | Required to list IAM users (parent hydrate) |
+| `iam:ListServiceSpecificCredentials` | Required to list service-specific credentials for each user |
+
 ## Examples
 
 ### Basic info

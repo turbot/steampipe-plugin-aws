@@ -23,6 +23,14 @@ Utilizing this table, database administrators and DevOps engineers can make info
   - `default_only`
   - `status`
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `rds:DescribeDBEngineVersions` | Required to list DB engine version details |
+
 ## Examples
 
 ### List all available engine versions

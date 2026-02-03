@@ -12,6 +12,16 @@ The AWS Backup Plan is a policy-based solution for defining, scheduling, and aut
 
 The `aws_backup_plan` table in Steampipe provides you with information about each backup plan within AWS Backup. This table allows you, as a DevOps engineer, to query backup plan-specific details, including backup options, creation and version details, and associated metadata. You can utilize this table to gather insights on backup plans, such as the backup frequency, backup window, lifecycle of the backup, and more. The schema outlines the various attributes of the backup plan for you, including the backup plan ARN, creation date, version, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `backup:ListBackupPlans` | Required to list backup plans |
+| `backup:GetBackupPlan` | Required to get details of a specific backup plan including the `backup_plan` column |
+| `backup:ListTags` | Required to retrieve tags for the backup plan |
+
 ## Examples
 
 ### Basic Info

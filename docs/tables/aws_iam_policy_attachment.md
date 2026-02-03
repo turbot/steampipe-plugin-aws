@@ -12,6 +12,15 @@ The AWS Identity and Access Management (IAM) Policy Attachment is a feature that
 
 The `aws_iam_policy_attachment` table in Steampipe allows you to query IAM Policy Attachments in AWS to gather information about the relationship between IAM policies and their associated entities (users, groups, and roles). You can use this table to identify which IAM policies are attached to which entities, enabling you to manage and audit access permissions across your AWS environment. The schema outlines the various attributes of the IAM policy attachment, including the policy ARN, policy name, and the associated users, groups, and roles.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `iam:ListPolicies` | Required to list IAM policies (parent hydrate) |
+| `iam:ListEntitiesForPolicy` | Required to list entities attached to each policy |
+
 **Important Notes**
 - Using the `is_attached` column as a filter will help to reduce your query response time.
 

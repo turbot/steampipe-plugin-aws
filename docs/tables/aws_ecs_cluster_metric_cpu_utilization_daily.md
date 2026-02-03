@@ -12,6 +12,15 @@ The AWS ECS Cluster is a logical grouping of tasks or services. It allows you to
 
 The `aws_ecs_cluster_metric_cpu_utilization_daily` table in Steampipe provides you with information about CPU utilization metrics within AWS Elastic Container Service (ECS) clusters. This table allows you, as a DevOps engineer, to query CPU utilization details on a daily basis, including the average, maximum, and minimum utilization. You can utilize this table to monitor and analyze CPU usage trends, identify potential performance issues, and optimize resource allocation. The schema outlines the various attributes of the CPU utilization metric for you, including the timestamp, period, unit, and statistical values.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `ecs:ListClusters` | Required to list ECS clusters (parent resource) |
+| `cloudwatch:GetMetricStatistics` | Required to get CPU utilization metrics |
+
 ## Examples
 
 ### Basic info

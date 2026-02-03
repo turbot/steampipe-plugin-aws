@@ -17,6 +17,15 @@ Amazon S3 Multi-Region Access Point provides you with a global endpoint that you
 **Important Notes**
 - You must grant the s3:ListAllMyBuckets permission to yourself, your role, or an IAM entity that makes a request to manage a Multi-Region Access Point.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `s3:ListMultiRegionAccessPoints` | Required to list multi-region access points |
+| `s3:GetMultiRegionAccessPoint` | Required to get multi-region access point details |
+
 ## Examples
 
 ### Basic info

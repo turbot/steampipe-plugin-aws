@@ -12,6 +12,16 @@ The `aws_docdb_cluster_snapshot` table provides detailed information about snaps
 
 This table allows DevOps engineers, database administrators, and other technical professionals to query detailed information about Amazon DocumentDB cluster snapshots. Utilize this table to analyze snapshot configurations, encryption statuses, and other metadata. The schema includes attributes of the DocumentDB cluster snapshots, such as identifiers, creation times, and the associated cluster details.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `rds:DescribeDBClusterSnapshots` | Required to list and get details of DocumentDB cluster snapshots. |
+| `rds:ListTagsForResource` | Required to retrieve tags for cluster snapshots. |
+| `rds:DescribeDBClusterSnapshotAttributes` | Required to get snapshot attribute information. |
+
 ## Examples
 
 ### List of cluster snapshots that are not encrypted

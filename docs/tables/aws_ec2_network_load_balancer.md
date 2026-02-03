@@ -12,6 +12,16 @@ The AWS EC2 Network Load Balancer is a high-performance load balancer that opera
 
 The `aws_ec2_network_load_balancer` table in Steampipe provides you with information about Network Load Balancers within AWS Elastic Compute Cloud (EC2). This table allows you, as a cloud administrator or DevOps engineer, to query load balancer-specific details, including type, state, availability zones, and associated metadata. You can utilize this table to gather insights on load balancers, such as their current status, associated subnets, and more. The schema outlines the various attributes of the Network Load Balancer for you, including the load balancer name, ARN, creation date, DNS name, scheme, and associated tags.
 
+## Required Permissions
+
+Your principal must have the following permissions to use this table:
+
+| Permission | Description |
+|------------|-------------|
+| `elasticloadbalancing:DescribeLoadBalancers` | Required to retrieve load balancer information. |
+| `elasticloadbalancing:DescribeLoadBalancerAttributes` | Required to retrieve the `load_balancer_attributes` column. |
+| `elasticloadbalancing:DescribeTags` | Required to retrieve the `tags` and `tags_src` columns. |
+
 ## Examples
 
 ### Count of AZs registered with network load balancers

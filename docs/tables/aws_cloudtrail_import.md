@@ -12,6 +12,17 @@ AWS CloudTrail is a service that enables governance, compliance, operational aud
 
 The `aws_cloudtrail_import` table in Steampipe provides you with information about imported trail files within AWS CloudTrail. This table allows you, as a DevOps engineer, to query import-specific details, including the file name, import time, hash value, and more. You can utilize this table to gather insights on imported trail files, such as their import status, hash type, and hash value. The schema outlines the various attributes of the imported trail file for you, including the import ID, import time, file name, and associated metadata.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `cloudtrail:ListImports` | Required to list CloudTrail imports |
+| `cloudtrail:GetImport` | Required to get import details |
+
+**Note:** The `cloudtrail:GetImport` permission is required for the following columns: `end_event_time`, `start_event_time`, `import_source`, `import_statistics`.
+
 ## Examples
 
 ### Basic info

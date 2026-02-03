@@ -12,6 +12,16 @@ The AWS GuardDuty IPSet is a component of Amazon GuardDuty that allows you to ma
 
 The `aws_guardduty_ipset` table in Steampipe provides you with information about IPSet within AWS GuardDuty. This table allows you, as a security analyst, to query IPSet-specific details, including the detector ID, IPSet ID, name, format, location, and status. You can utilize this table to gather insights on IPSet, such as the list of IP addresses used by GuardDuty to simulate trusted IP addresses when generating test findings. The schema outlines the various attributes of the IPSet for you, including the detector ID, IPSet ID, name, format, location, and status.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `guardduty:ListDetectors` | Required to list detectors (parent hydrate). |
+| `guardduty:ListIPSets` | Required to list IP sets. |
+| `guardduty:GetIPSet` | Required to get IP set details. |
+
 ## Examples
 
 ### Basic info

@@ -12,6 +12,14 @@ The AWS VPC Verified Access Endpoint is a feature within Amazon's Virtual Privat
 
 The `aws_vpc_verified_access_endpoint` table in Steampipe provides you with information about the verified access endpoints within AWS Virtual Private Cloud (VPC). This table allows you, as a DevOps engineer, to query endpoint-specific details, including the endpoint configuration, service name, and VPC ID. You can utilize this table to gather insights on endpoints, such as endpoint configurations, associated services, and the VPCs they belong to. The schema outlines the various attributes of the VPC verified access endpoint for you, including the endpoint ID, creation timestamp, attached security groups, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `ec2:DescribeVerifiedAccessEndpoints` | Required to list and get verified access endpoint details |
+
 ## Examples
 
 ### Basic info

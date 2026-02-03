@@ -14,6 +14,15 @@ The `aws_ebs_volume_metric_write_ops_daily` table in Steampipe provides you with
 
 The `aws_ebs_volume_metric_write_ops_daily` table provides you with metric statistics at 24 hour intervals for the last year.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `ec2:DescribeVolumes` | Required to list EBS volumes |
+| `cloudwatch:GetMetricStatistics` | Required to retrieve CloudWatch metrics |
+
 ## Examples
 
 ### Basic info

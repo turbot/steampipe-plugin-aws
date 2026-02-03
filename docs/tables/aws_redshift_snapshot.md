@@ -12,6 +12,14 @@ The AWS Redshift Snapshot is a point-in-time copy of your data in AWS Redshift, 
 
 The `aws_redshift_snapshot` table in Steampipe provides you with information about snapshots within AWS Redshift. This table allows you, as a DevOps engineer, to query snapshot-specific details, including the snapshot status, creation time, source cluster, and associated metadata. You can utilize this table to gather insights on snapshots, such as snapshot availability, size, and retention period. The schema outlines the various attributes of the Redshift snapshot for you, including the snapshot identifier, snapshot type, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `redshift:DescribeClusterSnapshots` | Required to list and get snapshot details |
+
 ## Examples
 
 ### Basic info

@@ -12,6 +12,16 @@ AWS AppSync is a fully managed service provided by Amazon Web Services (AWS) tha
 
 The `aws_appsync_graphql_api` table in Steampipe provides you with information about GraphQL API within AWS Athena. This table allows you, as a data analyst or developer, to GraphQL API specific details, including authentication type, owner of the API, and log configuration details of the API.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `appsync:ListGraphqlApis` | Required to list GraphQL APIs |
+| `appsync:GetGraphqlApi` | Required to get GraphQL API details |
+| `appsync:GetApiCache` | Required to get API cache configuration |
+
 ## Examples
 
 ### List all merged APIs

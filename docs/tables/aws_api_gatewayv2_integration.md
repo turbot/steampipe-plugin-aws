@@ -12,6 +12,14 @@ The AWS API Gateway Integrations is a feature within the Amazon API Gateway serv
 
 The `aws_api_gatewayv2_integration` table in Steampipe provides you with information about each integration within AWS API Gateway. This table allows you as a DevOps engineer to query integration-specific details, including the integration type, API Gateway ID, integration method, and more. You can utilize this table to gather insights on integrations, such as integration protocols, request templates, and connection type. The schema outlines the various attributes of the integration for you, including the integration ID, integration response selection expression, integration subtype, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `apigateway:GET` | Required to list and get integrations |
+
 ## Examples
 
 ### Basic info

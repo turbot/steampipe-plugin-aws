@@ -12,6 +12,19 @@ The AWS Kinesis Stream is a resource in Amazon Kinesis Data Streams that allows 
 
 The `aws_kinesis_stream` table in Steampipe provides you with information about Kinesis streams within AWS Kinesis. This table allows you, as a DevOps engineer, to query stream-specific details, including the stream name, status, creation time, and associated metadata. You can utilize this table to gather insights on streams, such as stream health, data throughput, and more. The schema outlines the various attributes of the Kinesis stream for you, including the stream ARN, creation timestamp, number of shards, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `kinesis:ListStreams` | Required to list streams |
+| `kinesis:DescribeStream` | Required to get stream details |
+| `kinesis:DescribeStreamSummary` | Required to get stream summary (consumer_count, open_shard_count) |
+| `kinesis:ListTagsForStream` | Required to get stream tags |
+
+**Note:** The `consumer_count` and `open_shard_count` columns require the `kinesis:DescribeStreamSummary` permission. The `tags` and `tags_src` columns require the `kinesis:ListTagsForStream` permission.
+
 ## Examples
 
 ### Basic info

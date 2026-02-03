@@ -12,6 +12,15 @@ The AWS EC2 Transit Gateway Routes enable you to manage connectivity between mul
 
 The `aws_ec2_transit_gateway_route` table in Steampipe provides you with information about the routes in each transit gateway within AWS EC2. This table allows you, as a DevOps engineer, to query route-specific details, including the destination CIDR block, the route's current state, and the transit gateway attachments. You can utilize this table to gather insights on routes, such as verifying the transit gateway route's state, checking the destination CIDR block, and more. The schema outlines the various attributes of the transit gateway route for you, including the transit gateway route ID, transit gateway route destination CIDR block, and associated tags.
 
+## Required Permissions
+
+Your principal must have the following permissions to use this table:
+
+| Permission | Description |
+|------------|-------------|
+| `ec2:SearchTransitGatewayRoutes` | Required to retrieve transit gateway route information. |
+| `ec2:DescribeTransitGatewayRouteTables` | Required to list transit gateway route tables for route retrieval. |
+
 ## Examples
 
 ### Basic info

@@ -12,6 +12,19 @@ AWS Glacier Vaults are a component of the Amazon Glacier service, designed for l
 
 The `aws_glacier_vault` table in Steampipe provides you with information about Vaults within AWS Glacier. This table allows you, as a DevOps engineer, to query vault-specific details, including vault names, ARNs, creation dates, number of archives, size of archives, and more. You can utilize this table to gather insights on vaults, such as the total size of all archives in the vault, the number of archives in the vault, and the date the vault was last accessed. The schema outlines the various attributes of the Glacier Vault for you, including the vault ARN, creation date, last inventory date, number of archives, size of archives, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `glacier:ListVaults` | Required to list Glacier vaults |
+| `glacier:DescribeVault` | Required to get vault details |
+| `glacier:GetVaultAccessPolicy` | Required for the `policy` and `policy_std` columns |
+| `glacier:GetVaultLock` | Required for the `vault_lock_policy` and `vault_lock_policy_std` columns |
+| `glacier:GetVaultNotifications` | Required for the `vault_notification_config` column |
+| `glacier:ListTagsForVault` | Required to retrieve tags for vaults |
+
 ## Examples
 
 ### Basic info

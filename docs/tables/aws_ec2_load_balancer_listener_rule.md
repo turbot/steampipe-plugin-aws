@@ -15,6 +15,15 @@ The `aws_ec2_load_balancer_listener_rule` table enables cloud administrators and
 **Important Notes**
 - You **_must_** specify `arn` or `listener_arn` in a `where` clause in order to use this table.
 
+## Required Permissions
+
+Your principal must have the following permissions to use this table:
+
+| Permission | Description |
+|------------|-------------|
+| `elasticloadbalancing:DescribeRules` | Required to retrieve listener rule information. |
+| `elasticloadbalancing:DescribeTags` | Required to retrieve the `tags` and `tags_src` columns. |
+
 ## Examples
 
 ### Basic info

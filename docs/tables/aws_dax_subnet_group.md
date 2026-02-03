@@ -12,6 +12,14 @@ The AWS DAX Subnet Group is a resource in Amazon DynamoDB Accelerator (DAX) that
 
 The `aws_dax_subnet_group` table in Steampipe provides you with information about subnet groups within Amazon DynamoDB Accelerator (DAX). This table allows you, as a DevOps engineer, to query subnet group-specific details, including the subnet group name, description, VPC ID, and the subnets in the group. You can utilize this table to gather insights on subnet groups, such as their associated VPCs, subnet IDs, and more. The schema outlines the various attributes of the DAX subnet group for you, including the subnet group name, VPC ID, subnet ID, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `dax:DescribeSubnetGroups` | Required to list subnet groups |
+
 ## Examples
 
 ### Basic info

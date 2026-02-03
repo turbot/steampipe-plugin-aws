@@ -23,6 +23,14 @@ The `aws_cost_by_resource_daily` table provides insights into resource-level cos
   - `period_start` with supported operators `=`, `>=`, `>`, `<=`, and `<`.
   - `period_end` with supported operators `=`, `>=`, `>`, `<=`, and `<`.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `ce:GetCostAndUsageWithResources` | Required to retrieve resource-level cost and usage data |
+
 ## Examples
 
 ### Basic info

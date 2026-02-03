@@ -12,6 +12,14 @@ The AWS Security Hub Findings is a feature within AWS Security Hub that aggregat
 
 The `aws_securityhub_finding` table in Steampipe provides you with information about security findings within AWS Security Hub. This table allows you as a security analyst or DevOps engineer to query details about identified security issues, including their severity, status, description, the resources affected, and any recommended remediation steps. You can utilize this table to gather insights on security vulnerabilities, such as open security groups, exposed access keys, and more. The schema outlines the various attributes of the security finding for you, including the finding ARN, ID, title, description, severity, and associated resources.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `securityhub:GetFindings` | Required to list and get security findings |
+
 ## Examples
 
 ### Basic info

@@ -12,6 +12,16 @@ The AWS EC2 Gateway Load Balancer is a resource that operates at the third layer
 
 The `aws_ec2_gateway_load_balancer` table in Steampipe provides you with information about Gateway Load Balancers within Amazon Elastic Compute Cloud (EC2). This table allows you, as a DevOps engineer, to query load balancer-specific details, including its configuration, state, type, and associated tags. You can utilize this table to gather insights on load balancers, such as their availability zones, subnets, and security groups. The schema outlines the various attributes of the Gateway Load Balancer for you, including the load balancer ARN, creation date, DNS name, scheme, and associated tags.
 
+## Required Permissions
+
+Your principal must have the following permissions to use this table:
+
+| Permission | Description |
+|------------|-------------|
+| `elasticloadbalancing:DescribeLoadBalancers` | Required to retrieve load balancer information. |
+| `elasticloadbalancing:DescribeLoadBalancerAttributes` | Required to retrieve the `load_balancer_attributes` column. |
+| `elasticloadbalancing:DescribeTags` | Required to retrieve the `tags` and `tags_src` columns. |
+
 ## Examples
 
 ### Basic gateway load balancer info

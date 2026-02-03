@@ -12,6 +12,14 @@ The AWS ElastiCache Parameter Group is a feature of Amazon ElastiCache that allo
 
 The `aws_elasticache_parameter_group` table in Steampipe provides you with information about Parameter Groups within AWS Elasticache. This table allows you, as a DevOps engineer, database administrator, or other technical professional, to query group-specific details, including associated parameters, parameter values, and descriptions. You can utilize this table to gather insights on parameter groups, such as their configurations, default system parameters, and user-defined parameters. The schema outlines the various attributes of the Parameter Group for you, including the group name, family, description, and associated parameters.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `elasticache:DescribeCacheParameterGroups` | Required to list and get ElastiCache parameter group details |
+
 ## Examples
 
 ### Basic info

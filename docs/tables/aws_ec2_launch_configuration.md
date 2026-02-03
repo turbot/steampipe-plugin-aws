@@ -12,6 +12,14 @@ The AWS EC2 Launch Configuration is a template that an AWS Auto Scaling group us
 
 The `aws_ec2_launch_configuration` table in Steampipe provides you with information about EC2 Launch Configurations within AWS Elastic Compute Cloud (EC2). This table allows you, as a DevOps engineer, to query configuration-specific details, including associated instances, security groups, and metadata. You can utilize this table to gather insights on launch configurations, such as the instance type specified, kernel id, ram disk id, and more. The schema outlines the various attributes of the EC2 Launch Configuration for you, including the launch configuration name, creation date, image id, and associated key pairs.
 
+## Required Permissions
+
+Your principal must have the following permissions to use this table:
+
+| Permission | Description |
+|------------|-------------|
+| `autoscaling:DescribeLaunchConfigurations` | Required to retrieve launch configuration information. |
+
 ## Examples
 
 ### Basic launch configuration info

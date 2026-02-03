@@ -12,6 +12,17 @@ The AWS Lambda Version is a distinct AWS Lambda function configuration that incl
 
 The `aws_lambda_version` table in Steampipe provides you with information about each version of a specific AWS Lambda function. This table allows you, as a DevOps engineer, to query version-specific details, including function name, function ARN, runtime environment, and associated metadata. You can utilize this table to gather insights on function versions, such as code size, last modification time, version, and more. The schema outlines the various attributes of the Lambda function version for you, including the function ARN, version, description, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `lambda:ListFunctions` | Required to list Lambda functions (parent resource) |
+| `lambda:ListVersionsByFunction` | Required to list versions for each function |
+| `lambda:GetPolicy` | Required to retrieve the version resource policy (for `policy` and `policy_std` columns) |
+| `lambda:GetFunction` | Required to get function code details (for `code` column) |
+
 ## Examples
 
 ### Runtime info of each lambda version

@@ -12,6 +12,15 @@ The AWS Key Management Service (KMS) includes functionalities for rotating encry
 
 The `aws_kms_key_rotation` table in Steampipe is useful for security analysts and DevOps engineers to monitor and audit the rotation of AWS KMS keys. It includes key details such as the rotation date, type, and associated key ARN. This table allows you to query information efficiently for regular audits and compliance reporting.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `kms:ListKeys` | Required to list KMS keys (parent hydrate) |
+| `kms:ListKeyRotations` | Required to list key rotations for each key |
+
 ## Examples
 
 ### Basic info

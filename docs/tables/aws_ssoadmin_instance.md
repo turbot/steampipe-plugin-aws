@@ -12,6 +12,14 @@ The AWS SSO Admin Instance is a component of AWS Single Sign-On (SSO) service th
 
 The `aws_ssoadmin_instance` table in Steampipe provides you with information about each AWS SSO instance in your AWS account. This table allows you, as a DevOps engineer, to query instance-specific details, including the instance ARN, name, identity store ID, creation date, owner account ID, status, and associated metadata. You can utilize this table to gather insights on instances, such as instance status, instance creation time, ownership, and more. The schema outlines the various attributes of the SSO admin instance for you, including the instance ARN, name, identity store ID, owner account ID, creation date, and instance status.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `sso:ListInstances` | Required to list SSO instances |
+
 ## Examples
 
 ### Basic info

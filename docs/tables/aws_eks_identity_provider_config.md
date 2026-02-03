@@ -12,6 +12,16 @@ The Amazon EKS Identity Provider Configurations is a feature of Amazon Elastic K
 
 The `aws_eks_identity_provider_config` table in Steampipe provides you with information about the identity provider configurations for Amazon EKS clusters. This table allows you, as a DevOps engineer, to query configuration-specific details, including the type of identity provider, client ID, issuer URL, and associated metadata. You can utilize this table to gather insights on configurations, such as the type of identity provider, the client ID, and the issuer URL. The schema outlines the various attributes of the identity provider configuration, including the cluster name, creation time, tags, and status for you.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `eks:ListClusters` | Required to list EKS clusters (parent resource) |
+| `eks:ListIdentityProviderConfigs` | Required to list identity provider configurations |
+| `eks:DescribeIdentityProviderConfig` | Required to get identity provider configuration details |
+
 ## Examples
 
 ### Basic info

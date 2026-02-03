@@ -12,6 +12,15 @@ The AWS Pipes service is a tool that allows you to interact with your AWS resour
 
 The `aws_pipes_pipe` table in Steampipe provides you with information about individual pipes within AWS Pipes. This table allows you, as a DevOps engineer, to query pipe-specific details, including the pipe name, pipe ARN, and the creation time. You can utilize this table to gather insights on pipes, such as pipe statuses, pipe types, and more. The schema outlines the various attributes of the pipe for you, including the pipe name, pipe ARN, creation time, and pipe status.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `pipes:ListPipes` | Required to list EventBridge Pipes |
+| `pipes:DescribePipe` | Required to get details of a specific pipe |
+
 ## Examples
 
 ### Basic info

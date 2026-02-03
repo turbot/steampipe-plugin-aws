@@ -12,6 +12,15 @@ The AWS Elastic MapReduce (EMR) Instance is a component of the Amazon EMR servic
 
 The `aws_emr_instance` table in Steampipe provides you with information about instances within AWS Elastic MapReduce (EMR). This table allows you, as a DevOps engineer, to query instance-specific details, including instance status, instance group ID, and associated metadata. You can utilize this table to gather insights on instances, such as instance health status, instance configuration details, and more. The schema outlines the various attributes of the EMR instance for you, including the instance ID, EBS volumes, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `elasticmapreduce:ListClusters` | Required to list EMR clusters |
+| `elasticmapreduce:ListInstances` | Required to list instances within clusters |
+
 ## Examples
 
 ### Basic info

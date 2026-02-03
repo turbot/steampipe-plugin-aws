@@ -12,6 +12,17 @@ The AWS Kinesis Consumer is an entity within the AWS Kinesis service that allows
 
 The `aws_kinesis_consumer` table in Steampipe provides you with information about Kinesis Consumers within AWS Kinesis Data Streams. This table enables you, as a DevOps engineer, to query consumer-specific details, including consumer ARN, creation timestamp, and associated stream ARN. You can utilize this table to gather insights on consumers, such as details of the consumer, consumer status, and more. The schema outlines for you the various attributes of the Kinesis Consumer, including the consumer name, consumer status, consumer ARN, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `kinesis:ListStreamConsumers` | Required to list stream consumers |
+| `kinesis:DescribeStreamConsumer` | Required to get consumer details |
+
+**Note:** The `stream_arn` column requires the `kinesis:DescribeStreamConsumer` permission.
+
 ## Examples
 
 ### Basic info

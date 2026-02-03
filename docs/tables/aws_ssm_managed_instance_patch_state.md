@@ -12,6 +12,15 @@ The AWS Systems Manager Managed Instance Patch State is a feature of AWS Systems
 
 The `aws_ssm_managed_instance_patch_state` table in Steampipe provides you with information about the patch state of managed instances within AWS Systems Manager (SSM). This table allows you, as a DevOps engineer, to query specific details related to the patch state, including the instance ID, patch group, owner information, installed patches, and more. You can utilize this table to gather insights on patch compliance and to monitor the patching status of your managed instances. The schema outlines the various attributes of the managed instance patch state for you, including the instance ID, patch group, owner information, installed patches, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `ssm:DescribeInstanceInformation` | Required to list SSM managed instances (parent hydrate). |
+| `ssm:DescribeInstancePatchStates` | Required to get patch state information for managed instances. |
+
 ## Examples
 
 ### Basic info

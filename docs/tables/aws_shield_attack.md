@@ -12,6 +12,17 @@ AWS Shield is a DDoS protection service from AWS. AWS Shield Advanced provide yo
 
 The `aws_shield_attack` table in Steampipe allows you to query AWS Shield Advanced for more details about a DDoS event it was able to detect. For more information about the different columns and their values of this table, please refer to the AWS Shield Advanced documentation of the [ListAttacks](https://docs.aws.amazon.com/waf/latest/DDOSAPIReference/API_ListAttacks.html#API_ListAttacks_ResponseSyntax) and [DescribeAttack](https://docs.aws.amazon.com/waf/latest/DDOSAPIReference/API_DescribeAttack.html#API_DescribeAttack_ResponseSyntax) API.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `shield:ListAttacks` | Required to list attacks |
+| `shield:DescribeAttack` | Required to get attack details |
+
+**Note:** The `shield:DescribeAttack` permission is required to retrieve the `sub_resources`, `attack_counters`, `attack_properties`, and `mitigations` columns.
+
 ## Examples
 
 ### List all attacks detected by AWS Shield Advanced in the last 30 days

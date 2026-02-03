@@ -12,6 +12,15 @@ Amazon Bedrock Knowledge Base is a feature that enables you to build retrieval a
 
 The `aws_bedrock_knowledge_base` table in Steampipe provides you with information about knowledge bases within AWS Bedrock. This table allows you, as a developer or data scientist, to query knowledge base-specific details, including configuration, status, and associated metadata. You can utilize this table to gather insights on knowledge bases, such as their storage configuration, embeddings configuration, and associated roles. The schema outlines the various attributes of the knowledge base for you, including the name, status, creation date, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `bedrock:ListKnowledgeBases` | Required to list knowledge bases |
+| `bedrock:GetKnowledgeBase` | Required to get knowledge base details for the `created_at`, `arn`, `role_arn`, `storage_configuration`, `knowledge_base_configuration`, `failure_reasons`, and `akas` columns |
+
 ## Examples
 
 ### Basic info

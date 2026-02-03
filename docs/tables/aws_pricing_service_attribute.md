@@ -12,6 +12,15 @@ The AWS Pricing Service Attributes are part of the AWS Price List Service API, w
 
 The `aws_pricing_service_attribute` table in Steampipe provides you with information about product attributes within AWS Pricing. This table empowers you, as a DevOps engineer, financial analyst, or cloud architect, to query product-specific details, including service codes, product families, and associated metadata. You can utilize this table to gather insights on AWS products, such as their pricing details, product families, usage types, and more. The schema outlines the various attributes of the AWS product for you, including the service code, product family, instance type, location, and usage type.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `pricing:DescribeServices` | Required to describe pricing services |
+| `pricing:GetAttributeValues` | Required to get attribute values for services |
+
 ## Examples
 
 ### Basic info

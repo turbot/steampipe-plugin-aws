@@ -12,6 +12,14 @@ The AWS Virtual Private Cloud (VPC) allows you to launch AWS resources in a virt
 
 The `aws_vpc` table in Steampipe provides you with information about Virtual Private Clouds (VPCs) within Amazon Web Services (AWS). This table allows you, as a network administrator or DevOps engineer, to query VPC-specific details, including its ID, state, CIDR block, and whether it is the default VPC. You can utilize this table to gather insights on VPCs, such as their networking configuration, security settings, and associated resources. The schema outlines the various attributes of the VPC for you, including the VPC ID, state, CIDR block, default VPC status, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `ec2:DescribeVpcs` | Required to list and get VPC details |
+
 ## Examples
 
 ### Find default VPCs

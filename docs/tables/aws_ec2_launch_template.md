@@ -12,6 +12,14 @@ The AWS EC2 Launch Template is a resource within the Amazon Elastic Compute Clou
 
 The `aws_ec2_launch_template` table in Steampipe provides you with information about EC2 Launch Templates within AWS Elastic Compute Cloud (EC2). This table allows you, as a DevOps engineer, to query template-specific details, including instance type, key pair, security groups, and user data. You can utilize this table to gather insights on templates, such as associated AMIs, security configurations, instance configurations, and more. The schema outlines the various attributes of the EC2 Launch Template for you, including the template ID, creation date, default version, and associated tags.
 
+## Required Permissions
+
+Your principal must have the following permissions to use this table:
+
+| Permission | Description |
+|------------|-------------|
+| `ec2:DescribeLaunchTemplates` | Required to retrieve launch template information. |
+
 ## Examples
 
 ### Basic info

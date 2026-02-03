@@ -12,6 +12,18 @@ AWS Shield Advanced Protection Groups are logical collections of your Shield Adv
 
 The `aws_shield_protection` table in Steampipe allows you to query AWS Shield Advanced Protection Groups and retrieve information like the resources included in the group or the aggregation method used for the group. For more information about the individual columns and their values, please refer to the [official AWS documentation](https://docs.aws.amazon.com/waf/latest/DDOSAPIReference/API_DescribeProtectionGroup.html#API_DescribeProtectionGroup_ResponseSyntax).
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `shield:ListProtectionGroups` | Required to list protection groups |
+| `shield:DescribeProtectionGroup` | Required to get protection group details |
+| `shield:ListTagsForResource` | Required to get protection group tags |
+
+**Note:** The `shield:ListTagsForResource` permission is required to retrieve the `tags_src` and `tags` columns.
+
 ## Examples
 
 ### Basic info

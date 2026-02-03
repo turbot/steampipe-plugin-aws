@@ -12,6 +12,15 @@ The AWS Route 53 Traffic Policy is a resource within Amazon's Route 53 service. 
 
 The `aws_route53_traffic_policy` table in Steampipe uses data from AWS Route 53 to provide you with information about each traffic policy's versions. This includes details such as the policy identifier, name, type, and document. Furthermore, it provides you with metadata related to the traffic policy. As a DevOps engineer or other user, you can utilize this table to query and analyze data related to traffic policies, including their versions and associated metadata. The schema outlines the various attributes of the traffic policy for you, including the policy ARN, version, type, document, and more.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `route53:ListTrafficPolicies` | Required to list traffic policies. |
+| `route53:GetTrafficPolicy` | Required to get traffic policy details. |
+
 ## Examples
 
 ### Basic Info

@@ -12,6 +12,15 @@ AWS AppStream Images are part of Amazon AppStream 2.0, a fully managed, secure a
 
 The `aws_appstream_image` table in Steampipe provides you with information about images within AWS AppStream. This table allows you as a DevOps engineer to query image-specific details, including the image's name, ARN, state, platform, and associated metadata. You can utilize this table to gather insights on images, such as their visibility, status, and the applications they are associated with. The schema outlines the various attributes of the AppStream Image for you, including the image ARN, creation time, visibility status, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `appstream:DescribeImages` | Required to list and describe images |
+| `appstream:ListTagsForResource` | Required to get image tags |
+
 ## Examples
 
 ### Basic info

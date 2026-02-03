@@ -12,6 +12,14 @@ The Amazon Elastic Container Registry (ECR) Image Scan Findings is a feature of 
 
 The `aws_ecr_image_scan_finding` table in Steampipe provides you with information about Image Scan Findings within Amazon Elastic Container Registry (ECR). This table allows you, as a DevOps engineer, to query specific details about image scan findings, including attributes such as the severity of the finding, description, and package name where the vulnerability was found. You can utilize this table to gather insights on image scan findings, such as identifying high-risk vulnerabilities, verifying package vulnerabilities, and more. The schema outlines the various attributes of the Image Scan Finding for you, including the repository name, image digest, finding severity, and associated metadata.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `ecr:DescribeImageScanFindings` | Required to get image scan findings |
+
 **Important Notes**
 - You or your roles that have the AWS managed `ReadOnlyAccess` policy attached also need to attach the AWS managed `AmazonInspector2ReadOnlyAccess` policy to query this table.
 - You must specify a `repository_name` and either `image_tag` or `image_digest` in a `where` or `join` clause to query this table.

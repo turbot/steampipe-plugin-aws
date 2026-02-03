@@ -12,6 +12,15 @@ The AWS RDS DB Snapshot is a feature of Amazon RDS that enables you to create ba
 
 The `aws_rds_db_snapshot` table in Steampipe provides you with information about manual and automatic snapshots of an Amazon RDS DB instance. This table allows you as a DevOps engineer to query snapshot-specific details, such as snapshot type, creation time, allocated storage, and associated metadata. You can utilize this table to gather insights into snapshot details, including whether a snapshot is shared, public, or encrypted, its engine version, and more. The schema outlines the various attributes of the DB snapshot for you, including the snapshot ARN, DB instance identifier, snapshot status, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `rds:DescribeDBSnapshots` | Required to list and get DB snapshot details |
+| `rds:DescribeDBSnapshotAttributes` | Required to retrieve snapshot attributes for the `db_snapshot_attributes` column |
+
 ## Examples
 
 ### DB snapshot basic info

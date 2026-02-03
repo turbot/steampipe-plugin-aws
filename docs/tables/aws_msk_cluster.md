@@ -12,6 +12,18 @@ The AWS Managed Streaming for Apache Kafka (MSK) is a fully managed service that
 
 The `aws_msk_cluster` table in Steampipe provides you with information about Managed Streaming for Apache Kafka (MSK) clusters within AWS. This table allows you, as a DevOps engineer, to query cluster-specific details, including the cluster ARN, creation time, and associated metadata. You can utilize this table to gather insights on clusters, such as the number of broker nodes, the version of Apache Kafka, the state of the cluster, and more. The schema outlines the various attributes of the MSK cluster for you, including the broker node group info, encryption info, open monitoring status, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `kafka:ListClusters` | Required to list MSK clusters |
+| `kafka:DescribeCluster` | Required to get details of a specific cluster |
+| `kafka:DescribeConfiguration` | Required to get cluster configuration details |
+| `kafka:DescribeClusterOperation` | Required to get cluster operation details |
+| `kafka:GetBootstrapBrokers` | Required to get bootstrap broker information |
+
 ## Examples
 
 ### Basic Info

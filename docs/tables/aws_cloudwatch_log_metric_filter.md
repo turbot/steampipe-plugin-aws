@@ -12,6 +12,14 @@ The AWS CloudWatch Log Metric Filter is a feature within AWS CloudWatch that ena
 
 The `aws_cloudwatch_log_metric_filter` table in Steampipe provides you with information about log metric filters within AWS CloudWatch. This table allows you, as a DevOps engineer, to query filter-specific details, including the associated log group, filter pattern, and metric transformations. You can utilize this table to gather insights on filters, such as filter patterns used, metrics generated from log data, and more. The schema outlines for you the various attributes of the log metric filter, including the filter name, creation date, filter pattern, and associated log group.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `logs:DescribeMetricFilters` | Required to list and get metric filter details |
+
 ## Examples
 
 ### Basic AWS cloudwatch log metric info

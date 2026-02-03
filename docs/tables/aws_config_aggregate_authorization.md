@@ -12,6 +12,15 @@ The AWS Config Aggregate Authorization is a feature of AWS Config that allows yo
 
 The `aws_config_aggregate_authorization` table in Steampipe provides you with information about AWS Config Aggregate Authorizations. This table allows you, as a DevOps engineer, to query authorization-specific details, including the account ID and region that are allowed to aggregate AWS Config rules. You can utilize this table to gather insights on AWS Config Aggregate Authorizations, such as the permissions and trust policies associated with each authorization, the AWS account that has been granted the authorization, and more. The schema outlines the various attributes of the AWS Config Aggregate Authorization for you, including the account ID, region, and associated ARN.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `config:DescribeAggregationAuthorizations` | Required to list aggregate authorizations |
+| `config:ListTagsForResource` | Required to retrieve tags (for `tags` and `tags_src` columns) |
+
 ## Examples
 
 ### Basic info

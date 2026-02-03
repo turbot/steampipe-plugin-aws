@@ -12,6 +12,16 @@ The AWS SimSpace Simulation is a service within the Amazon Web Services infrastr
 
 The `aws_simspaceweaver_simulation` table in Steampipe provides you with information about simulations within AWS SimSpace. This table allows you to query simulation-specific details, including simulation status, configuration, and associated metadata. You can utilize this table to gather insights on simulations, such as simulation state, configuration details, and more. The schema outlines the various attributes of the simulation for you, including the simulation ID, creation time, status, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `simspaceweaver:ListSimulations` | Required to list simulations |
+| `simspaceweaver:DescribeSimulation` | Required to get simulation details |
+| `simspaceweaver:ListTagsForResource` | Required to retrieve tags for simulations |
+
 ## Examples
 
 ### Basic info

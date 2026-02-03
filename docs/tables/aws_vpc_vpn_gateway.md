@@ -12,6 +12,14 @@ The AWS VPC VPN Gateway is a component of Amazon Virtual Private Cloud (VPC) tha
 
 The `aws_vpc_vpn_gateway` table in Steampipe provides you with information about Virtual Private Cloud (VPC) VPN gateways within AWS. This table allows you as a DevOps engineer, developer, or data analyst to query VPN gateway-specific details, including the state of the VPN gateway, the type of VPN gateway, the availability zone, and the VPC attachments. You can utilize this table to gather insights on VPN gateways, such as the number of VPN gateways in a specific state, the types of VPN gateways used, and the VPCs to which they are attached. The schema outlines the various attributes of the VPN gateway for you, including the VPN gateway ID, the Amazon Resource Name (ARN), and the associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `ec2:DescribeVpnGateways` | Required to list and get VPN gateway details |
+
 ## Examples
 
 ### VPN gateways basic info

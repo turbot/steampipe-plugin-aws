@@ -12,6 +12,16 @@ The AWS ECS Container Instance is a resource within the Amazon Elastic Container
 
 The `aws_ecs_container_instance` table in Steampipe provides you with information about the Amazon Elastic Container Service (ECS) container instances. This table allows you, as a DevOps engineer, to query container-specific details, including the container instance ARN, status, running tasks count, pending tasks count, agent connected status, and more. You can utilize this table to gather insights on container instances, such as the number of running or pending tasks, the status of the agent connection, and more. The schema outlines the various attributes of the ECS container instance for you, including the instance ARN, instance type, launch type, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `ecs:ListClusters` | Required to list ECS clusters (parent resource) |
+| `ecs:ListContainerInstances` | Required to list container instances for each cluster |
+| `ecs:DescribeContainerInstances` | Required to get container instance details |
+
 ## Examples
 
 ### Basic info

@@ -12,6 +12,16 @@ The AWS Simple Email Service (SES) Email Identity is a resource that represents 
 
 The `aws_ses_email_identity` table in Steampipe provides you with information about email identities that are verified with Amazon Simple Email Service (SES). This table allows you, as a DevOps engineer, to query specific details about these identities, such as the identity type (email or domain), verification status, feedback forwarding status, and more. You can utilize this table to gain insights on the verified email identities, their DKIM attributes, and the policies applied to them. The schema outlines various attributes of the email identity for you, including the identity name, verification status, bounce topic, complaint topic, delivery topic, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `ses:ListIdentities` | Required to list email identities |
+| `ses:GetIdentityVerificationAttributes` | Required to retrieve verification attributes |
+| `ses:GetIdentityNotificationAttributes` | Required to retrieve notification attributes |
+
 ## Examples
 
 ### Basic info

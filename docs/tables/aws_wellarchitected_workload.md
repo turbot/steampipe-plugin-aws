@@ -12,6 +12,15 @@ The AWS Well-Architected Tool is a service that helps you review the state of yo
 
 The `aws_wellarchitected_workload` table in Steampipe provides you with information about workloads within AWS Well-Architected Tool. This table allows you, as a DevOps engineer, to query workload-specific details, including workload name, ARN, risk count, and improvement status. You can utilize this table to gather insights on workloads, such as identifying workloads with high risk counts, tracking improvement status, and more. The schema outlines the various attributes of the workload for you, including the workload ARN, creation date, risk count, improvement status, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `wellarchitected:ListWorkloads` | Required to list workloads |
+| `wellarchitected:GetWorkload` | Required to get workload details and additional columns (`architectural_design`, `description`, `environment`, `industry`, `industry_type`, `is_review_owner_update_acknowledged`, `notes`, `review_owner`, `review_restriction_date`, `account_ids`, `aws_regions`, `non_aws_regions`, `pillar_priorities`, `tags`) |
+
 ## Examples
 
 ## Basic info

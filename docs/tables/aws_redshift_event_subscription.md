@@ -12,6 +12,14 @@ The AWS Redshift Event Subscription is a feature of Amazon Redshift that allows 
 
 The `aws_redshift_event_subscription` table in Steampipe provides you with information about event subscriptions within Amazon Redshift. This table allows you to query event subscription-specific details, including the subscription's configuration, status, and associated Redshift clusters. You can utilize this table to gather insights on event subscriptions, such as the event categories subscribed to, the status of the subscription, and the Redshift clusters associated with the subscription. The schema outlines the various attributes of the Redshift event subscription, including the subscription name, enabled status, event categories, source type, severity, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `redshift:DescribeEventSubscriptions` | Required to list and get event subscription details |
+
 ## Examples
 
 ### Basic info

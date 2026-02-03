@@ -12,6 +12,16 @@ The AWS Pinpoint Applications is a service that enables you to engage your custo
 
 The `aws_pinpoint_app` table in Steampipe provides you with information about applications within AWS Pinpoint. This table allows you, as a DevOps engineer, to query application-specific details, including application ID, name, creation date, settings, and limits. You can utilize this table to gather insights on applications, such as the application's settings, limits, and other associated metadata. The schema outlines the various attributes of the AWS Pinpoint application for you, including the application ID, name, creation date, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `mobiletargeting:GetApps` | Required to list Pinpoint applications |
+| `mobiletargeting:GetApp` | Required to get details of a specific application |
+| `mobiletargeting:GetApplicationSettings` | Required to get application settings |
+
 ## Examples
 
 ### Basic info

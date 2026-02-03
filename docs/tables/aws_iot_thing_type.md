@@ -12,6 +12,16 @@ In AWS IoT Core, the IoT Thing Type feature enables the categorization of IoT de
 
 The `aws_iot_thing_type` table can be used to access detailed information about the types of IoT Things, including their names, IDs, descriptions, and creation dates. This table is particularly useful for IoT administrators and developers who need to oversee the classification and properties of IoT devices within AWS.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `iot:ListThingTypes` | Required to list thing types |
+| `iot:DescribeThingType` | Required to get thing type details |
+| `iot:ListTagsForResource` | Required to get tags for thing types |
+
 ## Examples
 
 ### Basic info

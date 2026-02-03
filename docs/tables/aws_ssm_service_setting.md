@@ -24,6 +24,14 @@ The `aws_ssm_service_setting` table in Steampipe provides you with information a
   - `/ssm/parameter-store/default-parameter-tier`
   - `/ssm/parameter-store/high-throughput-enabled`
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `ssm:GetServiceSetting` | Required to get a service setting by its ID. |
+
 ## Examples
 
 ### Get a specific service setting across regions
