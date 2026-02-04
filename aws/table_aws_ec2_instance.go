@@ -86,6 +86,10 @@ func tableAwsEc2Instance(_ context.Context) *plugin.Table {
 				Func: getInstanceStatus,
 				Tags: map[string]string{"service": "ec2", "action": "DescribeInstanceStatus"},
 			},
+			{
+				Func: getEc2InstanceTags,
+				Tags: map[string]string{"service": "ec2", "action": "DescribeTags"},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(AWS_EC2_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -494,7 +498,8 @@ func tableAwsEc2Instance(_ context.Context) *plugin.Table {
 				Name:        "tags_src",
 				Description: "A list of tags assigned to the instance.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Tags"),
+				Hydrate:     getEc2InstanceTags,
+				Transform:   transform.FromValue(),
 			},
 
 			// Steampipe standard columns
@@ -508,6 +513,7 @@ func tableAwsEc2Instance(_ context.Context) *plugin.Table {
 				Name:        "tags",
 				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
+				Hydrate:     getEc2InstanceTags,
 				Transform:   transform.From(getEc2InstanceTurbotTags),
 			},
 			{
@@ -833,17 +839,52 @@ func getInstanceStatus(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	return instanceData, nil
 }
 
+func getEc2InstanceTags(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	instance := h.Item.(types.Instance)
+
+	// create service
+	svc, err := EC2Client(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_instance.getEc2InstanceTags", "connection_error", err)
+		return nil, err
+	}
+
+	params := &ec2.DescribeTagsInput{
+		Filters: []types.Filter{
+			{
+				Name:   aws.String("resource-id"),
+				Values: []string{*instance.InstanceId},
+			},
+		},
+	}
+
+	var tags []types.TagDescription
+	paginator := ec2.NewDescribeTagsPaginator(svc, params, func(o *ec2.DescribeTagsPaginatorOptions) {
+		o.StopOnDuplicateToken = true
+	})
+
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_ec2_instance.getEc2InstanceTags", "api_error", err)
+			return nil, err
+		}
+		tags = append(tags, output.Tags...)
+	}
+
+	return tags, nil
+}
+
 //// TRANSFORM FUNCTIONS
 
 func getEc2InstanceTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	instance := d.HydrateItem.(types.Instance)
-	var turbotTagsMap map[string]string
-	if instance.Tags == nil {
+	tags, ok := d.HydrateItem.([]types.TagDescription)
+	if !ok || tags == nil {
 		return nil, nil
 	}
 
-	turbotTagsMap = map[string]string{}
-	for _, i := range instance.Tags {
+	turbotTagsMap := map[string]string{}
+	for _, i := range tags {
 		turbotTagsMap[*i.Key] = *i.Value
 	}
 
