@@ -226,7 +226,7 @@ func buildHealthEventFilter(d *plugin.QueryData) *types.EventFilter {
 					types.EventActionability(value),
 				}
 			case "arn":
-				filter.EntityArns = ([]string{value})
+				filter.EventArns = []string{value}
 			case "availability_zone":
 				filter.AvailabilityZones = []string{value}
 			case "status_code":
