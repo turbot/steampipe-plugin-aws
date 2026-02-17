@@ -1,0 +1,10 @@
+[
+	{
+		"fleet_id": "{{ output.resource_id.value }}",
+		"arn": "{{ output.resource_aka.value }}",
+		"type": "maintain",
+		"excess_capacity_termination_policy": "termination",
+		"replace_unhealthy_instances": false,
+		"name": "{{ resourceName }}"
+	}
+]
