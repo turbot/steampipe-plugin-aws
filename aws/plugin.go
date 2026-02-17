@@ -695,6 +695,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_servicecatalog_portfolio_share":                           tableAwsServicecatalogPortfolioShare(ctx),
 			"aws_servicecatalog_product":                                   tableAwsServicecatalogProduct(ctx),
 			"aws_servicecatalog_provisioned_product":                       tableAwsServicecatalogProvisionedProduct(ctx),
+			"aws_servicequotas_auto_management_configuration":              tableAwsServiceQuotasAutoManagementConfiguration(ctx),
 			"aws_servicequotas_default_service_quota":                      tableAwsServiceQuotasDefaultServiceQuota(ctx),
 			"aws_servicequotas_service_quota_change_request":               tableAwsServiceQuotasServiceQuotaChangeRequest(ctx),
 			"aws_servicequotas_service_quota":                              tableAwsServiceQuotasServiceQuota(ctx),
