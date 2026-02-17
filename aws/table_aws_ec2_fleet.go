@@ -335,6 +335,10 @@ func buildEc2FleetFilter(quals plugin.KeyColumnQualMap) []types.Filter {
 	if quals["replace_unhealthy_instances"] != nil {
 		for _, q := range quals["replace_unhealthy_instances"].Quals {
 			value := q.Value.GetBoolValue()
+			// Respect the "<>" (not equal) operator by inverting the boolean value
+			if q.Operator == "<>" {
+				value = !value
+			}
 			filter := types.Filter{
 				Name:   aws.String("replace-unhealthy-instances"),
 				Values: []string{fmt.Sprintf("%t", value)},
