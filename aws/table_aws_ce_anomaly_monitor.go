@@ -55,6 +55,7 @@ func tableAwsCEAnomalyMonitor(_ context.Context) *plugin.Table {
 				Name:        "monitor_specification",
 				Description: "The monitor specification with cost categories, tags, or dimensions.",
 				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("MonitorSpecification"),
 			},
 			{
 				Name:        "creation_date",
