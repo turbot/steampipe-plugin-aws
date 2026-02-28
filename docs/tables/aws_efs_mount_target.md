@@ -12,6 +12,16 @@ The AWS EFS Mount Target is a component of Amazon Elastic File System (EFS) that
 
 The `aws_efs_mount_target` table in Steampipe provides you with information about mount targets within AWS Elastic File System (EFS). This table allows you, as a DevOps engineer, to query mount target-specific details, including the file system ID, mount target ID, subnet ID, and security groups. You can utilize this table to gather insights on mount targets, such as their availability, network interface, and life cycle state. The schema outlines the various attributes of the EFS mount target for you, including the IP address, network interface ID, owner ID, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `elasticfilesystem:DescribeFileSystems` | Required to list file systems (parent hydrate). |
+| `elasticfilesystem:DescribeMountTargets` | Required to list and get details of EFS mount targets. |
+| `elasticfilesystem:DescribeMountTargetSecurityGroups` | Required to get security group information for mount targets. |
+
 ## Examples
 
 ### Basic info

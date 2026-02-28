@@ -12,6 +12,16 @@ The AWS WAF RateBasedRule is a feature within AWS Web Application Firewall (WAF)
 
 The `aws_waf_rate_based_rule` table in Steampipe provides you with information about the rate-based security rules that AWS Web Application Firewall (WAF) uses to identify potentially malicious requests and manage how they are handled. This table allows you, as a security administrator, to query rule-specific details, including the rule ARN, creation and modification dates, associated metrics, and associated predicates. You can utilize this table to gather insights on rate-based rules, such as the number of requests that arrive from a single IP address over a five-minute period, the rule action (BLOCK or COUNT), and more. The schema outlines the various attributes of the AWS WAF rate-based rule for you, including the rule ID, metric name, rate limit, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `waf:ListRateBasedRules` | Required to list rate-based rules |
+| `waf:GetRateBasedRule` | Required to get rate-based rule details (metric_name, rate_key, rate_limit, predicates) |
+| `waf:ListTagsForResource` | Required to get rate-based rule tags |
+
 ## Examples
 
 ### Basic info

@@ -15,6 +15,15 @@ The `aws_organizations_policy_target` table in Steampipe provides you with infor
 **Important Notes**
 - You must specify `type` and `target_id` in the `where` clause to query this table.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `organizations:ListPoliciesForTarget` | Required to list policies for a target |
+| `organizations:DescribePolicy` | Required to get policy details for the `content` column |
+
 ## Examples
 
 ### Basic info

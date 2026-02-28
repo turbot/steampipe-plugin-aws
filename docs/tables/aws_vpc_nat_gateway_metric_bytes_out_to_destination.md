@@ -14,6 +14,15 @@ The `aws_vpc_nat_gateway_metric_bytes_out_to_destination` table in Steampipe pro
 
 The `aws_vpc_nat_gateway_metric_bytes_out_to_destination` table provides you with metric statistics at 5 minute intervals for the most recent 5 days.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `ec2:DescribeNatGateways` | Required to list NAT gateways (parent hydrate) |
+| `cloudwatch:GetMetricStatistics` | Required to get CloudWatch metric statistics |
+
 ## Examples
 
 ### Basic info

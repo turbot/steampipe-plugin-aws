@@ -12,6 +12,15 @@ The AWS EC2 Transit Gateway VPC Attachment is a resource that allows you to atta
 
 The `aws_ec2_transit_gateway_vpc_attachment` table in Steampipe provides you with information about the attachments between Virtual Private Clouds (VPCs) and transit gateways in Amazon Elastic Compute Cloud (EC2). This table allows you, as a DevOps engineer, to query attachment-specific details, including the attachment state, creation time, and associated metadata. You can utilize this table to gather insights on attachments, such as their status, the VPCs they are associated with, the transit gateways they are connected to, and more. The schema outlines the various attributes of the transit gateway VPC attachment for you, including the attachment ID, transit gateway ID, VPC ID, and associated tags.
 
+## Required Permissions
+
+Your principal must have the following permissions to use this table:
+
+| Permission | Description |
+|------------|-------------|
+| `ec2:DescribeTransitGatewayAttachments` | Required to retrieve transit gateway attachment information. |
+| `ec2:DescribeTransitGatewayVpcAttachments` | Required to retrieve the `options` column for VPC attachments. |
+
 ## Examples
 
 ### Basic transit gateway vpc attachment info

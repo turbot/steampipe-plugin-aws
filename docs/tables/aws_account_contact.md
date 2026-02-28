@@ -12,6 +12,14 @@ The AWS Account Contact is a resource that stores contact information associated
 
 The `aws_account_contact` table in Steampipe provides you with information about contact details associated with an AWS account. This table allows you, as a DevOps engineer, to query contact-specific details, including email, mobile, and address information. You can utilize this table to gather insights on AWS account contact details, such as verification of contact information, understanding the geographical distribution of accounts, and more. The schema outlines the various attributes of the AWS account contact for you, including the account ID, address, email, fax, and phone number.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `account:GetContactInformation` | Required to get contact information |
+
 **Important Notes**
 This table supports the optional list key column `linked_account_id`, with the following requirements:
 - The caller must be an identity in the [organization's management account](https://docs.aws.amazon.com/organizations/latest/userguide/orgs_getting-started_concepts.html#account) or a delegated administrator account.

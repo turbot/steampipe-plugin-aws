@@ -12,6 +12,16 @@ The AWS Systems Manager Parameter Store provides secure, hierarchical storage fo
 
 The `aws_ssm_parameter` table in Steampipe provides you with information about parameters within the AWS Systems Manager Parameter Store. This table allows you, as a DevOps engineer, to query parameter-specific details, such as parameter names, types, values, and associated metadata. You can utilize this table to gather insights on parameters, such as parameter descriptions, last modification dates, and the user who last modified the parameter. The schema outlines the various attributes of the parameter for you, including the parameter ARN, type, value, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `ssm:DescribeParameters` | Required to list SSM parameters. |
+| `ssm:GetParameter` | Required to get the parameter value and ARN (for the `value`, `arn`, `selector`, and `source_result` columns). |
+| `ssm:ListTagsForResource` | Required to get tags for parameters. |
+
 ## Examples
 
 ### SSM parameter basic info

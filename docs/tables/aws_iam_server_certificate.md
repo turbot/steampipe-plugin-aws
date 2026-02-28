@@ -12,6 +12,15 @@ The AWS IAM Server Certificate is a resource in AWS Identity and Access Manageme
 
 The `aws_iam_server_certificate` table in Steampipe provides you with information about server certificates within AWS Identity and Access Management (IAM). This table allows you, as a DevOps engineer, to query certificate-specific details, including the certificate body, certificate chain, and associated metadata. You can utilize this table to gather insights on certificates, such as certificates' expiration dates, the path of the certificate, and more. The schema outlines the various attributes of the IAM server certificate for you, including the server certificate name, certificate ID, creation date, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `iam:ListServerCertificates` | Required to list server certificates |
+| `iam:GetServerCertificate` | Required to get server certificate details and tags |
+
 ## Examples
 
 ### Basic info

@@ -12,6 +12,16 @@ The AWS CodePipeline is a fully managed continuous delivery service that helps y
 
 The `aws_codepipeline_pipeline` table in Steampipe provides you with information about pipelines within AWS CodePipeline. This table allows you, as a DevOps engineer, to query pipeline-specific details, including pipeline names, statuses, stages, and associated metadata. You can utilize this table to gather insights on pipelines, such as pipeline execution history, pipeline settings, and more. The schema outlines the various attributes of the pipeline for you, including the pipeline ARN, creation date, stages, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `codepipeline:ListPipelines` | Required to list pipelines. |
+| `codepipeline:GetPipeline` | Required to get details of a specific pipeline. |
+| `codepipeline:ListTagsForResource` | Required to retrieve tags for a pipeline. |
+
 ## Examples
 
 ### Basic info

@@ -12,6 +12,16 @@ The AWS Audit Manager Evidence Folders are used to organize and store evidence c
 
 The `aws_auditmanager_evidence_folder` table in Steampipe provides you with information about evidence folders within AWS Audit Manager. This table allows you, as a DevOps engineer, to query evidence folder-specific details, including the ID, ARN, name, date created, and associated metadata. You can utilize this table to gather insights on evidence folders, such as the total count of evidence in the folder, the status of the evidence, verification of evidence source, and more. The schema outlines the various attributes of the evidence folder for you, including the evidence folder ID, ARN, creation date, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `auditmanager:ListAssessments` | Required to list assessments (parent resource) |
+| `auditmanager:GetEvidenceFoldersByAssessment` | Required to list evidence folders for an assessment |
+| `auditmanager:GetEvidenceFolder` | Required to get evidence folder details |
+
 ## Examples
 
 ### Basic info

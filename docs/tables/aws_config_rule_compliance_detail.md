@@ -17,6 +17,15 @@ The `aws_config_rule_compliance_detail` table in Steampipe provides detailed com
 - You can optionally filter by `config_rule_name` to get details for a specific rule
 - You can filter by `compliance_type` to only see compliant or non-compliant resources
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `config:DescribeConfigRules` | Required to list Config rules (parent resource) |
+| `config:GetComplianceDetailsByConfigRule` | Required to get compliance details for each rule |
+
 ## Examples
 
 ### List all compliance details across all Config rules

@@ -12,6 +12,15 @@ The AWS SES Template is a feature of Amazon Simple Email Service (SES) that allo
 
 The `aws_ses_template` table in Steampipe provides you with information about email templates within AWS Simple Email Service (SES). This table allows you, as a DevOps engineer or email administrator, to query template-specific details, including the template name, subject line, HTML and text content, and creation timestamp. You can utilize this table to gather insights on your email templates, such as their content, creation dates, and usage patterns. The schema outlines the various attributes of the SES template for you, including the template name, subject part, text part, HTML part, and associated metadata.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `ses:ListTemplates` | Required to list templates |
+| `ses:GetTemplate` | Required to get template details |
+
 ## Examples
 
 ### Basic info

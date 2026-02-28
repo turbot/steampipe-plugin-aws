@@ -12,6 +12,16 @@ The AWS RDS DB Parameter Group is a feature of Amazon Relational Database Servic
 
 The `aws_rds_db_parameter_group` table in Steampipe provides you with information about DB Parameter Groups within AWS Relational Database Service (RDS). This table allows you, as a DevOps engineer, to query parameter group-specific details, including associated databases, parameter settings, and associated metadata. You can utilize this table to gather insights on parameter groups, such as understanding the configurations that control the behavior of the databases they are associated with, ensuring appropriate settings for optimal database performance, and more. The schema outlines the various attributes of the DB Parameter Group for you, including the parameter group name, family, description, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `rds:DescribeDBParameterGroups` | Required to list and get DB parameter group details |
+| `rds:DescribeDBParameters` | Required to retrieve parameters for the `parameters` column |
+| `rds:ListTagsForResource` | Required to retrieve tags for the `tags` and `tags_src` columns |
+
 ## Examples
 
 ### List of DB parameter group and corresponding parameter group family

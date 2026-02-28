@@ -12,6 +12,14 @@ The AWS VPC Internet Gateway is a horizontally scalable, redundant, and highly a
 
 The `aws_vpc_internet_gateway` table in Steampipe provides you with information about Internet Gateways within AWS Virtual Private Cloud (VPC). This table allows you, as a DevOps engineer or other technical professional, to query Internet Gateway-specific details, including its state, the VPCs it is attached to, and associated metadata. You can utilize this table to gather insights on Internet Gateways, such as their attachment state, the VPCs they are attached to, and more. The schema outlines the various attributes of the Internet Gateway for you, including the gateway ID, owner ID, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `ec2:DescribeInternetGateways` | Required to list and get internet gateway details |
+
 ## Examples
 
 ### List unattached internet gateways

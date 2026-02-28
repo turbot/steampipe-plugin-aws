@@ -12,6 +12,15 @@ The AWS Elastic File System (EFS) is a scalable file storage for use with Amazon
 
 The `aws_efs_file_system` table in Steampipe provides you with information about file systems within AWS Elastic File System (EFS). This table allows you, as a DevOps engineer, to query file system-specific details, including its ID, ARN, creation token, performance mode, lifecycle state, and associated metadata. You can utilize this table to gather insights on file systems, such as their performance mode, lifecycle state, and more. The schema outlines the various attributes of the EFS file system for you, including the file system ID, creation token, tags, and associated mount targets.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `elasticfilesystem:DescribeFileSystems` | Required to list and get details of EFS file systems. |
+| `elasticfilesystem:DescribeFileSystemPolicy` | Required to get file system policy information. |
+
 ## Examples
 
 ### Basic info

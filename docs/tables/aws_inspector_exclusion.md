@@ -12,6 +12,17 @@ The AWS Inspector Exclusion is a feature of AWS Inspector, a service that helps 
 
 The `aws_inspector_exclusion` table in Steampipe provides you with information about exclusions within AWS Inspector. This table allows you, as a DevOps engineer, to query exclusion-specific details, including the ARN, description, and recommendation. You can utilize this table to gather insights on exclusions, such as their status, the reasons behind their exclusions, and more. The schema outlines the various attributes of the AWS Inspector exclusion for you, including the ARN, description, recommendation, and associated metadata.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `inspector:ListAssessmentRuns` | Required to list assessment runs (parent resource) |
+| `inspector:DescribeAssessmentRuns` | Required to get assessment run details (parent resource) |
+| `inspector:ListExclusions` | Required to list exclusions for an assessment run |
+| `inspector:DescribeExclusions` | Required to get exclusion details |
+
 ## Examples
 
 ### Basic info

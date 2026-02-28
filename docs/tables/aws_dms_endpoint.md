@@ -12,6 +12,17 @@ AWS Database Migration Service (DMS) Endpoints are a pivotal component within AW
 
 The `aws_dms_endpoint` table in Steampipe allows you to query connection-specific information, such as the endpoint identifier, ARN, database name, endpoint type, and the database engine details. This table is invaluable for DevOps engineers and database administrators overseeing database migrations, as it facilitates the monitoring and management of endpoint configurations and ensures the smooth execution of migration tasks.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `dms:DescribeEndpoints` | Required to list endpoints |
+| `dms:ListTagsForResource` | Required to get endpoint tags |
+
+**Note:** The `tags` and `tags_src` columns require the `dms:ListTagsForResource` permission.
+
 ## Examples
 
 ### Basic info

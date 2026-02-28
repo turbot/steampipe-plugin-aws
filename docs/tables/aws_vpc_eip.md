@@ -12,6 +12,14 @@ An AWS VPC Elastic IP Address is a static, public IPv4 address designed for dyna
 
 The `aws_vpc_eip` table in Steampipe provides you with information about Elastic IP Addresses (EIP) within AWS Virtual Private Cloud (VPC). This table allows you, as a DevOps engineer, to query EIP-specific details, including allocation IDs, association IDs, domain, public IP, and associated metadata. You can utilize this table to gather insights on Elastic IP Addresses, such as their allocation status, associated instances, network interface details, and more. The schema outlines the various attributes of the Elastic IP Address for you, including the public IPv4 address, allocation ID, association ID, domain, instance ID, network interface ID, private IP address, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `ec2:DescribeAddresses` | Required to list and get Elastic IP address details |
+
 ## Examples
 
 ### List of unused elastic IPs

@@ -12,6 +12,15 @@ AWS Macie2 is a data security and data privacy service that uses machine learnin
 
 The `aws_macie2_finding` table in Steampipe provides you with information about security and data privacy findings within AWS Macie2. This table allows you, as a security analyst, compliance officer, or DevOps engineer, to query finding-specific details, including the finding type, severity, status, and associated metadata. You can utilize this table to gather insights on findings, such as identifying sensitive data exposure, monitoring policy violations, and tracking remediation efforts. The schema outlines the various attributes of the Macie2 finding for you, including the finding ID, type, severity, status, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `macie2:ListFindings` | Required to list findings |
+| `macie2:GetFindings` | Required to get details of specific findings |
+
 ## Examples
 
 ### List all findings

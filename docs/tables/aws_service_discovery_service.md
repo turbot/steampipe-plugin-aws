@@ -12,6 +12,16 @@ The AWS Service Discovery Service is a managed solution that makes it easy for m
 
 The `aws_service_discovery_service` table in Steampipe provides you with information about AWS resources that are registered with AWS Cloud Map. This table enables you, as a DevOps engineer, to query service-specific details, including service ID, ARN, name, and associated metadata. You can utilize this table to gather insights on services, such as service configurations, health check configurations, and more. The schema outlines the various attributes of the service for you, including the service ID, ARN, name, description, DNS configurations, health check configurations, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `servicediscovery:ListServices` | Required to list services |
+| `servicediscovery:GetService` | Required to get service details |
+| `servicediscovery:ListTagsForResource` | Required to retrieve tags for services |
+
 ## Examples
 
 ### Basic info

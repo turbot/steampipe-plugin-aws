@@ -12,6 +12,15 @@ The AWS Amplify App is a part of AWS Amplify, a set of tools and services that e
 
 The `aws_amplify_app` table in Steampipe provides you with information about apps within AWS Amplify. This table allows you, as a DevOps engineer, to query app-specific details, including the name, ARN, creation date, last update date, default domain, and associated metadata. You can utilize this table to gather insights on Amplify Apps, such as the apps' status, platform, repository, and more. The schema outlines the various attributes of the Amplify App for you, including the app ID, app ARN, platform, repository, production branch, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `amplify:ListApps` | Required to list Amplify apps |
+| `amplify:GetApp` | Required to get app details |
+
 ## Examples
 
 ### Basic info

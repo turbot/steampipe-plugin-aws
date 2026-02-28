@@ -12,6 +12,15 @@ The AWS SageMaker App is a component of Amazon SageMaker that provides a platfor
 
 The `aws_sagemaker_app` table in Steampipe provides you with information about AWS SageMaker Apps. This table enables you, as a DevOps engineer, data scientist, or other technical professional, to query application-specific details, including resource names, ARNs, types, statuses, and creation times. You can utilize this table to gather insights on SageMaker Apps, such as their configurations, user settings, and more. The schema outlines the various attributes of the SageMaker App for you, including the app ARN, creation time, status, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `sagemaker:ListApps` | Required to list apps |
+| `sagemaker:DescribeApp` | Required to get app details |
+
 ## Examples
 
 ### Basic info

@@ -12,6 +12,14 @@ The AWS FSx File System is a fully managed service that makes it easy to launch 
 
 The `aws_fsx_file_system` table in Steampipe provides you with information about FSx File Systems within Amazon Web Services. This table allows you, as a DevOps engineer, to query file system-specific details, including its lifecycle, type, storage capacity, and associated tags. You can utilize this table to gather insights on file systems, such as their storage capacity, creation times, and statuses. The schema outlines the various attributes of the FSx File Systems for you, including the file system ID, owner ID, creation time, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `fsx:DescribeFileSystems` | Required to list and get file system details |
+
 ## Examples
 
 ### Basic info

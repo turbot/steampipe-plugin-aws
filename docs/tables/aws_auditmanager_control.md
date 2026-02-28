@@ -16,6 +16,15 @@ The `aws_auditmanager_control` table in Steampipe provides you with information 
 - This table by default returns the `Standard` controls.
 - You **must** specify `type` in a `where` clause to retrieve other control types. For more information, please refer to the [list of controls by specific type](https://docs.aws.amazon.com/audit-manager/latest/APIReference/API_ListControls.html#API_ListControls_RequestSyntax).
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `auditmanager:ListControls` | Required to list controls |
+| `auditmanager:GetControl` | Required to get control details |
+
 ## Examples
 
 ### Basic info

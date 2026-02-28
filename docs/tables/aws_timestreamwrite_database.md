@@ -12,6 +12,15 @@ AWS Timestream is a fast, scalable, and fully managed time-series database servi
 
 The `aws_timestreamwrite_database` table enables DevOps engineers, cloud administrators, and data analysts to gather detailed insights on their Timestream databases. You can query various aspects of the database, such as its KMS encryption key, number of tables, and creation time. This table is particularly useful for monitoring database health, ensuring security compliance, and managing database configurations.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `timestream:ListDatabases` | Required to list Timestream databases. |
+| `timestream:DescribeDatabase` | Required to get database details. |
+
 ## Examples
 
 ### Basic database information

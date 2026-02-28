@@ -12,6 +12,16 @@ The AWS WAF Rule is a component of AWS Web Application Firewall (WAF) service. I
 
 The `aws_waf_rule` table in Steampipe provides you with information about AWS WAF rules. These rules are used to block common web-based attacks. This table allows you, as a security professional or developer, to query rule-specific details, including the rule action (block, allow, or count), the predicates that make up the rule, and associated metadata. You can utilize this table to gather insights on rules, such as rules that are currently in effect, the conditions under which a rule is triggered, and more. The schema outlines the various attributes of the WAF rule for you, including the rule ID, type, metric name, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `waf:ListRules` | Required to list rules |
+| `waf:GetRule` | Required to get rule details (metric_name, predicates) |
+| `waf:ListTagsForResource` | Required to get rule tags |
+
 ## Examples
 
 ### Basic info

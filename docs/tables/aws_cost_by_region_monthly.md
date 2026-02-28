@@ -20,6 +20,14 @@ Amazon Cost Explorer helps you visualize, understand, and manage your AWS costs 
 - This table supports optional quals. Queries with optional quals are optimised to reduce query time and cost. Optional quals are supported for the following columns:
   - `region` with supported operators `=` and `<>`.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `ce:GetCostAndUsage` | Required to retrieve cost and usage data |
+
 ## Examples
 
 ### Basic info

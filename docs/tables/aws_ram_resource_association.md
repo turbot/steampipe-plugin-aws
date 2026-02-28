@@ -12,6 +12,15 @@ The AWS RAM (Resource Access Manager) Resource Associations allow you to share y
 
 The `aws_ram_resource_association` table in Steampipe provides you with information about resource associations within AWS Resource Access Manager (RAM). This table lets you, as a DevOps engineer, query association-specific details, including the associated resource ARN, resource share ARN, association type, and status. You can utilize this table to gather insights on resource associations, such as resources associated with a specific resource share, status of the association, and more. The schema outlines the various attributes of the resource association for you, including the resource ARN, resource share ARN, association type, status, and creation time.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `ram:GetResourceShareAssociations` | Required to get resource share associations |
+| `ram:ListResourceSharePermissions` | Required to list permissions for resource shares |
+
 ## Examples
 
 ### Basic info

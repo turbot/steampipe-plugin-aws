@@ -12,6 +12,16 @@ The AWS Secrets Manager Secret is a secure and scalable service that enables you
 
 The `aws_secretsmanager_secret` table in Steampipe provides you with information about secrets within AWS Secrets Manager. This table allows you, as a DevOps engineer, to query secret-specific details, including metadata, versions, rotation configuration, and more. You can utilize this table to gather insights on secrets, such as secret rotation status, associated resource policies, and more. The schema outlines the various attributes of the secret for you, including the secret ARN, name, description, rotation rules, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `secretsmanager:ListSecrets` | Required to list secrets |
+| `secretsmanager:DescribeSecret` | Required to get secret details |
+| `secretsmanager:GetResourcePolicy` | Required to retrieve the resource policy for a secret |
+
 ## Examples
 
 ### Basic info

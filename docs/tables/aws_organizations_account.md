@@ -15,6 +15,16 @@ The `aws_organizations_account` table in Steampipe provides you with information
 **Important Notes**
 - The `account_id` column in this table is the account ID from which the API calls are being made (often the management account). To get the described member account's ID, query the `id` column.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `organizations:ListAccounts` | Required to list accounts in the organization |
+| `organizations:DescribeAccount` | Required to get account details |
+| `organizations:ListTagsForResource` | Required to retrieve tags for the `tags` and `tags_src` columns |
+
 ## Examples
 
 ### Basic info

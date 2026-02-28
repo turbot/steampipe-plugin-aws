@@ -12,6 +12,14 @@ The AWS Migration Service (MGN) is designed to minimize downtime during migratio
 
 The `aws_mgn_application` table in Steampipe provides you with information about applications within AWS Migration Service. This table allows you, as a DevOps engineer, to query application-specific details, such as application status, associated servers, and lifecycle details. You can utilize this table to gather insights on applications, such as their current lifecycle state, last updated time, and associated server IDs. The schema outlines the various attributes of the Migration Service application for you, including the application ID, lifecycle, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `mgn:ListApplications` | Required to list MGN applications |
+
 ## Examples
 
 ### Basic Info

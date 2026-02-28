@@ -12,6 +12,15 @@ The AWS RDS DB Cluster Snapshot is a feature of Amazon RDS that enables you to c
 
 The `aws_rds_db_cluster_snapshot` table in Steampipe provides you with information about DB cluster snapshots within Amazon Relational Database Service (RDS). This table allows you, as a DevOps engineer or database administrator, to query snapshot-specific details, including snapshot status, creation time, engine version, and associated metadata. You can utilize this table to gather insights on snapshots, such as snapshot availability, storage used, and source DB cluster identifier. The schema outlines the various attributes of the DB cluster snapshot for you, including the snapshot ARN, snapshot type, VPC ID, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `rds:DescribeDBClusterSnapshots` | Required to list and get DB cluster snapshot details |
+| `rds:DescribeDBClusterSnapshotAttributes` | Required to retrieve snapshot attributes for the `db_cluster_snapshot_attributes` column |
+
 ## Examples
 
 ### List of cluster snapshots which are not encrypted

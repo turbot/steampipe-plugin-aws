@@ -12,6 +12,15 @@ AWS Bedrock Foundation Models are pre-trained models that serve as the base for 
 
 The `aws_bedrock_foundation_model` table provides insights into foundation models within AWS Bedrock. As a data scientist or ML engineer, explore model-specific details through this table, including model capabilities, supported modalities, and lifecycle status. Utilize it to monitor model availability, verify supported features, and ensure appropriate model selection for your AI/ML workloads.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `bedrock:ListFoundationModels` | Required to list foundation models |
+| `bedrock:GetFoundationModel` | Required to get foundation model details |
+
 ## Examples
 
 ### Basic info

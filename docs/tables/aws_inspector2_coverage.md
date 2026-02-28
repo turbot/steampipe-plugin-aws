@@ -12,6 +12,14 @@ The AWS Inspector is a service that helps you improve the security and complianc
 
 The `aws_inspector2_coverage` table in Steampipe provides you with information about the coverage of AWS Inspector within your AWS account. This table allows you, as a DevOps engineer, to query details about the assessment targets and the assessment templates that are associated with the AWS Inspector service. You can utilize this table to gather insights on the coverage of the AWS Inspector service, such as the number of assessment targets and templates, the ARN of the assessment targets and templates, and more. The schema outlines the various attributes of the AWS Inspector Coverage for you, including the ARN, name, duration, rules package ARNs, and user attributes for the assessment target and template.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `inspector2:ListCoverage` | Required to list coverage information |
+
 ## Examples
 
 ### Basic info

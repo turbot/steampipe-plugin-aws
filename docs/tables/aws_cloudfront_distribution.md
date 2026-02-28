@@ -12,6 +12,22 @@ The AWS CloudFront Distributions is a part of Amazon's content delivery network 
 
 The `aws_cloudfront_distribution` table in Steampipe provides you with information about distributions within AWS CloudFront. This table allows you, as a DevOps engineer, to query distribution-specific details, including distribution configuration, status, and associated metadata. You can utilize this table to gather insights on distributions, such as viewing all distributions, checking if logging is enabled, verifying if a distribution is configured to use a custom SSL certificate, and more. The schema outlines the various attributes of the CloudFront distribution for you, including the ARN, domain name, status, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `cloudfront:ListDistributions` | Required to list distributions |
+| `cloudfront:GetDistribution` | Required to get distribution details |
+| `cloudfront:ListTagsForResource` | Required to get distribution tags |
+| `cloudfront:GetMonitoringSubscription` | Required to get monitoring subscription details |
+
+**Note:** The following columns require additional permissions:
+- `cloudfront:GetDistribution` is required for: `caller_reference`, `default_root_object`, `e_tag`, `in_progress_invalidation_batches`, `active_trusted_key_groups`, `active_trusted_signers`, `logging`.
+- `cloudfront:ListTagsForResource` is required for: `tags_src`, `tags`.
+- `cloudfront:GetMonitoringSubscription` is required for: `monitoring_subscription`.
+
 ## Examples
 
 ### Basic info

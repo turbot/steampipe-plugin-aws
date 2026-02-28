@@ -12,6 +12,15 @@ AWS SSM Incidents response plan automates the initial response to incidents. A r
 
 The `aws_ssmincidents_response_plan` table in Steampipe allows you to query information about each response plan in your AWS account. This table provides you, as a DevOps engineer or system administrator, with response plan specific details, including the ARN, name, chat channel, incident template, and more. You can utilize this table to gather insights on response plans.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `ssm-incidents:ListResponsePlans` | Required to list response plans. |
+| `ssm-incidents:GetResponsePlan` | Required to get response plan details including incident template, actions, chat channel, engagements, and integrations. |
+
 ## Examples
 
 ### Basic info

@@ -12,6 +12,17 @@ The AWS CloudFront Origin Request Policy is a feature of Amazon CloudFront, a co
 
 The `aws_cloudfront_origin_request_policy` table in Steampipe provides you with information about Origin Request Policies within AWS CloudFront. This table allows you, as a DevOps engineer, to query policy-specific details, including ID, name, comment, cookies configuration, headers configuration, query strings configuration, and more. You can utilize this table to gather insights on policies, such as policy configurations and associated metadata. The schema outlines the various attributes of the Origin Request Policy for you, including the policy ID, creation date, last modified date, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `cloudfront:ListOriginRequestPolicies` | Required to list origin request policies |
+| `cloudfront:GetOriginRequestPolicy` | Required to get origin request policy details |
+
+**Note:** The `cloudfront:GetOriginRequestPolicy` permission is required for the following column: `etag`.
+
 ## Examples
 
 ### Basic info

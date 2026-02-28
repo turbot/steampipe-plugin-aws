@@ -12,6 +12,14 @@ AWS API Gateway API Keys are used to control and track API usage in Amazon API G
 
 The `aws_api_gateway_api_key` table in Steampipe provides you with information about API Keys within AWS API Gateway. This table allows you, as a DevOps engineer, to query API Key-specific details, including its ID, value, enabled status, and associated metadata. You can utilize this table to gather insights on API Keys, such as keys that are enabled, keys associated with specific stages, and more. The schema outlines the various attributes of the API Key for you, including the key ID, creation date, enabled status, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `apigateway:GET` | Required to list and get API keys |
+
 ## Examples
 
 ### API gateway API key basic info

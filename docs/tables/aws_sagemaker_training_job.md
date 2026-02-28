@@ -12,6 +12,16 @@ The AWS SageMaker Training Jobs are part of the Amazon SageMaker service, which 
 
 The `aws_sagemaker_training_job` table in Steampipe provides you with information about training jobs within AWS SageMaker. This table allows you, whether you're a data scientist, machine learning engineer, or DevOps engineer, to query job-specific details, including the configuration of the training job, status, performance metrics, and associated metadata. You can utilize this table to monitor the progress of training jobs, verify configuration settings, analyze performance metrics, and more. The schema outlines the various attributes of the training job for you, including the job name, creation time, training time, billable time, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `sagemaker:ListTrainingJobs` | Required to list training jobs |
+| `sagemaker:DescribeTrainingJob` | Required to get training job details |
+| `sagemaker:ListTags` | Required to get training job tags |
+
 ## Examples
 
 ### Basic info

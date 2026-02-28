@@ -12,6 +12,16 @@ The AWS RDS DB Cluster Parameter Group is a component of Amazon RDS that contain
 
 The `aws_rds_db_cluster_parameter_group` table in Steampipe provides you with information about DB Cluster Parameter Groups within Amazon RDS (Relational Database Service). This table allows you, as a DevOps engineer, DBA, or security professional, to query parameter group-specific details, including its name, family, description, and ARN. You can utilize this table to gather insights on parameter groups, such as identifying unused or misconfigured parameter groups and ensuring they comply with security and operational best practices. The schema outlines the various attributes of the DB Cluster Parameter Group for you, including the parameter group name, family, description, ARN, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `rds:DescribeDBClusterParameterGroups` | Required to list and get DB cluster parameter group details |
+| `rds:DescribeDBClusterParameters` | Required to retrieve parameters for the `parameters` column |
+| `rds:ListTagsForResource` | Required to retrieve tags for the `tags` and `tags_src` columns |
+
 ## Examples
 
 ### List of DB cluster parameter group with corresponding parameter group family

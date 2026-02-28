@@ -12,6 +12,15 @@ The AWS Glue Security Configuration is a feature within AWS Glue service that al
 
 The `aws_glue_security_configuration` table in Steampipe provides you with information about security configurations within AWS Glue. This table allows you, as a DevOps engineer, to query security configuration-specific details, including encryption settings, CloudWatch encryption settings, Job Bookmarks encryption settings, and S3 encryption settings. You can utilize this table to gather insights on security configurations, such as the status of encryption settings, the type of encryption used, and more. The schema outlines the various attributes of the Glue security configuration for you, including the name, creation time, and encryption settings.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `glue:GetSecurityConfigurations` | Required to list Glue security configurations |
+| `glue:GetSecurityConfiguration` | Required to get details of a specific security configuration |
+
 ## Examples
 
 ### Basic info

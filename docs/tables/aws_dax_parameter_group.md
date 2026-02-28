@@ -12,6 +12,14 @@ The AWS DAX Parameter Group is a resource that provides a container for database
 
 The `aws_dax_parameter_group` table in Steampipe provides you with information about Parameter Groups within AWS DynamoDB Accelerator (DAX). This table enables you, as a DevOps engineer, to query Parameter Group-specific details, including the group name, ARN, description, and parameter settings. You can utilize this table to gather insights on Parameter Groups, such as their configurations, associated parameters, and more. The schema outlines the various attributes of the DAX Parameter Group for you, including the parameter group name, ARN, description, and associated parameters.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `dax:DescribeParameterGroups` | Required to list parameter groups |
+
 ## Examples
 
 ### Basic info

@@ -12,6 +12,14 @@ The AWS Systems Manager Managed Instance is a compute resource in your environme
 
 The `aws_ssm_managed_instance` table in Steampipe provides you with information about managed instances within AWS Systems Manager (SSM). This table allows you, as a DevOps engineer, to query managed instance-specific details, including instance ID, name, platform type, platform version, and associated metadata. You can utilize this table to gather insights on instances, such as their operational status, last ping time, agent version, and more. The schema outlines the various attributes of the managed instance for you, including the instance ARN, registration date, resource type, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `ssm:DescribeInstanceInformation` | Required to list SSM managed instances. |
+
 ## Examples
 
 ### Basic info

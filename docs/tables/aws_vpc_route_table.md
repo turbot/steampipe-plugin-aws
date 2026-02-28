@@ -12,6 +12,14 @@ The AWS VPC Route Tables are essential components of Amazon Virtual Private Clou
 
 The `aws_vpc_route_table` table in Steampipe provides you with information about VPC Route Tables within Amazon Virtual Private Cloud (VPC). This table allows you, as a DevOps engineer, to query route table-specific details, including its associations, routes, and tags. You can utilize this table to gather insights on route tables, such as the subnets associated with each route table, the destinations and targets of each route, and the tags associated with each route table. The schema outlines the various attributes of the VPC Route Table for you, including the route table ID, VPC ID, owner ID, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `ec2:DescribeRouteTables` | Required to list and get route table details |
+
 ## Examples
 
 ### Route table count by VPC ID

@@ -12,6 +12,29 @@ An AWS S3 Bucket is a public cloud storage resource available in Amazon Web Serv
 
 The `aws_s3_bucket` table in Steampipe provides you with information about S3 buckets within Amazon Simple Storage Service (S3). This table allows you, as a DevOps engineer, to query bucket-specific details, including configuration, policies, and permissions. You can utilize this table to gather insights on buckets, such as bucket policies, access controls, versioning status, and more. The schema outlines for you the various attributes of the S3 bucket, including the bucket name, creation date, region, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `s3:ListBucket` | Required to list buckets |
+| `s3:HeadBucket` | Required to get bucket region |
+| `s3:GetBucketPolicyStatus` | Required to get bucket policy status (bucket_policy_is_public column) |
+| `s3:GetBucketVersioning` | Required to get versioning status (versioning_enabled, versioning_mfa_delete columns) |
+| `s3:GetBucketEncryption` | Required to get encryption configuration (server_side_encryption_configuration column) |
+| `s3:GetPublicAccessBlock` | Required to get public access block (block_public_acls, block_public_policy, ignore_public_acls, restrict_public_buckets columns) |
+| `s3:GetBucketAcl` | Required to get bucket ACL (acl column) |
+| `s3:GetLifecycleConfiguration` | Required to get lifecycle rules (lifecycle_rules column) |
+| `s3:GetBucketLogging` | Required to get logging configuration (logging column) |
+| `s3:GetBucketPolicy` | Required to get bucket policy (policy, policy_std columns) |
+| `s3:GetBucketReplication` | Required to get replication configuration (replication column) |
+| `s3:GetBucketTagging` | Required to get bucket tags (tags, tags_src columns) |
+| `s3:GetObjectLockConfiguration` | Required to get object lock configuration (object_lock_configuration column) |
+| `s3:GetBucketNotificationConfiguration` | Required to get notification configuration (event_notification_configuration column) |
+| `s3:GetBucketOwnershipControls` | Required to get ownership controls (object_ownership_controls column) |
+| `s3:GetBucketWebsite` | Required to get website configuration (website_configuration column) |
+
 ## Examples
 
 ### Basic info

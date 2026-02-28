@@ -12,6 +12,18 @@ The AWS Directory Service provides multiple ways to use Microsoft Active Directo
 
 The `aws_directory_service_directory` table in Steampipe provides you with information about AWS Directory Service Directories. These include AWS Managed Microsoft AD, AWS Managed AD, and Simple AD directories. This table allows you, as a DevOps engineer, to query directory-specific details, including directory ID, type, size, and status, among others. You can utilize this table to gather insights on directories, such as their descriptions, DNS IP addresses, and security group IDs. The schema outlines the various attributes of the Directory Service Directory for you, including its ARN, creation timestamp, alias, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `ds:DescribeDirectories` | Required to list and get details of directories. |
+| `ds:DescribeEventTopics` | Required to get event topic information for directories. |
+| `ds:GetSnapshotLimits` | Required to get snapshot limit information. |
+| `ds:DescribeSharedDirectories` | Required to get shared directory information. |
+| `ds:ListTagsForResource` | Required to retrieve tags for directories. |
+
 ## Examples
 
 ### Basic Info

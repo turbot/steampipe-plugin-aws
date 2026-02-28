@@ -12,6 +12,16 @@ The AWS Access Analyzer is a service that helps to identify resources in your or
 
 The `aws_accessanalyzer_analyzer` table in Steampipe provides you with information about analyzers within AWS IAM Access Analyzer. This table allows you, as a DevOps engineer, to query analyzer-specific details, including the analyzer ARN, type, status, and associated metadata. You can utilize this table to gather insights on analyzers, such as the status of each analyzer, the type of analyzer, and the resource that was analyzed. The schema outlines the various attributes of the Access Analyzer for you, including the analyzer ARN, creation time, last resource scanned, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `access-analyzer:ListAnalyzers` | Required to list analyzers |
+| `access-analyzer:GetAnalyzer` | Required to get analyzer details |
+| `access-analyzer:ListFindings` | Required to retrieve findings for an analyzer |
+
 ## Examples
 
 ### Basic info

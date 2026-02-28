@@ -12,6 +12,15 @@ The AWS Firewall Manager Policies is a feature of AWS Firewall Manager, a securi
 
 The `aws_fms_policy` table in Steampipe provides you with information about each AWS Firewall Manager (FMS) policy in your AWS account. This table allows you, as a DevOps engineer, security professional, or other user, to query policy-specific details, including policy ID, policy name, resource type, security service type, and more. You can utilize this table to gather insights on policies, such as identifying which resources are protected by which policies, understanding the type of security service provided by each policy, and knowing the status of each policy. The schema outlines the various attributes of the FMS policy for you, including the policy ID, policy name, resource tags, remediation enabled status, and more.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `fms:ListPolicies` | Required to list FMS policies |
+| `fms:GetPolicy` | Required to get policy details |
+
 ## Examples
 
 ### Basic info

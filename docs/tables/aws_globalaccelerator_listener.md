@@ -12,6 +12,16 @@ The AWS Global Accelerator Listener is a component of AWS Global Accelerator tha
 
 The `aws_globalaccelerator_listener` table in Steampipe provides you with information about each listener that processes inbound connections based on the port or port ranges that you configure. This table allows you as a network engineer to query listener-specific details, including Accelerator ARN, Listener ARN, Client Affinity, and associated metadata. You can utilize this table to gather insights on listeners, such as which listeners are processing inbound connections, what port ranges are being used, and more. The schema outlines the various attributes of the Global Accelerator Listener for you, including the listener ARN, accelerator ARN, client affinity, and port ranges.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `globalaccelerator:ListAccelerators` | Required to list parent accelerators |
+| `globalaccelerator:ListListeners` | Required to list listeners for each accelerator |
+| `globalaccelerator:DescribeListener` | Required to get listener details |
+
 ## Examples
 
 ### Basic info

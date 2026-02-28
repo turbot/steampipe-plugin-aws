@@ -21,6 +21,14 @@ Amazon Cost Explorer helps you visualize, understand, and manage your AWS costs 
   - `period_start` with supported operators `=`, `>=`, `>`, `<=`, and `<`.
   - `period_end` with supported operators `=`, `>=`, `>`, `<=`, and `<`.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `ce:GetCostAndUsage` | Required to retrieve cost and usage data |
+
 ## Examples
 
 ### Basic info

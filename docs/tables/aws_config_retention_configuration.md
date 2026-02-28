@@ -12,6 +12,14 @@ The AWS Config Retention Configuration is a feature within the AWS Config servic
 
 The `aws_config_retention_configuration` table in Steampipe provides you with information about the retention period that AWS Config uses to retain your configuration items. This table allows you, as a DevOps engineer, to query retention period details, including the number of days AWS Config retains the configuration items and whether the retention is permanent. You can utilize this table to gather insights on the retention configurations, such as the duration of retention and whether the retention is set to be permanent. The schema outlines the various attributes of the retention configuration for you, including the name of the retention period and the retention period in days.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `config:DescribeRetentionConfigurations` | Required to list retention configurations |
+
 ## Examples
 
 ### Basic info

@@ -12,6 +12,16 @@ The AWS Systems Manager Patch Manager (SSM Patch Manager) is a service that allo
 
 The `aws_ssm_patch_baseline` table in Steampipe allows you to query information about each patch baseline in your AWS account. This table provides you, as a DevOps engineer or system administrator, with patch-specific details, including the patch baseline ID, name, operating system, approval rules, and more. You can utilize this table to gather insights on patch baselines, such as the approved and rejected patches, patch compliance levels, and the patch groups the baseline is associated with. The schema outlines the various attributes of the AWS SSM Patch Baseline, including the baseline ID, creation date, description, and associated tags for you.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `ssm:DescribePatchBaselines` | Required to list patch baselines. |
+| `ssm:GetPatchBaseline` | Required to get detailed information about a specific patch baseline. |
+| `ssm:ListTagsForResource` | Required to get tags for patch baselines. |
+
 ## Examples
 
 ### Basic info

@@ -12,6 +12,14 @@ The AWS DynamoDB Metrics service allows you to monitor the performance character
 
 The `aws_dynamodb_metric_account_provisioned_write_capacity_util` table in Steampipe provides you with information about the provisioned write capacity utilization metrics at the account level within Amazon DynamoDB. This table allows you, as a DevOps engineer, to query details related to the provisioned write capacity, such as the average, maximum, and minimum write capacity units consumed by all tables in your account. You can utilize this table to monitor the utilization of provisioned write capacity, ensuring optimal performance and identifying potential bottlenecks or over-provisioning. The schema outlines the various attributes of the metric, including your account id, region, timestamp, and the provisioned write capacity units.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `cloudwatch:GetMetricStatistics` | Required to retrieve CloudWatch metric statistics |
+
 ## Examples
 
 ### Basic info

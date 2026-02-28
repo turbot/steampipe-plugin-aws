@@ -12,6 +12,15 @@ The AWS S3 Bucket Intelligent Tiering Configuration is a feature of Amazon S3 th
 
 The `aws_s3_bucket_intelligent_tiering_configuration` table in Steampipe provides you with information about the Intelligent Tiering configurations of AWS S3 buckets. This table allows you, as a DevOps engineer, to query configuration-specific details, including the bucket name, the ID of the configuration, and the status of the configuration. You can utilize this table to gather insights on Intelligent Tiering configurations, such as their IDs, statuses, and related bucket names. The schema outlines for you the various attributes of the Intelligent Tiering configuration, including the bucket name, configuration ID, and status.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `s3:ListBucketIntelligentTieringConfigurations` | Required to list intelligent tiering configurations |
+| `s3:GetIntelligentTieringConfiguration` | Required to get a specific intelligent tiering configuration |
+
 ## Examples
 
 ### Basic info

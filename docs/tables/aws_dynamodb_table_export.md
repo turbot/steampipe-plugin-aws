@@ -12,6 +12,15 @@ The AWS DynamoDB Table Export is a feature within the AWS DynamoDB service that 
 
 The `aws_dynamodb_table_export` table in Steampipe provides you with information about the exports of DynamoDB tables within AWS DynamoDB. This table allows you, as a DevOps engineer, to query export-specific details, including the export time, the status of the export, and the format of the exported data. You can utilize this table to gather insights on exports, such as the time of the last export, the status of ongoing exports, and the format of previously exported data. The schema outlines the various attributes of the DynamoDB table export for you, including the export ARN, export time, export status, and the exported data format.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `dynamodb:ListExports` | Required to list table exports |
+| `dynamodb:DescribeExport` | Required to get export details |
+
 ## Examples
 
 ### Basic info

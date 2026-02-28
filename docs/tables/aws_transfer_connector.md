@@ -12,6 +12,16 @@ AWS Transfer Connector is a resource that enables you to send files using either
 
 The `aws_transfer_connector` table in Steampipe provides you with information about AS2 and SFTP connectors within AWS Transfer Family. This table allows you, as a DevOps engineer, to query connector-specific details, including connector configurations, endpoint details, and associated metadata. You can utilize this table to gather insights on connectors, such as connector states, protocol configurations, egress IP addresses, and more. The schema outlines the various attributes of the connector for you, including the connector ID, ARN, URL, access role, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `transfer:ListConnectors` | Required to list Transfer connectors. |
+| `transfer:DescribeConnector` | Required to get connector details including access role, logging role, security policy, egress IP addresses, AS2 config, and SFTP config. |
+| `transfer:ListTagsForResource` | Required to retrieve tags for a connector (for the `tags` and `tags_src` columns). |
+
 ## Examples
 
 ### Basic info

@@ -12,6 +12,17 @@ The AWS EventBridge Rule is a component of Amazon EventBridge, a serverless even
 
 The `aws_eventbridge_rule` table in Steampipe provides you with information about EventBridge rules within AWS EventBridge. This table allows you, as a DevOps engineer, to query rule-specific details, including the rule name, ARN, state, description, schedule expression, and associated metadata. You can utilize this table to gather insights on rules, such as the rules associated with a specific event bus, the state of the rules (whether they are enabled or disabled), and more. The schema outlines the various attributes of the EventBridge rule for you, including the rule ARN, event bus name, description, state, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `events:ListRules` | Required to list EventBridge rules |
+| `events:DescribeRule` | Required to get rule details |
+| `events:ListTargetsByRule` | Required for the `targets` column |
+| `events:ListTagsForResource` | Required to retrieve tags for rules |
+
 ## Examples
 
 ### Basic info

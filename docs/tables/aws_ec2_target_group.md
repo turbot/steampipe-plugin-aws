@@ -12,6 +12,17 @@ An AWS EC2 Target Group is a component of the Elastic Load Balancing service. It
 
 The `aws_ec2_target_group` table in Steampipe provides you with information about each Target Group within your AWS account. This table allows you, as a DevOps engineer, security auditor, or other technical professional, to query Target Group-specific details, including the associated load balancer, health check configuration, and attributes. You can utilize this table to gather insights on Target Groups, such as their configurations, associated resources, and more. The schema outlines the various attributes of the Target Group for you, including the ARN, Health Check parameters, and associated tags.
 
+## Required Permissions
+
+Your principal must have the following permissions to use this table:
+
+| Permission | Description |
+|------------|-------------|
+| `elasticloadbalancing:DescribeTargetGroups` | Required to retrieve target group information. |
+| `elasticloadbalancing:DescribeTargetHealth` | Required to retrieve the `target_health_descriptions` column. |
+| `elasticloadbalancing:DescribeTags` | Required to retrieve the `tags` and `tags_src` columns. |
+| `elasticloadbalancing:DescribeTargetGroupAttributes` | Required to retrieve the `attributes` column. |
+
 ## Examples
 
 ### Basic target group info

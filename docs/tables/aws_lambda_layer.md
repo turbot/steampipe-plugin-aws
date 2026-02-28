@@ -12,6 +12,14 @@ The AWS Lambda Layer is a distribution mechanism for libraries, custom runtimes,
 
 The `aws_lambda_layer` table in Steampipe provides you with information about Lambda Layers within AWS Lambda. This table allows you, as a DevOps engineer, to query layer-specific details, including layer ARNs, layer versions, and compatible runtimes. You can utilize this table to gather insights on Lambda Layers, such as the versions available for a layer, the runtimes that a layer is compatible with, the size of the layer, and more. The schema outlines the various attributes of the Lambda Layer for you, including the layer ARN, layer version, compatible runtimes, layer size, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `lambda:ListLayers` | Required to list Lambda layers |
+
 ## Examples
 
 ### Basic Info

@@ -12,6 +12,15 @@ AWS QuickSight Namespace is a logical container that helps organize and manage Q
 
 The `aws_quicksight_namespace` table in Steampipe provides you with information about namespaces within AWS QuickSight. This table allows you, as an administrator, to query namespace-specific details, including identity store configurations and creation status. You can utilize this table to gather insights on namespace management, such as creation status, capacity regions, and associated identity stores.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `quicksight:ListNamespaces` | Required to list namespaces |
+| `quicksight:DescribeNamespace` | Required to get namespace details |
+
 ## Examples
 
 ### Basic info

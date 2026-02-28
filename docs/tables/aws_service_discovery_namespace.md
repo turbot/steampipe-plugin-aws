@@ -12,6 +12,16 @@ The AWS Cloud Map Service Discovery Namespace is a component of AWS Cloud Map th
 
 The `aws_service_discovery_namespace` table in Steampipe provides you with information about AWS Cloud Map Service Discovery Namespaces. This table allows you, as a DevOps engineer, to query namespace-specific details, including namespace type (DNS, HTTP), associated services, and associated metadata. You can utilize this table to gather insights on namespaces, such as the number of services in each namespace, namespace types, and more. The schema outlines the various attributes of the service discovery namespace for you, including the namespace ID, ARN, name, type, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `servicediscovery:ListNamespaces` | Required to list namespaces |
+| `servicediscovery:GetNamespace` | Required to get namespace details |
+| `servicediscovery:ListTagsForResource` | Required to retrieve tags for namespaces |
+
 ## Examples
 
 ### Basic info

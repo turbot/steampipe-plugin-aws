@@ -14,6 +14,15 @@ The `aws_redshift_cluster_metric_cpu_utilization_daily` table in Steampipe gives
 
 The `aws_redshift_cluster_metric_cpu_utilization_daily` table provides you with metric statistics at 24-hour intervals for the last year.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `redshift:DescribeClusters` | Required to list clusters |
+| `cloudwatch:GetMetricStatistics` | Required to get CPU utilization metrics |
+
 ## Examples
 
 ### Basic info

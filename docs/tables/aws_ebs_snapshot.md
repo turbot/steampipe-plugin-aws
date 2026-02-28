@@ -16,6 +16,15 @@ The `aws_ebs_snapshot` table in Steampipe provides you with information about EB
 - The `aws_ebs_snapshot` table lists all private snapshots by default.
 - You can specify an owner alias, owner ID or snapshot ID** in the `where` clause (`where owner_alias=''`), (`where owner_id=''`) or (`where snapshot_id=''`) to list public or shared snapshots from a specific AWS account.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `ec2:DescribeSnapshots` | Required to list EBS snapshots |
+| `ec2:DescribeSnapshotAttribute` | Required to get snapshot create volume permissions |
+
 ## Examples
 
 ### List of snapshots which are not encrypted

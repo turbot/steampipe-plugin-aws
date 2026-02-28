@@ -12,6 +12,15 @@ The AWS Well-Architected Workload Share is a feature of the AWS Well-Architected
 
 The `aws_wellarchitected_workload_share` table in Steampipe provides you with information about shared workloads within AWS Well-Architected Tool. This table allows you, as a DevOps engineer, to query workload share-specific details, including the share ARN, workload ID, permission type, and associated metadata. You can utilize this table to gather insights on workload shares, such as the status of the workload share, the type of permission granted, and more. The schema outlines the various attributes of the workload share for you, including the share ARN, workload ID, permission type, and status.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `wellarchitected:ListWorkloads` | Required to list workloads (parent hydrate) |
+| `wellarchitected:ListWorkloadShares` | Required to list workload shares |
+
 ## Examples
 
 ### Basic info

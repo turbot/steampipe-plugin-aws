@@ -12,6 +12,14 @@ The AWS VPC VPN Connection is a component within the Amazon Virtual Private Clou
 
 The `aws_vpc_vpn_connection` table in Steampipe provides you with information about VPN connections within AWS Virtual Private Cloud (VPC). This table allows you, as a DevOps engineer, to query VPN connection-specific details, including the VPN connection ID, state, VPN gateway configurations, customer gateway configurations, and associated metadata. You can utilize this table to gather insights on VPN connections, such as connection states, associated VPN and customer gateways, static routes, and more. The schema outlines the various attributes of the VPN connection for you, including the VPN connection ID, creation time, VPN gateway ID, customer gateway ID, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `ec2:DescribeVpnConnections` | Required to list and get VPN connection details |
+
 ## Examples
 
 ### Basic info

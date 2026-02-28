@@ -12,6 +12,16 @@ The AWS EKS Fargate Profile is a component of Amazon Elastic Kubernetes Service 
 
 The `aws_eks_fargate_profile` table in Steampipe provides you with information about Fargate Profiles within Amazon Elastic Kubernetes Service (EKS). This table allows you as a DevOps engineer to query profile-specific details, including the profile name, ARN, status, and the EKS cluster to which it belongs. You can utilize this table to gather insights on Fargate profiles, such as profiles associated with a specific EKS cluster, the status of the profiles, and more. The [schema](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_eks_fargate_profile) outlines the various attributes of the EKS Fargate profile for you, including the profile name, ARN, status, EKS cluster, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `eks:ListClusters` | Required to list EKS clusters (parent resource) |
+| `eks:ListFargateProfiles` | Required to list Fargate profiles for each cluster |
+| `eks:DescribeFargateProfile` | Required to get Fargate profile details |
+
 ## Examples
 
 ### Basic info

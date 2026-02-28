@@ -12,6 +12,16 @@ The AWS WAFv2 IPSet is a feature of AWS Web Application Firewall (WAF) service. 
 
 The `aws_wafv2_ip_set` table in Steampipe provides you with information about IPSet within AWS WAFv2. This table allows you, as a DevOps engineer, to query IPSet-specific details, including IP addresses, IP address version, and associated metadata. You can utilize this table to gather insights on IPSet, such as the IP addresses that AWS WAF is inspecting for web requests, the IP address version (IPv4 or IPv6), and more. The schema outlines the various attributes of the IPSet for you, including the IPSet ID, IPSet name, IPSet ARN, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `wafv2:ListIPSets` | Required to list IP sets |
+| `wafv2:GetIPSet` | Required to get IP set details (ip_address_version, addresses) |
+| `wafv2:ListTagsForResource` | Required to get IP set tags |
+
 ## Examples
 
 ### Basic info

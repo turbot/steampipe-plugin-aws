@@ -12,6 +12,15 @@ AWS Neptune DB Cluster Snapshots are a point-in-time copy of data from an Amazon
 
 The `aws_neptune_db_cluster_snapshot` table in Steampipe provides you with information about DB Cluster Snapshots within Amazon Neptune. This table allows you, as a DevOps engineer, database administrator, or other technical professional, to query snapshot-specific details, including snapshot status, creation time, associated database engine, and more. You can utilize this table to gather insights on snapshots, such as their availability, encryption status, and associated database clusters. The schema outlines the various attributes of the Neptune DB Cluster Snapshot for you, including the snapshot ARN, creation time, associated tags, and more.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `neptune:DescribeDBClusterSnapshots` | Required to list and describe Neptune DB cluster snapshots |
+| `neptune:DescribeDBClusterSnapshotAttributes` | Required to get snapshot attributes |
+
 ## Examples
 
 ### List of DB cluster snapshots which are not encrypted

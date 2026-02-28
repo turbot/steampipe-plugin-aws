@@ -12,6 +12,15 @@ AWS Bedrock Custom Models allows you to customize foundation models for your spe
 
 The `aws_bedrock_custom_model` table in Steampipe provides you with information about custom models within AWS Bedrock. This table allows you, as a data scientist or ML engineer, to query custom model-specific details, including model configuration, status, and associated metadata. You can utilize this table to gather insights on custom models, such as their base models, customization types, creation times, and more. The schema outlines the various attributes of the custom model for you, including the model ARN, base model name, creation time, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `bedrock:ListCustomModels` | Required to list custom models |
+| `bedrock:GetCustomModel` | Required to get custom model details |
+
 ## Examples
 
 ### Basic info

@@ -12,6 +12,14 @@ AWS Shield is a DDoS protection service from AWS. AWS Shield provide statistics 
 
 The `aws_shield_attack_statistic` table in Steampipe allows you to query AWS Shield Attack Statistics and information about layer 3, 4 and 7 attacks that Shield has detected in the last year. It gives you an overview which kind of attacks have the most impact on your resources and how many attacks Shield was able to detect. For more information about the individual columns and their values, please refer to the [official AWS documentation](https://docs.aws.amazon.com/waf/latest/DDOSAPIReference/API_DescribeAttackStatistics.html).
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `shield:DescribeAttackStatistics` | Required to list attack statistics |
+
 ## Examples
 
 ### Basic info

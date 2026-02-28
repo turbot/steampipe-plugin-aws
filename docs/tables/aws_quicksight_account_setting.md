@@ -17,6 +17,14 @@ The `aws_quicksight_account_setting` table in Steampipe provides you with inform
 - Account setting information for QuickSight is only available from the **identity region** (i.e., the region where the QuickSight account was initially created or enabled).
 - Since there is no direct API to retrieve the identity region, users must provide it manually in the query to retrieve data successfully.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `quicksight:DescribeAccountSettings` | Required to retrieve account settings |
+
 ## Examples
 
 ### Basic info

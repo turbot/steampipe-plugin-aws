@@ -14,6 +14,15 @@ The `aws_rds_db_instance_metric_read_iops_daily` table in Steampipe provides you
 
 The `aws_rds_db_instance_metric_read_iops_daily` table provides you with metric statistics at 24-hour intervals for the last year.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `rds:DescribeDBInstances` | Required to list DB instances (parent hydrate) |
+| `cloudwatch:GetMetricStatistics` | Required to retrieve read IOPS metrics |
+
 ## Examples
 
 ### Basic info

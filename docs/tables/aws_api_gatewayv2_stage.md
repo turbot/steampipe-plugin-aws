@@ -12,6 +12,14 @@ The AWS API Gateway Stage is a crucial component within the AWS API Gateway serv
 
 The `aws_api_gatewayv2_stage` table in Steampipe provides you with information about stages within AWS API Gateway. This table allows you, as a DevOps engineer, to query stage-specific details, including default route settings, deployment ID, description, and associated metadata. You can utilize this table to gather insights on stages, such as the last updated time of the stage, stage variables, auto deployment details, and more. The schema outlines for you the various attributes of the API Gateway stage, including the stage name, API ID, created date, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `apigateway:GET` | Required to list and get stages |
+
 ## Examples
 
 ### List of API gateway V2 stages which does not send logs to cloud watch log

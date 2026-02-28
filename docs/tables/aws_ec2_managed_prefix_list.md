@@ -17,6 +17,14 @@ There are two types of prefix lists:
 
 The `aws_ec2_managed_prefix_list` table in Steampipe provides you with information about Managed Prefix Lists within AWS EC2. This table allows you as a DevOps engineer to query details about IP address ranges, permissions, and associated metadata. You can utilize this table to gather insights on IP address ranges, such as which IP addresses are allowed or denied access to a VPC, the maximum number of entries that a prefix list can have, and more. The schema outlines the various attributes of the Managed Prefix List for you, including the prefix list id, name, owner id, and associated tags.
 
+## Required Permissions
+
+Your principal must have the following permissions to use this table:
+
+| Permission | Description |
+|------------|-------------|
+| `ec2:DescribeManagedPrefixLists` | Required to retrieve managed prefix list information. |
+
 ## Examples
 
 ### Basic Info

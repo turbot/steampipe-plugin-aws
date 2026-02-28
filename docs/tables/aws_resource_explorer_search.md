@@ -23,6 +23,16 @@ Before you use this table, it's recommended that you:
 
 - Specifying `query` is not required, and if a search query is run without it, the first 1,000 results will be returned. However, if you'd like to specify `query`, please see the examples below along with [Search query syntax reference for Resource Explorer](https://docs.aws.amazon.com/resource-explorer/latest/userguide/using-search-query-syntax.html).
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `resource-explorer-2:Search` | Required to search resources |
+| `resource-explorer-2:ListIndexes` | Required to find the aggregator index |
+| `resource-explorer-2:GetDefaultView` | Required to get the default view |
+
 ## Examples
 
 ### Basic info

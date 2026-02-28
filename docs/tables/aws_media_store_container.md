@@ -12,6 +12,17 @@ The AWS MediaStore Container is a high-performance storage service for media dat
 
 The `aws_media_store_container` table in Steampipe provides you with information about containers within AWS Elemental MediaStore. This table allows you, as a DevOps engineer, to query container-specific details, such as ARN, creation time, status, and access logging details. You can utilize this table to gather insights on containers, such as the container's lifecycle policy, CORS policy, and more. The schema outlines the various attributes of the MediaStore container for you, including the container ARN, creation time, status, access logging details, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `mediastore:ListContainers` | Required to list MediaStore containers |
+| `mediastore:DescribeContainer` | Required to get details of a specific container |
+| `mediastore:GetContainerPolicy` | Required to get the access policy of a container |
+| `mediastore:ListTagsForResource` | Required to get tags for containers |
+
 ## Examples
 
 ### Basic info

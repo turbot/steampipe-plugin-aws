@@ -12,6 +12,16 @@ The AWS Glue Development Endpoints are interactive programming interfaces for AW
 
 The `aws_glue_dev_endpoint` table in Steampipe provides you with comprehensive information about Development Endpoints within AWS Glue. This table allows you, as a developer or data engineer, to query endpoint-specific details, including the endpoint status, security configurations, associated subnet ID, VPC ID, and much more. You can utilize this table to analyze and manage your Glue Development Endpoints, such as identifying endpoints with specific security configurations, verifying endpoint statuses, and understanding the network configurations of the endpoints. The schema outlines the various attributes of the Glue Development Endpoint for you, including the endpoint name, role ARN, public key, creation time, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `glue:GetDevEndpoints` | Required to list Glue development endpoints |
+| `glue:GetDevEndpoint` | Required to get details of a specific development endpoint |
+| `glue:GetTags` | Required to retrieve tags for the development endpoint |
+
 ## Examples
 
 ### Basic info

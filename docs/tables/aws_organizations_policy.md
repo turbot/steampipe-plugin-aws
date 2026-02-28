@@ -15,6 +15,15 @@ The `aws_organizations_policy` table in Steampipe provides you with information 
 **Important Notes**
 - You must specify `type` in the `where` clause to query this table.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `organizations:ListPolicies` | Required to list policies |
+| `organizations:DescribePolicy` | Required to get policy details for the `content` column |
+
 ## Examples
 
 ### Basic info

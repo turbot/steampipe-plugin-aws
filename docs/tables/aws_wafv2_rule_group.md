@@ -12,6 +12,16 @@ The AWS WAFv2 Rule Groups is a feature of AWS Web Application Firewall (WAF) tha
 
 The `aws_wafv2_rule_group` table in Steampipe allows you to query details related to rule groups in AWS WAFv2 (Web Application Firewall version 2). You can use this table to gather information such as the ARN, capacity, description, rules, visibility configuration, and more about each rule group. As a DevOps engineer or security professional, you can utilize this table to analyze and manage rule groups, monitor rule group capacity, review rule configurations, and ensure visibility settings are correctly configured. The schema outlines the various attributes of the rule group for you, including the ARN, capacity, description, rules, visibility configuration, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `wafv2:ListRuleGroups` | Required to list rule groups |
+| `wafv2:GetRuleGroup` | Required to get rule group details (capacity, rules, visibility_config) |
+| `wafv2:ListTagsForResource` | Required to get rule group tags |
+
 ## Examples
 
 ### Basic info

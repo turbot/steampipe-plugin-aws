@@ -16,6 +16,14 @@ The `aws_organizations_delegated_administrator` table in Steampipe lets you quer
 * This table returns details about *delegated administrator* accounts, **not** the management account executing the API call.
 * The `account_id` column shows the ID of the account that made the API request (typically the management account). To retrieve the ID of the delegated administrator (member account), refer to the `id` column.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `organizations:ListDelegatedAdministrators` | Required to list delegated administrators |
+
 ## Examples
 
 ### Basic info

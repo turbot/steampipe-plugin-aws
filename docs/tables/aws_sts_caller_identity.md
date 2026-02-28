@@ -12,6 +12,14 @@ The AWS Security Token Service (STS) Caller Identity is a resource that provides
 
 The `aws_sts_caller_identity` table in Steampipe provides you with information about the AWS Security Token Service (STS) Caller Identity. This table allows you to query details about the IAM user or role whose credentials are used to call the operation. The schema outlines for you the various attributes of the STS Caller Identity, including the user ARN, user ID, and account ID.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `sts:GetCallerIdentity` | Required to get details about the IAM user or role whose credentials are used to call the operation. |
+
 ## Examples
 
 ### Basic info

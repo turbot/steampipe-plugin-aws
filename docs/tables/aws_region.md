@@ -12,6 +12,14 @@ The AWS Region is a geographical area that represents a physical location around
 
 The `aws_region` table in Steampipe provides you with information about regions within AWS. This table allows you, as a DevOps engineer, to query region-specific details, including the region name, description, and status. You can utilize this table to gather insights on regions, such as their geographical distribution, operational status, and more. The schema outlines the various attributes of the AWS region for you, including the region name, endpoint, and whether the region is opt-in status.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `ec2:DescribeRegions` | Required to list AWS regions |
+
 ## Examples
 
 ### AWS region info

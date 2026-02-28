@@ -12,7 +12,16 @@ The AWS Certificate Manager (ACM) is a service that lets you easily provision, m
 
 The `aws_acm_certificate` table in Steampipe provides you with information about certificates within AWS Certificate Manager (ACM). This table allows you, as a DevOps engineer, to query certificate-specific details, including domain name, status, issuer, and expiration data. You can utilize this table to gather insights on certificates, such as certificate status, verification of issuer, and more. The schema outlines the various attributes of the ACM certificate for you, including the certificate ARN, creation date, domain name, and associated tags.
 
+## Required Permissions
 
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `acm:ListCertificates` | Required to list certificates |
+| `acm:DescribeCertificate` | Required to get certificate details |
+| `acm:GetCertificate` | Required to get certificate content |
+| `acm:ListTagsForCertificate` | Required to get certificate tags |
 
 ## Examples
 

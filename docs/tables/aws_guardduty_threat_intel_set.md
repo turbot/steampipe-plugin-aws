@@ -12,6 +12,16 @@ The AWS GuardDuty ThreatIntelSet is a feature within the AWS GuardDuty service. 
 
 The `aws_guardduty_threat_intel_set` table in Steampipe provides you with information about threat intelligence sets that are associated with a GuardDuty detector in AWS GuardDuty. This table allows you, as a security analyst, to query threat-specific details, including the name, format, location, and status of the threat intelligence set. You can utilize this table to gather insights on threats, such as those that are currently active, the format and location of the threat intelligence set, and more. The schema outlines the various attributes of the threat intelligence set for you, including the threat intelligence set ID, detector ID, name, format, location, status, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `guardduty:ListDetectors` | Required to list detectors (parent hydrate). |
+| `guardduty:ListThreatIntelSets` | Required to list threat intel sets. |
+| `guardduty:GetThreatIntelSet` | Required to get threat intel set details. |
+
 ## Examples
 
 ### Basic info

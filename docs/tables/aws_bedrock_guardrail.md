@@ -12,6 +12,15 @@ AWS Bedrock Guardrails enable you to implement safeguards for your generative AI
 
 The `aws_bedrock_guardrail` table in Steampipe provides you with information about guardrails within AWS Bedrock. This table allows you, as a developer, ML engineer, or security administrator, to query guardrail-specific details, including content policies, sensitive information policies, topic policies, and associated metadata. You can utilize this table to gather insights on guardrails, such as their configuration, status, blocked messaging, and policy settings. The schema outlines the various attributes of the guardrail for you, including the guardrail ID, ARN, version, and various policy configurations.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `bedrock:ListGuardrails` | Required to list guardrails |
+| `bedrock:GetGuardrail` | Required to get guardrail details for the `blocked_input_messaging`, `blocked_outputs_messaging`, `kms_key_arn`, `content_policy`, `contextual_grounding_policy`, `sensitive_information_policy`, `topic_policy`, `word_policy`, `cross_region_details`, `failure_recommendations`, and `status_reasons` columns |
+
 ## Examples
 
 ### Basic info

@@ -12,6 +12,15 @@ The AWS EC2 Managed Prefix List Entry is a part of Amazon Elastic Compute Cloud 
 
 The `aws_ec2_managed_prefix_list_entry` table in Steampipe provides you with information about the IP address ranges, or prefixes, that AWS has added to a managed prefix list. This table allows you, as a DevOps engineer, to query prefix-specific details, including the CIDR block, description, and the prefix list ID. You can utilize this table to gather insights on the managed prefix lists, such as the IP address ranges included in a managed prefix list, and more. The schema outlines for you the various attributes of the managed prefix list entry, including the CIDR, description, and prefix list ID.
 
+## Required Permissions
+
+Your principal must have the following permissions to use this table:
+
+| Permission | Description |
+|------------|-------------|
+| `ec2:GetManagedPrefixListEntries` | Required to retrieve managed prefix list entry information. |
+| `ec2:DescribeManagedPrefixLists` | Required to list managed prefix lists for entry retrieval. |
+
 ## Examples
 
 ### Basic Info

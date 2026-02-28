@@ -12,6 +12,15 @@ The AWS Identity Store User is a resource in AWS Identity Store that allows you 
 
 The `aws_identitystore_user` table in Steampipe provides you with information about users within the AWS Identity Store. This table allows you, as a DevOps engineer, to query user-specific details, including user ID, username, and ARN. You can utilize this table to manage and audit user information, such as user identities, associated roles, and permissions. The schema outlines the various attributes of the user for you, including the user ID, ARN, username, and status.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `identitystore:ListUsers` | Required to list users |
+| `identitystore:DescribeUser` | Required to get user details |
+
 ## Examples
 
 ### Get user by ID

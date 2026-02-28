@@ -12,6 +12,14 @@ The AWS EC2 Availability Zones are isolated locations within data center regions
 
 The `aws_availability_zone` table in Steampipe provides you with information about Availability Zones within AWS Elastic Compute Cloud (EC2). This table allows you, as a DevOps engineer, to query zone-specific details, including zone ID, name, region, and state. You can utilize this table to gather insights on zones, such as zones that are currently available, the regions associated with each zone, and more. The schema outlines the various attributes of the Availability Zone for you, including the zone ID, zone name, region name, and zone state.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `ec2:DescribeAvailabilityZones` | Required to list and describe availability zones |
+
 ## Examples
 
 ### Availability zone info

@@ -16,6 +16,14 @@ The `aws_organizations_delegated_administrator` table in Steampipe lets you quer
 - This table supports the optional list key column `delegated_account_id`.
 - The `delegated_account_id` is the ID of the account which has been granted delegated administration, *not* the management account making the API calls.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `organizations:ListDelegatedServicesForAccount` | Required to list delegated services for an account |
+
 ## Examples
 
 ### Basic info

@@ -12,6 +12,15 @@ The AWS Audit Manager Assessment is a feature of AWS Audit Manager that helps yo
 
 The `aws_auditmanager_assessment` table in Steampipe provides you with information about assessments within AWS Audit Manager. This table allows you, as a DevOps engineer, to query assessment-specific details, including the assessment status, scope, roles, and associated metadata. You can utilize this table to gather insights on assessments, such as assessment status, scope of the assessments, roles associated with the assessments, and more. The schema outlines the various attributes of the AWS Audit Manager assessment for you, including the assessment ID, name, description, status, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `auditmanager:ListAssessments` | Required to list assessments |
+| `auditmanager:GetAssessment` | Required to get assessment details |
+
 ## Examples
 
 ### Basic info

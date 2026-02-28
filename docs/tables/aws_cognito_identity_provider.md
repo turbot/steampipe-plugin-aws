@@ -12,6 +12,16 @@ The AWS Cognito Identity Provider is a feature of Amazon Cognito, a service that
 
 The `aws_cognito_identity_provider` table in Steampipe provides you with information about the identity provider configurations within AWS Cognito User Pools. This table allows you, as a DevOps engineer, security analyst, or developer, to query provider-specific details, including the provider name, type, attributes mapping, and associated metadata. You can utilize this table to gather insights on identity providers, such as understanding the identity providers linked to user pools, verifying attribute mappings, and more. The schema outlines the various attributes of the identity provider for you, including the provider name, creation date, user pool id, and attribute mapping.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `cognito-idp:ListUserPools` | Required to list user pools (parent hydrate) |
+| `cognito-idp:ListIdentityProviders` | Required to list identity providers |
+| `cognito-idp:DescribeIdentityProvider` | Required to get identity provider details |
+
 ## Examples
 
 ### Basic info

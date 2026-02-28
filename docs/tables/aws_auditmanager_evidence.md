@@ -12,6 +12,17 @@ The AWS Audit Manager Evidence is a component of AWS Audit Manager service that 
 
 The `aws_auditmanager_evidence` table in Steampipe provides you with information about evidence resources within AWS Audit Manager. This table allows you, as a DevOps engineer, to query evidence-specific details, including the source, collection method, and associated metadata. You can utilize this table to gather insights on evidence, such as the evidence state, evidence by type, and the AWS resource from which the evidence was collected. The schema outlines the various attributes of the evidence for you, including the evidence id, assessment id, control set id, evidence folder id, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `auditmanager:ListAssessments` | Required to list assessments (parent resource) |
+| `auditmanager:GetEvidenceFoldersByAssessment` | Required to list evidence folders for an assessment |
+| `auditmanager:GetEvidenceByEvidenceFolder` | Required to list evidence by evidence folder |
+| `auditmanager:GetEvidence` | Required to get evidence details |
+
 ## Examples
 
 ### Basic info

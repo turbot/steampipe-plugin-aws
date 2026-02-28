@@ -12,6 +12,15 @@ The AWS Lightsail Instance is a part of Amazon Lightsail service, providing a si
 
 The `aws_lightsail_instance` table in Steampipe provides you with information about instances within AWS Lightsail. This table allows you, as a DevOps engineer, to query instance-specific details, including instance state, attached static IP, associated bundles, and associated tags. You can utilize this table to gather insights on instances, such as instances with specific tags, instances in a certain state, instances associated with a specific bundle, and more. The schema outlines the various attributes of the Lightsail instance for you, including the instance name, creation timestamp, location, blueprint ID, and more.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `lightsail:GetInstances` | Required to list Lightsail instances |
+| `lightsail:GetInstance` | Required to get details of a specific instance |
+
 ## Examples
 
 ### Instance count in each availability zone

@@ -12,6 +12,14 @@ AWS Shield Advanced is a DDoS protection service from AWS. The SRT Access settin
 
 The `aws_shield_drt_access` table in Steampipe allows you to query the AWS Shield Advanced SRT Access settings and retrieve information about the IAM role and S3 Buckets the SRT should have access to. For more details about the individual fields, please refer to the [AWS Shield Advanced API documentation](https://docs.aws.amazon.com/waf/latest/DDOSAPIReference/API_DescribeDRTAccess.html).
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `shield:DescribeDRTAccess` | Required to get DRT access settings |
+
 ## Examples
 
 ### Basic info

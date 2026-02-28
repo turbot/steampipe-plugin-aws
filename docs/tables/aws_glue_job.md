@@ -12,6 +12,17 @@ AWS Glue Jobs are a part of AWS Glue service that enables you to organize, clean
 
 The `aws_glue_job` table in Steampipe provides you with information about AWS Glue Jobs. This table enables you, as a DevOps engineer, data engineer, or other technical professional, to query job-specific details, such as job properties, execution status, and associated metadata. You can utilize this table to gather insights on jobs, including job run states, job parameters, allocated capacity, and more. The schema outlines the various attributes of the AWS Glue Job for you, including the job name, role, command, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `glue:GetJobs` | Required to list Glue jobs |
+| `glue:GetJob` | Required to get details of a specific job |
+| `glue:GetJobBookmark` | Required to retrieve job bookmark information for the `job_bookmark` column |
+| `glue:GetTags` | Required to retrieve tags for the job |
+
 ## Examples
 
 ### Basic info

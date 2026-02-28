@@ -12,6 +12,16 @@ The AWS GuardDuty Detector is a part of the Amazon GuardDuty service, a threat d
 
 The `aws_guardduty_detector` table in Steampipe provides you with information about detectors within AWS GuardDuty. This table allows you, as a security analyst, to query detector-specific details, including detector ID, creation timestamp, status, and associated tags. You can utilize this table to gather insights on detectors, such as their current status, when they were created, and more. The schema outlines the various attributes of the GuardDuty detector for you, including the detector ID, creation timestamp, status, service role, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `guardduty:ListDetectors` | Required to list detectors. |
+| `guardduty:GetDetector` | Required to get detector details. |
+| `guardduty:GetAdministratorAccount` | Required to get administrator/master account information. |
+
 ## Examples
 
 ### Basic info

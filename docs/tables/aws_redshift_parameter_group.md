@@ -14,6 +14,15 @@ Description: Amazon Redshift Parameter Groups provide customizable parameters th
 
 The `aws_redshift_parameter_group` table in Steampipe provides you with information about Parameter Groups within Amazon Redshift. This table allows you, as a DevOps engineer, to query Parameter Group-specific details, including parameter names, values, and whether they are modifiable. You can utilize this table to gather insights on Parameter Groups, such as understanding the configuration of Redshift clusters, optimizing database performance, and ensuring adherence to best practices. The schema outlines the various attributes of the Parameter Group for you, including the parameter group name, parameter apply status, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `redshift:DescribeClusterParameterGroups` | Required to list and get parameter group details |
+| `redshift:DescribeClusterParameters` | Required to get parameter details (for `parameters` column) |
+
 ## Examples
 
 ### Basic info

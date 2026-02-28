@@ -12,6 +12,17 @@ AWS Shield Advanced is a DDoS protection service from AWS. For a monthly fee, Sh
 
 The `aws_shield_subscription` table in Steampipe allows you to query the current status of the AWS Shield Advanced Subscription of your account. This table provides you with insights into the start and end date of your subscription, the subscription limits or the status of the proactive engagement of the Shield Response Team. For more information about the individual fields, please refer to the [AWS Shield Advanced API documentation](https://docs.aws.amazon.com/waf/latest/DDOSAPIReference/API_DescribeSubscription.html).
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `shield:DescribeSubscription` | Required to list subscription details |
+| `shield:GetSubscriptionState` | Required to get subscription state |
+
+**Note:** The `shield:GetSubscriptionState` permission is required to retrieve the `subscription_state` column.
+
 ## Examples
 
 ### Basic info

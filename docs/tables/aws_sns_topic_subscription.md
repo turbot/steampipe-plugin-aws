@@ -12,6 +12,16 @@ The AWS Simple Notification Service (SNS) Topic Subscriptions allow you to manag
 
 The `aws_sns_topic_subscription` table in Steampipe provides you with information about topic subscriptions within AWS Simple Notification Service (SNS). This table allows you, as a DevOps engineer, to query subscription-specific details, including subscription ARN, owner, protocol, endpoint, and more. You can utilize this table to gather insights on subscriptions, such as subscription status, delivery policy, raw message delivery, and more. The schema outlines the various attributes of the SNS topic subscription for you, including the subscription ARN, topic ARN, owner, protocol, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `sns:ListSubscriptionsByTopic` | Required to list subscriptions by topic |
+| `sns:GetSubscriptionAttributes` | Required to get subscription attributes |
+| `sns:ListTopics` | Required to list topics (parent hydrate) |
+
 ## Examples
 
 ### List of subscriptions which are not configured with dead letter queue

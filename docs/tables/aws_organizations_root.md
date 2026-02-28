@@ -12,6 +12,14 @@ AWS Organizations uses a hierarchical structure to manage accounts. At the top o
 
 The `aws_organizations_root` table in Steampipe provides you the information about AWS Organizations Root Account.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `organizations:ListRoots` | Required to list organization roots |
+
 ## Examples
 
 ### Basic info

@@ -12,6 +12,17 @@ The AWS Lambda Layer Version is a distribution mechanism for libraries, custom r
 
 The `aws_lambda_layer_version` table in Steampipe provides you with information about each version of a Lambda layer within AWS Lambda. This table allows you, as a DevOps engineer, to query version-specific details, including the layer ARN, description, license info, compatible runtimes, and the date it was created. You can utilize this table to gather insights on layer versions, such as their compatibility with different runtimes, license information, and more. The schema outlines the various attributes of the Lambda layer version for you, including the layer version ARN, layer name, version, description, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `lambda:ListLayers` | Required to list Lambda layers (parent resource) |
+| `lambda:ListLayerVersions` | Required to list versions for each layer |
+| `lambda:GetLayerVersion` | Required to get layer version details (for `layer_arn` and `content` columns) |
+| `lambda:GetLayerVersionPolicy` | Required to retrieve the layer version policy (for `policy`, `policy_std`, and `revision_id` columns) |
+
 ## Examples
 
 ### Basic Info

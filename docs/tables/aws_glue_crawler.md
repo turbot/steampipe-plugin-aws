@@ -12,6 +12,16 @@ The AWS Glue Crawler is a component of AWS Glue service that automates the extra
 
 The `aws_glue_crawler` table in Steampipe provides you with information about crawlers within AWS Glue. This table allows you, as a DevOps engineer, to query crawler-specific details, including its role, database, schedule, classifiers, and associated metadata. You can utilize this table to gather insights on crawlers, such as their run frequency, the database they are associated with, their status, and more. The schema outlines the various attributes of the Glue crawler for you, including the crawler ARN, creation date, last run time, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `glue:GetCrawlers` | Required to list Glue crawlers |
+| `glue:GetCrawler` | Required to get details of a specific crawler |
+| `glue:GetTags` | Required to retrieve tags for the crawler |
+
 ## Examples
 
 ### Basic info

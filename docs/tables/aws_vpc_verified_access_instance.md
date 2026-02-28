@@ -12,6 +12,14 @@ The AWS VPC Verified Access Instances are a part of Amazon's Virtual Private Clo
 
 The `aws_vpc_verified_access_instance` table in Steampipe provides you with information about the Amazon VPC verified access instances. This table allows you, as a network administrator or security analyst, to query instance-specific details, including instance ID, instance state, instance type, and associated tags. You can utilize this table to gather insights on instances, such as instance state, type, and associated tags. The schema outlines the various attributes of the VPC verified access instance for you, including the instance ID, instance state, instance type, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `ec2:DescribeVerifiedAccessInstances` | Required to list verified access instance details |
+
 ## Examples
 
 ### Basic info

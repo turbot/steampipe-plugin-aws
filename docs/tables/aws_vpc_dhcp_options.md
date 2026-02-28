@@ -12,6 +12,14 @@ The AWS VPC DHCP Options is a feature within Amazon's Virtual Private Cloud (VPC
 
 The `aws_vpc_dhcp_options` table in Steampipe provides you with information about DHCP Options associated with Virtual Private Cloud (VPC) within Amazon Web Services (AWS). This table allows you, as a network administrator or DevOps engineer, to query DHCP Options specific details, including domain name servers, domain name, NTP servers, and associated metadata. You can utilize this table to gather insights on DHCP Options, such as the configured domain name servers, NTP servers, and NetBIOS name servers. The schema outlines the various attributes of the DHCP Options for you, including the DHCP Options ID, domain name, domain name servers, NTP servers, NetBIOS name servers, NetBIOS node type, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `ec2:DescribeDhcpOptions` | Required to list and get DHCP options details |
+
 ## Examples
 
 ### DHCP options configuration parameters info

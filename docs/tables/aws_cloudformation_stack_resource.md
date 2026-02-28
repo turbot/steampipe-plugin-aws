@@ -12,6 +12,15 @@ The AWS CloudFormation Stack Resources are the AWS resources that are part of a 
 
 The `aws_cloudformation_stack_resource` table in Steampipe provides you with information about Stack Resources within AWS CloudFormation. This table allows you, as a DevOps engineer, to query resource-specific details, including the current status, resource type, and associated metadata. You can utilize this table to gather insights on resources, such as resource status, the type of resources used in the stack, and more. The schema outlines the various attributes of the Stack Resource for you, including the stack name, resource status, logical resource id, and physical resource id.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `cloudformation:ListStackResources` | Required to list stack resources. |
+| `cloudformation:DescribeStackResource` | Required to get details of a specific stack resource. |
+
 ## Examples
 
 ### Basic info

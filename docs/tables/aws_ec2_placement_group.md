@@ -12,6 +12,14 @@ The AWS EC2 Placement Group is a logical grouping of instances within a single A
 
 The `aws_ec2_placement_group` table in Steampipe provides you with information about Placement Groups within AWS EC2. This table allows you, as a DevOps engineer, cloud architect, or system administrator, to query placement group-specific details, including strategy, partition count, spread level, state, and associated tags. You can utilize this table to gather insights on placement groups, such as their configuration, current state, and more. The schema outlines the various attributes of the EC2 placement group for you, including the group name, strategy, and tags.
 
+## Required Permissions
+
+Your principal must have the following permissions to use this table:
+
+| Permission | Description |
+|------------|-------------|
+| `ec2:DescribePlacementGroups` | Required to retrieve placement group information. |
+
 ## Examples
 
 ### List all placement groups and their strategies

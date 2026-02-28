@@ -12,6 +12,14 @@ The AWS RDS DB Event Subscription is a feature of Amazon Relational Database Ser
 
 The `aws_rds_db_event_subscription` table in Steampipe provides you with information about event subscriptions within Amazon RDS. This table allows you, as a DevOps engineer, to query event subscription-specific details, including the associated RDS DB instances, the types of events the subscription applies to, and the notification methods for those events. You can utilize this table to monitor the status of your RDS DB instances, manage event notifications, and ensure all event subscriptions are properly configured. The schema outlines the various attributes of the event subscription, including the subscription name, ARN, status, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `rds:DescribeEventSubscriptions` | Required to list and get event subscription details |
+
 ## Examples
 
 ### Basic info

@@ -12,6 +12,15 @@ The AWS Cloud Control API Resource is a service that allows you to manage your c
 
 The `aws_cloudcontrol_resource` table in Steampipe provides you with information about resources within the AWS Cloud Control API. This table allows you, as a DevOps engineer, to query resource-specific details, including resource properties, types, and statuses. You can utilize this table to gather insights on resources, such as the resource's specific properties, the type of the resource, and the current status of the resource. The schema outlines for you the various attributes of the AWS Cloud Control API resource, including the resource name, resource type, role ARN, and associated metadata.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `cloudformation:ListResources` | Required to list resources |
+| `cloudformation:GetResource` | Required to get resource details |
+
 **Important Notes**
 - In order to list resources, the `type_name` column must be specified. Some resources also require additional information, which is specified in the `resource_model` column. For more information on these resource types, please see [Resources that require additional information](https://docs.aws.amazon.com/cloudcontrolapi/latest/userguide/resource-operations-list.html#resource-operations-list-containers).
 

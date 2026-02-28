@@ -12,6 +12,14 @@ The AWS Identity and Access Management (IAM) Account Password Policy is a resour
 
 The `aws_iam_account_password_policy` table in Steampipe provides you with information about IAM account password policies within AWS Identity and Access Management (IAM). This table enables you, as a DevOps engineer, to query password policy-specific details, including minimum password length, password expiration period, and whether it requires at least one number or symbol. You can utilize this table to gather insights on password policies, such as password complexity requirements, password rotation policies, and more. The schema outlines the various attributes of the IAM account password policy, including the option for users to change password, hard expiry, and password reuse prevention.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `iam:GetAccountPasswordPolicy` | Required to retrieve the account password policy |
+
 **Important Notes**
 - For more information about using a password policy, you can visit [Managing an IAM Password Policy](https://docs.aws.amazon.com/IAM/latest/UserGuide/Using_ManagingPasswordPolicies.html).
 

@@ -12,6 +12,17 @@ The AWS Lambda Function is a compute service that lets you run code without prov
 
 The `aws_lambda_function` table in Steampipe provides you with information about AWS Lambda Functions. This table allows you, as a DevOps engineer, to query function-specific details, including the function's runtime, code size, timeout, and associated tags. You can utilize this table to gather insights on functions, such as the function's configuration, handler, last modified date, and more. The schema outlines the various attributes of the AWS Lambda Function for you, including the function name, ARN, description, and associated environment variables.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `lambda:ListFunctions` | Required to list Lambda functions |
+| `lambda:GetFunction` | Required to get function details including code, tags, and concurrency settings |
+| `lambda:GetPolicy` | Required to retrieve the function resource policy (for `policy` and `policy_std` columns) |
+| `lambda:GetFunctionUrlConfig` | Required to retrieve function URL configuration (for `url_config` column) |
+
 ## Examples
 
 ### Basic Info

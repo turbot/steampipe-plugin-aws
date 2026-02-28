@@ -12,6 +12,15 @@ The Amazon RDS DB Proxy is a fully managed, highly available database proxy for 
 
 The `aws_rds_db_proxy` table in Steampipe provides you with information about DB Proxies within Amazon Relational Database Service (RDS). This table enables you, as a DevOps engineer, DBA, or other technical professional, to query proxy-specific details, including the proxy's ARN, name, engine family, role ARN, status, and more. You can utilize this table to gather insights on DB Proxies, such as their current status, the engine family they are associated with, the IAM role they are utilizing, and more. The schema outlines the various attributes of the DB Proxy for you, including the proxy ARN, creation date, updated date, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `rds:DescribeDBProxies` | Required to list and get DB proxy details |
+| `rds:ListTagsForResource` | Required to retrieve tags for the `tags` column |
+
 ## Examples
 
 ### List of DB proxies and corresponding engine families

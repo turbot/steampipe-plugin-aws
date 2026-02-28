@@ -14,6 +14,15 @@ The `aws_elasticache_redis_metric_engine_cpu_utilization_daily` table in Steampi
 
 The `aws_elasticache_redis_metric_engine_cpu_utilization_daily` table provides you with metric statistics at 24-hour intervals for the last year.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `elasticache:DescribeCacheClusters` | Required to list ElastiCache clusters (parent hydrate) |
+| `cloudwatch:GetMetricStatistics` | Required to retrieve engine CPU utilization metric statistics |
+
 ## Examples
 
 ### Basic info

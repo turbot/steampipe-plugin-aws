@@ -12,6 +12,15 @@ The AWS ECS Task Definition is a blueprint that describes how a Docker container
 
 The `aws_ecs_task_definition` table in Steampipe provides you with information about the task definitions within AWS Elastic Container Service (ECS). This table allows you, as a DevOps engineer, to query task-specific details, including the task definition ARN, family, network mode, revision, and status. You can utilize this table to gather insights on task definitions, such as their configuration, associated IAM roles, container definitions, volumes, and more. The schema outlines the various attributes of the ECS task definition for you, including the task definition ARN, family, requires compatibility, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `ecs:ListTaskDefinitions` | Required to list task definitions |
+| `ecs:DescribeTaskDefinition` | Required to get task definition details |
+
 ## Examples
 
 ### Basic info

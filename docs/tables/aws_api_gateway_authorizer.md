@@ -12,6 +12,14 @@ The AWS API Gateway Authorizer is a crucial component in Amazon API Gateway that
 
 The `aws_api_gateway_api_authorizer` table in Steampipe provides you with information about API Gateway Authorizers within AWS API Gateway. This table allows you, as a DevOps engineer, to query authorizer-specific details, including the authorizer's ID, name, type, provider ARNs, and other configuration details. You can utilize this table to gather insights on authorizers, such as the authorizer's type, the ARN of the authorizer's provider, and more. The schema outlines the various attributes of the API Gateway Authorizer for you, including the authorizer's ID, name, type, provider ARNs, and associated metadata.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `apigateway:GET` | Required to list and get authorizers |
+
 ## Examples
 
 ### API gateway API authorizer basic info

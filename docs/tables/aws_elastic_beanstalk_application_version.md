@@ -12,6 +12,15 @@ The AWS Elastic Beanstalk Application Version is a component of AWS's platform-a
 
 The `aws_elastic_beanstalk_application_version` table in Steampipe provides you with information about application versions within AWS Elastic Beanstalk. This table enables you, as a DevOps engineer, to query application version-specific details, including application version ARN, description, date created, date updated, and associated metadata. You can utilize this table to gather insights on application versions, such as application version configurations, associated environments, and more. The schema outlines for you the various attributes of the Elastic Beanstalk application version, including the resource lifecycles, configurations, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `elasticbeanstalk:DescribeApplicationVersions` | Required to list and get details of Elastic Beanstalk application versions. |
+| `elasticbeanstalk:ListTagsForResource` | Required to retrieve tags for application versions. |
+
 ## Examples
 
 ### Basic info

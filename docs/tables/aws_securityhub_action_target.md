@@ -12,6 +12,14 @@ AWS Security Hub Action Targets are specific response actions that can be taken 
 
 The `aws_securityhub_action_target` table in Steampipe provides you with information about Action Targets within AWS Security Hub. This table allows you, as a DevOps engineer, to query Action Target-specific details, including its ARN, name, and description. You can utilize this table to gather insights on Action Targets, such as understanding the purpose of each Action Target, verifying their names and descriptions, and more. The schema outlines the various attributes of the Action Target for you, including the action target ARN, name, and description.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `securityhub:DescribeActionTargets` | Required to list and get action target details |
+
 ## Examples
 
 ### Basic info

@@ -12,6 +12,18 @@ The Amazon Simple Email Service (SES) Domain Identity is an entity that you use 
 
 The `aws_ses_domain_identity` table in Steampipe provides you with information about domain identities within Amazon Simple Email Service (SES). This table allows you, as a DevOps engineer, to query domain-specific details, including verification status, DKIM attributes, and associated metadata. You can utilize this table to gather insights on domain identities, such as verification status, DKIM tokens, and more. The schema outlines the various attributes of the SES domain identity for you, including the identity name, verification status, DKIM enabled status, and DKIM tokens.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `ses:ListIdentities` | Required to list domain identities |
+| `ses:GetIdentityDkimAttributes` | Required to retrieve DKIM attributes |
+| `ses:GetIdentityMailFromDomainAttributes` | Required to retrieve mail from domain attributes |
+| `ses:GetIdentityVerificationAttributes` | Required to retrieve verification attributes |
+| `ses:GetIdentityNotificationAttributes` | Required to retrieve notification attributes |
+
 ## Examples
 
 ### Basic info

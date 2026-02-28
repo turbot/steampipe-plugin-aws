@@ -12,6 +12,14 @@ The AWS Pricing Product is a service that provides pricing information for AWS s
 
 The `aws_pricing_product` table in Steampipe provides you with information about pricing products within AWS Pricing. This table allows you, whether you're a financial analyst, cloud cost manager, or DevOps engineer, to query product-specific details, including product descriptions, pricing details, and associated attributes. You can utilize this table to gather insights on products, such as the cost of each AWS service, the pricing model, and the location. The schema outlines the various attributes of the pricing product for you, including the product description, pricing details, and associated attributes.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `pricing:GetProducts` | Required to get pricing product information |
+
 ## Examples
 
 ### List pricing offers for on-demand shared EC2 c5.2xlarge without pre-installed software, with Linux OS

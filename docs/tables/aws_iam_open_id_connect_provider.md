@@ -12,6 +12,15 @@ The AWS IAM OpenID Connect Provider is a service that allows you to integrate we
 
 The `aws_iam_open_id_connect_provider` table in Steampipe provides you with information about OpenID Connect (OIDC) identity providers within AWS Identity and Access Management (IAM). This table allows you, as a DevOps engineer, to query provider-specific details, including ARNs, URLs, client IDs, thumbprint lists, and creation times. You can utilize this table to gather insights on OIDC identity providers, such as their associated client IDs, verification of thumbprint lists, and more. The schema outlines the various attributes of the OIDC identity provider, including the provider ARN, creation date, client ID list, thumbprint list, and URL for you.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `iam:ListOpenIDConnectProviders` | Required to list OpenID Connect providers |
+| `iam:GetOpenIDConnectProvider` | Required to get OpenID Connect provider details |
+
 ## Examples
 
 ### Basic info

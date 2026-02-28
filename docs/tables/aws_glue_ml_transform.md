@@ -12,6 +12,16 @@ AWS Glue ML Transforms are machine learning transforms that use machine learning
 
 The `aws_glue_ml_transform` table in Steampipe provides you with information about ML Transforms within AWS Glue. This table allows you, as a DevOps engineer, data engineer, or ML engineer, to query transform details including configuration parameters, status, performance metrics, and resource allocation. You can utilize this table to gather insights on ML transforms, such as transform status, worker configuration, input/output schemas, evaluation metrics, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `glue:ListMLTransforms` | Required to list ML transforms |
+| `glue:GetMLTransform` | Required to get details of a specific ML transform |
+| `glue:GetTags` | Required to retrieve tags for the ML transform |
+
 **Important notes:**
 - This table supports optional quals. Queries with optional quals are optimised to use AWS Glue filters. Optional quals are supported for the following columns:
   - `name`

@@ -14,6 +14,15 @@ The `aws_organizations_organizational_unit` table in Steampipe provides you with
 
 By default, querying the table without any specific filters will return all OUs from the root of the hierarchy. Users have the option to query the table using a specific `parent_id`. This allows for the retrieval of all direct child OUs under the specified parent.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `organizations:ListOrganizationalUnitsForParent` | Required to list organizational units |
+| `organizations:DescribeOrganizationalUnit` | Required to get organizational unit details for the `name`, `arn`, `title`, and `akas` columns |
+
 ## Examples
 
 ### Basic info

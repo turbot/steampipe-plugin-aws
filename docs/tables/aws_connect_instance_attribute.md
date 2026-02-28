@@ -12,6 +12,16 @@ The AWS Connect Instance Attribute is a component of Amazon Connect that represe
 
 The `aws_connect_instance_attribute` table in Steampipe provides you with information about individual attributes within AWS Connect instances. This table allows you, as a DevOps engineer, to query attribute-specific details, including attribute types, values, and associated instance information. You can utilize this table to gather insights on Connect instance configurations, such as which features are enabled, attribute values, and more. The schema outlines the various attributes of the Connect instance attribute for you, including the instance ID, attribute type, and value.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `connect:ListInstances` | Required to list Connect instances (parent hydrate). |
+| `connect:ListInstanceAttributes` | Required to list attributes for a Connect instance. |
+| `connect:DescribeInstanceAttribute` | Required to get details of a specific instance attribute. |
+
 ## Examples
 
 ### Basic info

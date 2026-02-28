@@ -12,6 +12,14 @@ The AWS VPC Peering Connection is a networking connection between two Virtual Pr
 
 The `aws_vpc_peering_connection` table in Steampipe provides you with information about VPC Peering Connections within Amazon Virtual Private Cloud (VPC). This table allows you, as a DevOps engineer, security team member, or system administrator, to query peering connection-specific details, including peering statuses, VPC IDs, region, and associated metadata. You can utilize this table to gather insights on peering connections, such as connection status, verification of peering options, and more. The schema outlines the various attributes of the VPC peering connection for you, including the peering connection ID, creation date, requester VPC info, accepter VPC info, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `ec2:DescribeVpcPeeringConnections` | Required to list VPC peering connection details |
+
 ## Examples
 
 ### Basic Info

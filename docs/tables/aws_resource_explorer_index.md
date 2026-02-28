@@ -12,6 +12,14 @@ The AWS Resource Explorer Index is a tool within the AWS Management Console that
 
 The `aws_resource_explorer_index` table in Steampipe provides you with information about all resources across different AWS services. This table allows you, as a DevOps engineer, to query resource-specific details, including the resource type, ARN, region, and associated metadata. You can utilize this table to gather insights on resources, such as resource distribution across services, regions, and resource types. The schema outlines the various attributes of the resource, including the resource id, service, type, region, and account for you.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `resource-explorer-2:ListIndexes` | Required to list indexes |
+
 ## Examples
 
 ### Basic info
