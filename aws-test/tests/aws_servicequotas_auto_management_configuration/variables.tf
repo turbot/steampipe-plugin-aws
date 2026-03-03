@@ -58,23 +58,23 @@ data "local_file" "auto_management_configuration" {
 }
 
 output "opt_in_status" {
-  value = jsondecode(data.local_file.auto_management_configuration.content).AutoManagementConfiguration.OptInStatus
+  value = jsondecode(data.local_file.auto_management_configuration.content).OptInStatus
 }
 
 output "opt_in_type" {
-  value = jsondecode(data.local_file.auto_management_configuration.content).AutoManagementConfiguration.OptInType
+  value = jsondecode(data.local_file.auto_management_configuration.content).OptInType
 }
 
 output "opt_in_level" {
-  value = jsondecode(data.local_file.auto_management_configuration.content).AutoManagementConfiguration.OptInLevel
+  value = jsondecode(data.local_file.auto_management_configuration.content).OptInLevel
 }
 
 output "notification_arn" {
-  value = jsondecode(data.local_file.auto_management_configuration.content).AutoManagementConfiguration.NotificationArn
+  value = jsondecode(data.local_file.auto_management_configuration.content).NotificationArn
 }
 
 output "exclusion_list" {
-  value = jsondecode(data.local_file.auto_management_configuration.content).AutoManagementConfiguration.ExclusionList
+  value = jsondecode(data.local_file.auto_management_configuration.content).ExclusionList
 }
 
 output "resource_aka" {
