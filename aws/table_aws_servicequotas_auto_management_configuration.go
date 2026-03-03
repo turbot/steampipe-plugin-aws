@@ -33,7 +33,7 @@ func tableAwsServiceQuotasAutoManagementConfiguration(_ context.Context) *plugin
 			},
 			{
 				Name:        "opt_in_type",
-				Description: "Information on the opt-in type for Automatic Management. There are two modes: Notify only and Notify and Auto-Adjust.",
+				Description: "Information on the opt-in type for Automatic Management. There are two modes: `NotifyOnly` (notify only) and `NotifyAndAdjust` (notify and auto-adjust).",
 				Type:        proto.ColumnType_STRING,
 			},
 			{

@@ -1,0 +1,9 @@
+[
+	{
+		"opt_in_status": "{{ output.opt_in_status.value }}",
+		"opt_in_type": "{{ output.opt_in_type.value }}",
+		"opt_in_level": "{{ output.opt_in_level.value }}",
+		"notification_arn": "{{ output.notification_arn.value }}",
+		"exclusion_list": {{ output.exclusion_list.value }}
+	}
+]
