@@ -1,3 +1,20 @@
+## v1.30.0 [2026-03-06]
+
+_What's new?_
+
+- New tables added
+  - [aws_ec2_fleet](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_ec2_fleet) ([#2689](https://github.com/turbot/steampipe-plugin-aws/pull/2689)) (Thanks [@pdecat](https://github.com/pdecat) for the contribution!)
+
+_Enhancements_
+
+- Added column `actionability` to `aws_health_event` table. ([#2697](https://github.com/turbot/steampipe-plugin-aws/pull/2697)) (Thanks [@Recurzion](https://github.com/Recurzion) for the contribution!)
+- Added column `monitoring_subscription` to `aws_cloudfront_distribution` table. ([#2695](https://github.com/turbot/steampipe-plugin-aws/pull/2695)) (Thanks [@dj00808](https://github.com/dj00808) for the contribution!)
+- Added columns `name`, `created_date`, `owner_account_id`, and `status` to `aws_ssoadmin_instance` table. ([#2692](https://github.com/turbot/steampipe-plugin-aws/pull/2692))
+
+_Dependencies_
+
+- Updated `urllib3`, `lodash`, and `diff` to fix high severity vulnerabilities. ([#2698](https://github.com/turbot/steampipe-plugin-aws/pull/2698)) (Thanks [@dj00808](https://github.com/dj00808) for the contribution!)
+
 ## v1.29.0 [2025-12-05]
 
 _Enhancements_
