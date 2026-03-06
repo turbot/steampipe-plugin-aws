@@ -35,10 +35,6 @@ func tableAwsRDSGlobalCluster(_ context.Context) *plugin.Table {
 				Func: getRDSGlobalClusterTags,
 				Tags: map[string]string{"service": "rds", "action": "ListTagsForResource"},
 			},
-			{
-				Func: getRDSGlobalClusterEndpoint,
-				Tags: map[string]string{"service": "rds", "action": "DescribeDBClusters"},
-			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(AWS_RDS_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -61,8 +57,7 @@ func tableAwsRDSGlobalCluster(_ context.Context) *plugin.Table {
 				Name:        "endpoint",
 				Description: "The writer endpoint for the primary DB cluster in this global database cluster.",
 				Type:        proto.ColumnType_STRING,
-				Hydrate:     getRDSGlobalClusterEndpoint,
-				Transform:   transform.FromValue(),
+				Transform:   transform.FromField("Endpoint"),
 			},
 			{
 				Name:        "global_cluster_resource_id",
@@ -234,37 +229,6 @@ func getRDSGlobalClusterTags(ctx context.Context, d *plugin.QueryData, h *plugin
 	}
 
 	return op.TagList, nil
-}
-
-func getRDSGlobalClusterEndpoint(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	svc, err := RDSClient(ctx, d)
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_rds_db_global_cluster.getRDSGlobalClusterEndpoint", "connection_error", err)
-		return nil, err
-	}
-
-	globalCluster := h.Item.(types.GlobalCluster)
-	for _, member := range globalCluster.GlobalClusterMembers {
-		if member.IsWriter != nil && *member.IsWriter && member.DBClusterArn != nil {
-			input := &rds.DescribeDBClustersInput{
-				DBClusterIdentifier: member.DBClusterArn,
-			}
-
-			op, err := svc.DescribeDBClusters(ctx, input)
-			if err != nil {
-				plugin.Logger(ctx).Error("aws_rds_db_global_cluster.getRDSGlobalClusterEndpoint", "api_error", err)
-				return nil, err
-			}
-
-			if len(op.DBClusters) > 0 && op.DBClusters[0].Endpoint != nil {
-				return *op.DBClusters[0].Endpoint, nil
-			}
-
-			return nil, nil
-		}
-	}
-
-	return nil, nil
 }
 
 //// TRANSFORM FUNCTION
