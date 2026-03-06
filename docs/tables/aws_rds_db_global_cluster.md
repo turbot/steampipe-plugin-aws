@@ -45,7 +45,7 @@ select
   global_cluster_identifier,
   member ->> 'DBClusterArn' as db_cluster_arn,
   member ->> 'IsWriter' as is_writer,
-  member ->> 'Readers' as readers
+  member -> 'Readers' as readers
 from
   aws_rds_db_global_cluster
   cross join jsonb_array_elements(global_cluster_members) as member;
