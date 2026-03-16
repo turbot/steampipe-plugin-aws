@@ -41,7 +41,9 @@ jobs:
           build-args: |
             PY_PAT=${{ secrets.PY_PAT }}
           push: true
-          tags: ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.us-west-2.amazonaws.com/steampipe:latest
+          tags: |
+            ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.us-west-2.amazonaws.com/steampipe:latest
+            ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.us-west-2.amazonaws.com/steampipe:${{ env.GIT_COMMIT_SHA }}
 
       - name: Restart the extractor-steampipe deployment
         run: kubectl rollout restart deployment extractor-steampipe -n catio-data-extraction
