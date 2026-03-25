@@ -11,6 +11,9 @@ on:
         description: "The version to release (must be prefixed with 'v')"
         required: true
 
+permissions:
+  contents: write
+
 jobs:
   anywhere_publish_workflow:
     uses: turbot/steampipe-workflows/.github/workflows/steampipe-anywhere-aws.yml@main

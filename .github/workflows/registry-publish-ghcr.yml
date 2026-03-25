@@ -5,6 +5,10 @@ on:
     tags:
       - 'v*'
 
+permissions:
+  contents: read
+  packages: write
+
 jobs:
   registry_publish_workflow_ghcr:
     uses: turbot/steampipe-workflows/.github/workflows/registry-publish-ghcr-large-runners.yml@main
