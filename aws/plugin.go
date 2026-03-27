@@ -214,8 +214,8 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			{
 				// All other control plane APIs (including ListFunctions) share a limit of 15 requests per second
 				Name:       "aws_lambda_list_functions_and_get_function_url_config",
-				FillRate:   10,
-				BucketSize: 10,
+				FillRate:   15,
+				BucketSize: 15,
 				Scope:      []string{"connection", "region", "service", "action"},
 				Where:      "service = 'lambda' and action in ('ListFunctions', 'GetFunctionUrlConfig')",
 			},
@@ -276,7 +276,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_bedrock_guardrail":                                        tableAwsBedrockGuardrail(ctx),
 			"aws_budgets_budget":                                           tableAwsBudgetsBudget(ctx),
 			"aws_ce_anomaly_monitor":                                       tableAwsCEAnomalyMonitor(ctx),
-			"aws_ce_cost_allocation_tags":                                   tableAwsCECostAllocationTags(ctx),
+			"aws_ce_cost_allocation_tags":                                  tableAwsCECostAllocationTags(ctx),
 			"aws_cloudcontrol_resource":                                    tableAwsCloudControlResource(ctx),
 			"aws_cloudformation_stack_resource":                            tableAwsCloudFormationStackResource(ctx),
 			"aws_cloudformation_stack_set":                                 tableAwsCloudFormationStackSet(ctx),

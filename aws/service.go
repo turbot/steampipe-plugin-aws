@@ -230,24 +230,9 @@ func APIGatewayClient(ctx context.Context, d *plugin.QueryData) (*apigateway.Cli
 }
 
 func APIGatewayV2Client(ctx context.Context, d *plugin.QueryData) (*apigatewayv2.Client, error) {
-	// API Gateway V2 has the same endpoint information in the SDK as API Gateway, but
-	// is actually available in less regions. We have to manually remove them
-	// here.
-	// Source - https://www.aws-services.info/apigatewayv2.html
-	excludeRegions := []string{
-		"ap-south-2",     // Hyderabad
-		"ap-southeast-3", // Jakarta
-		"ap-southeast-4", // Melbourne
-		"eu-central-2",   // Zurich
-		"eu-south-2",     // Spain
-		"il-central-1",   // Israel (Tel Aviv)
-	}
-	cfg, err := getClientForQuerySupportedRegionWithExclusions(ctx, d, AWS_APIGATEWAY_SERVICE_ID, excludeRegions)
+	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
 		return nil, err
-	}
-	if cfg == nil {
-		return nil, nil
 	}
 	return apigatewayv2.NewFromConfig(*cfg), nil
 }
@@ -1274,13 +1259,12 @@ func RDSDBRecommendationClient(ctx context.Context, d *plugin.QueryData) (*rds.C
 	// RDS DB Recommendation has the same endpoint information in the SDK as RDS, but
 	// is actually available in less regions. We have to manually remove them
 	// here.
-	// Source - https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UserRecommendationsView.html
+	// Source - https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/monitoring-recommendations.html
 	excludeRegions := []string{
 		"af-south-1",     // Africa (Cape Town)
 		"ap-east-1",      // Asia Pacific (Hong Kong)
 		"ap-northeast-3", // Asia Pacific (Osaka)
 		"ap-southeast-3", // Asia Pacific (Jakarta)
-		"eu-north-1",     // Europe (Stockholm)
 		"eu-south-1",     // Europe (Milan)
 		"me-central-1",   // Middle East (UAE)
 		"me-south-1",     // Middle East (Bahrain)
@@ -1302,26 +1286,9 @@ func RDSDBRecommendationClient(ctx context.Context, d *plugin.QueryData) (*rds.C
 }
 
 func RDSDBProxyClient(ctx context.Context, d *plugin.QueryData) (*rds.Client, error) {
-	// RDS DB Proxy has the same endpoint information in the SDK as RDS, but
-	// is actually available in less regions. We have to manually remove them
-	// here.
-	// Source - https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.RDS_Fea_Regions_DB-eng.Feature.RDSProxy.html
-	excludeRegions := []string{
-		"ap-south-2",     // Hyderabad
-		"ap-southeast-3", // Jakarta
-		"ap-southeast-4", // Melbourne
-		"eu-central-2",   // Zurich
-		"eu-south-2",     // Spain
-		"me-central-1",   // UAE
-	}
-	excludeRegions = append(excludeRegions, getRegionByPartition("aws-cn")...)
-	excludeRegions = append(excludeRegions, getRegionByPartition("aws-us-gov")...)
-	cfg, err := getClientForQuerySupportedRegionWithExclusions(ctx, d, AWS_RDS_SERVICE_ID, excludeRegions)
+	cfg, err := getClientForQueryRegion(ctx, d)
 	if err != nil {
 		return nil, err
-	}
-	if cfg == nil {
-		return nil, nil
 	}
 	return rds.NewFromConfig(*cfg), nil
 }
