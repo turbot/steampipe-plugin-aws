@@ -30,8 +30,6 @@ const AWS_API_ECR_SERVICE_ID = "api.ecr"
 
 const AWS_API_ECR_PUBLIC_SERVICE_ID = "api.ecr-public"
 
-const AWS_API_FLEETHUB_IOT_SERVICE_ID = "api.fleethub.iot"
-
 const AWS_API_IOTDEVICEADVISOR_SERVICE_ID = "api.iotdeviceadvisor"
 
 const AWS_API_IOTWIRELESS_SERVICE_ID = "api.iotwireless"
@@ -65,8 +63,6 @@ const AWS_APPRUNNER_SERVICE_ID = "apprunner"
 const AWS_APPSTREAM2_SERVICE_ID = "appstream2"
 
 const AWS_APPSYNC_SERVICE_ID = "appsync"
-
-const AWS_APPTEST_SERVICE_ID = "apptest"
 
 const AWS_APS_SERVICE_ID = "aps"
 
@@ -135,6 +131,8 @@ const AWS_CODECATALYST_SERVICE_ID = "codecatalyst"
 const AWS_CODECOMMIT_SERVICE_ID = "codecommit"
 
 const AWS_CODEDEPLOY_SERVICE_ID = "codedeploy"
+
+const AWS_CODEGURU_PROFILER_SERVICE_ID = "codeguru-profiler"
 
 const AWS_CODEGURU_REVIEWER_SERVICE_ID = "codeguru-reviewer"
 
@@ -232,8 +230,6 @@ const AWS_ELASTICLOADBALANCING_SERVICE_ID = "elasticloadbalancing"
 
 const AWS_ELASTICMAPREDUCE_SERVICE_ID = "elasticmapreduce"
 
-const AWS_ELASTICTRANSCODER_SERVICE_ID = "elastictranscoder"
-
 const AWS_EMAIL_SERVICE_ID = "email"
 
 const AWS_EMR_CONTAINERS_SERVICE_ID = "emr-containers"
@@ -245,8 +241,6 @@ const AWS_ENTITLEMENT_MARKETPLACE_SERVICE_ID = "entitlement.marketplace"
 const AWS_ES_SERVICE_ID = "es"
 
 const AWS_EVENTS_SERVICE_ID = "events"
-
-const AWS_EVIDENTLY_SERVICE_ID = "evidently"
 
 const AWS_FINSPACE_SERVICE_ID = "finspace"
 
@@ -306,8 +300,6 @@ const AWS_INTERNETMONITOR_SERVICE_ID = "internetmonitor"
 
 const AWS_IOT_SERVICE_ID = "iot"
 
-const AWS_IOTANALYTICS_SERVICE_ID = "iotanalytics"
-
 const AWS_IOTEVENTS_SERVICE_ID = "iotevents"
 
 const AWS_IOTEVENTSDATA_SERVICE_ID = "ioteventsdata"
@@ -361,10 +353,6 @@ const AWS_LIGHTSAIL_SERVICE_ID = "lightsail"
 const AWS_LOGS_SERVICE_ID = "logs"
 
 const AWS_LOOKOUTEQUIPMENT_SERVICE_ID = "lookoutequipment"
-
-const AWS_LOOKOUTMETRICS_SERVICE_ID = "lookoutmetrics"
-
-const AWS_LOOKOUTVISION_SERVICE_ID = "lookoutvision"
 
 const AWS_M2_SERVICE_ID = "m2"
 
@@ -434,15 +422,13 @@ const AWS_NOTIFICATIONS_SERVICE_ID = "notifications"
 
 const AWS_NOTIFICATIONS_CONTACTS_SERVICE_ID = "notifications-contacts"
 
+const AWS_NOVA_ACT_SERVICE_ID = "nova-act"
+
 const AWS_OAM_SERVICE_ID = "oam"
 
 const AWS_OIDC_SERVICE_ID = "oidc"
 
 const AWS_OMICS_SERVICE_ID = "omics"
-
-const AWS_OPSWORKS_SERVICE_ID = "opsworks"
-
-const AWS_OPSWORKS_CM_SERVICE_ID = "opsworks-cm"
 
 const AWS_ORGANIZATIONS_SERVICE_ID = "organizations"
 
@@ -451,6 +437,8 @@ const AWS_OSIS_SERVICE_ID = "osis"
 const AWS_OUTPOSTS_SERVICE_ID = "outposts"
 
 const AWS_PARTICIPANT_CONNECT_SERVICE_ID = "participant.connect"
+
+const AWS_PARTNERCENTRAL_CHANNEL_SERVICE_ID = "partnercentral-channel"
 
 const AWS_PERSONALIZE_SERVICE_ID = "personalize"
 
@@ -464,15 +452,11 @@ const AWS_POLLY_SERVICE_ID = "polly"
 
 const AWS_PORTAL_SSO_SERVICE_ID = "portal.sso"
 
-const AWS_PRIVATE_NETWORKS_SERVICE_ID = "private-networks"
-
 const AWS_PROFILE_SERVICE_ID = "profile"
 
 const AWS_PROTON_SERVICE_ID = "proton"
 
 const AWS_QBUSINESS_SERVICE_ID = "qbusiness"
-
-const AWS_QLDB_SERVICE_ID = "qldb"
 
 const AWS_QUERY_TIMESTREAM_SERVICE_ID = "query.timestream"
 
@@ -497,8 +481,6 @@ const AWS_RESILIENCEHUB_SERVICE_ID = "resiliencehub"
 const AWS_RESOURCE_EXPLORER_2_SERVICE_ID = "resource-explorer-2"
 
 const AWS_RESOURCE_GROUPS_SERVICE_ID = "resource-groups"
-
-const AWS_ROBOMAKER_SERVICE_ID = "robomaker"
 
 const AWS_ROLESANYWHERE_SERVICE_ID = "rolesanywhere"
 
@@ -552,15 +534,11 @@ const AWS_SERVICEDISCOVERY_SERVICE_ID = "servicediscovery"
 
 const AWS_SERVICEQUOTAS_SERVICE_ID = "servicequotas"
 
-const AWS_SESSION_QLDB_SERVICE_ID = "session.qldb"
-
 const AWS_SHIELD_SERVICE_ID = "shield"
 
 const AWS_SIGNER_SERVICE_ID = "signer"
 
 const AWS_SIMSPACEWEAVER_SERVICE_ID = "simspaceweaver"
-
-const AWS_SMS_SERVICE_ID = "sms"
 
 const AWS_SMS_VOICE_SERVICE_ID = "sms-voice"
 
