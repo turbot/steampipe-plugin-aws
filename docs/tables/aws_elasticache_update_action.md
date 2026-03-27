@@ -12,6 +12,14 @@ The Amazon ElastiCache Update Action is a feature of AWS's ElastiCache service t
 
 The `aws_elasticache_update_action` table in Steampipe provides you with information about service updates for ElastiCache clusters and nodes within your AWS account. This table enables you, as a DevOps engineer, database administrator, or IT professional, to query update-specific details, including the status of updates, recommended application dates, and more. You can utilize this table to gather insights on updates, such as their severity, type, and compliance requirements. The schema outlines the various attributes of the ElastiCache Update Action for you, including the update action ID, associated cache cluster and replication group IDs, and relevant dates.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `elasticache:DescribeUpdateActions` | Required to list ElastiCache update actions |
+
 ## Examples
 
 ### List all pending ElastiCache update actions

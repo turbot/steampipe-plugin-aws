@@ -14,6 +14,15 @@ The `aws_scheduler_schedule` table in Steampipe provides information about sched
 
 The schema outlines key attributes of the schedule, including its name, ARN, associated group, creation date, schedule state, and metadata. You can use this table to monitor schedules, identify configuration details, and optimize automation workflows.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `scheduler:ListSchedules` | Required to list schedules |
+| `scheduler:GetSchedule` | Required to get schedule details |
+
 ## Examples
 
 ### Basic info

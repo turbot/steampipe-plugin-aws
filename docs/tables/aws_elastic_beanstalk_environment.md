@@ -12,6 +12,18 @@ The AWS Elastic Beanstalk Environment is a part of the AWS Elastic Beanstalk ser
 
 The `aws_elastic_beanstalk_environment` table in Steampipe provides you with information about environments within AWS Elastic Beanstalk. This table allows you as a DevOps engineer to query environment-specific details, including configuration settings, environment health, related applications, and associated metadata. You can utilize this table to gather insights on environments, such as environments with specific configurations, health status, associated applications, and more. The schema outlines the various attributes of the Elastic Beanstalk environment for you, including the environment name, ID, application name, status, health, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `elasticbeanstalk:DescribeEnvironments` | Required to list and get environment details |
+| `elasticbeanstalk:ListTagsForResource` | Required to retrieve tags for environments |
+| `elasticbeanstalk:DescribeEnvironmentManagedActions` | Required for the `managed_actions` column |
+
+**Note:** The `configuration_settings` column requires `elasticbeanstalk:DescribeConfigurationSettings` permission (not tagged in source but used by the hydrate function).
+
 ## Examples
 
 ### Basic info

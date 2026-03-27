@@ -12,6 +12,18 @@ The AWS Kinesis Video Streams service enables you to securely ingest, process, a
 
 The `aws_kinesis_video_stream` table in Steampipe provides you with information about the Kinesis Video Streams within AWS Kinesis. This table allows you, as a DevOps engineer, to query stream-specific details, including the stream ARN, creation time, status, and more. You can utilize this table to gather insights on streams, such as stream status, data retention period, and the version of the stream. The schema outlines the various attributes of the Kinesis Video Stream for you, including the stream name, ARN, version, status, creation time, and data retention period.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `kinesisvideo:ListStreams` | Required to list video streams |
+| `kinesisvideo:DescribeStream` | Required to get video stream details |
+| `kinesisvideo:ListTagsForStream` | Required to get video stream tags |
+
+**Note:** The `tags` column requires the `kinesisvideo:ListTagsForStream` permission.
+
 ## Examples
 
 ### Basic info

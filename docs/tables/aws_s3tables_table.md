@@ -16,6 +16,15 @@ The `aws_s3tables_table` table provides information about tables in Amazon S3 Ta
 
 The table uses a parent/child hydration pattern, listing tables for each S3 table bucket, which means queries will be optimized when filtering by table bucket information.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `s3tables:ListTables` | Required to list tables |
+| `s3tables:GetTable` | Required to get table details (created_by, modified_by, namespace_id, owner_account_id, version_token, metadata_location, format, warehouse_location, managed_by_service columns) |
+
 ## Examples
 
 ### Basic info

@@ -12,6 +12,17 @@ The AWS Route 53 Health Check is a feature of Amazon Route 53 service that helps
 
 The `aws_route53_health_check` table in Steampipe provides you with information about health checks within AWS Route 53. This table allows you, as a DevOps engineer, to query health check-specific details, including health check configuration, health check status, and associated metadata. You can utilize this table to gather insights on health checks, such as health check configuration, health check status, and more. The schema outlines the various attributes of the health check for you, including the health check ID, health check version, type, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `route53:ListHealthChecks` | Required to list health checks. |
+| `route53:GetHealthCheck` | Required to get health check details. |
+| `route53:GetHealthCheckStatus` | Required to get health check status. |
+| `route53:ListTagsForResource` | Required to get health check tags. |
+
 ## Examples
 
 ### Basic Info

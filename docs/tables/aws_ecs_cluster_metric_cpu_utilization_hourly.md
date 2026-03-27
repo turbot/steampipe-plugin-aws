@@ -14,6 +14,15 @@ The `aws_ecs_cluster_metric_cpu_utilization_hourly` table in Steampipe gives you
 
 The `aws_ecs_cluster_metric_cpu_utilization_hourly` table provides you with metric statistics at 1 hour intervals for the most recent 60 days.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `ecs:ListClusters` | Required to list ECS clusters (parent resource) |
+| `cloudwatch:GetMetricStatistics` | Required to get CPU utilization metrics |
+
 ## Examples
 
 ### Basic info

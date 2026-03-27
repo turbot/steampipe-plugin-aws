@@ -12,6 +12,14 @@ The AWS VPC Security Group VPC Association is a feature that allows security gro
 
 The `aws_vpc_security_group_vpc_association` table in Steampipe provides you with information about the associations between security groups and VPCs. This table allows you, as a DevOps engineer, to query association-specific details, including which security groups are associated with which VPCs, the state of these associations, and the VPC owner information. You can utilize this table to gather insights on security group usage across VPCs, identify cross-VPC security group associations, and more.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `ec2:DescribeSecurityGroupVpcAssociations` | Required to list security group VPC associations |
+
 ## Examples
 
 ### Basic info

@@ -15,6 +15,14 @@ The `aws_ssm_document_permission` table in Steampipe provides you with informati
 **Important Notes**
 - You must specify the `document_name` column in the `where` clause to query the table.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `ssm:DescribeDocumentPermission` | Required to list document sharing permissions. |
+
 ## Examples
 
 ### Basic info

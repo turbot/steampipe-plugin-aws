@@ -12,6 +12,15 @@ The AWS RAM Principal Association is a component of AWS Resource Access Manager 
 
 The `aws_ram_principal_association` table in Steampipe provides you with information about principal associations within AWS Resource Access Manager (RAM). This table allows you, as a DevOps engineer, to query principal-specific details, including resource share ARN, principal ARN, creation time, and associated tags. You can utilize this table to gather insights on principal associations, such as their status, external status, and more. The schema outlines the various attributes of the principal association for you, including the resource share ARN, principal ARN, creation time, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `ram:GetResourceShareAssociations` | Required to get resource share associations |
+| `ram:ListResourceSharePermissions` | Required to list permissions for resource shares |
+
 ## Examples
 
 ### Basic info

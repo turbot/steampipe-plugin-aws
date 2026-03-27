@@ -12,6 +12,17 @@ The AWS CloudTrail Event Data is an AWS service that enables governance, complia
 
 The `aws_cloudtrail_event_data_store` table in Steampipe provides you with information about API activity in your AWS accounts. This includes details about your API calls, logins, and other events captured by AWS CloudTrail. This table allows you, as a DevOps engineer, to query event-specific details, including event names, event sources, and related metadata. You can utilize this table to gather insights on API activity, such as identifying unusual API calls, tracking login activity, and monitoring changes to your AWS resources. The schema outlines the various attributes of the CloudTrail event for you, including the event ID, event time, event name, and user identity.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `cloudtrail:ListEventDataStores` | Required to list event data stores |
+| `cloudtrail:GetEventDataStore` | Required to get event data store details |
+
+**Note:** The `cloudtrail:GetEventDataStore` permission is required for the following columns: `status`, `billing_mode`, `federation_role_arn`, `federation_status`, `kms_key_id`, `created_timestamp`, `multi_region_enabled`, `organization_enabled`, `retention_period`, `termination_protection_enabled`, `updated_timestamp`, `advanced_event_selectors`.
+
 ## Examples
 
 ### Basic info

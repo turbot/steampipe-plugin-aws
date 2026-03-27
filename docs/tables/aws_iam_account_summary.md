@@ -12,6 +12,14 @@ The AWS Identity and Access Management (IAM) Account Summary provides an overvie
 
 The `aws_iam_account_summary` table in Steampipe provides you with information about the AWS IAM Account Summary. This table allows you, as a DevOps engineer, to query IAM usage and resource consumption details, including users, groups, roles, policies, and more. You can utilize this table to gather insights on IAM usage, such as the number of users, roles, and policies, and verify the usage against AWS service limits. The schema outlines the various attributes of the IAM Account Summary, including the summary map and account ID.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `iam:GetAccountSummary` | Required to retrieve the account summary |
+
 **Important Notes**
 - The number and size of IAM resources in your AWS account are limited. For more information, see [IAM and STS Quotas](https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_iam-quotas.html) in the IAM User Guide.
 

@@ -12,6 +12,18 @@ The AWS CodeArtifact Repository is a fully managed software artifact repository 
 
 The `aws_codeartifact_repository` table in Steampipe provides you with information about repositories within AWS CodeArtifact. This table allows you, as a DevOps engineer, to query repository specific details, including the repository's domain owner, domain name, repository name, administrator account, and associated metadata. You can utilize this table to gather insights on repositories, such as their ownership, associated domains, and more. The schema outlines the various attributes of the CodeArtifact repository for you, including the ARN, repository description, domain owner, domain name, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `codeartifact:ListRepositories` | Required to list CodeArtifact repositories. |
+| `codeartifact:DescribeRepository` | Required to get details of a specific repository. |
+| `codeartifact:GetRepositoryEndpoint` | Required to get repository endpoint information. |
+| `codeartifact:ListTagsForResource` | Required to retrieve tags for a repository. |
+| `codeartifact:GetRepositoryPermissionsPolicy` | Required to get the repository permissions policy. |
+
 ## Examples
 
 ### Basic info

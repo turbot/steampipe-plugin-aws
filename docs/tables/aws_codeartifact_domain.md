@@ -12,6 +12,17 @@ The AWS CodeArtifact Domain is a fundamental resource within the AWS CodeArtifac
 
 The `aws_codeartifact_domain` table in Steampipe provides you with information about domains within AWS CodeArtifact. This table allows you, as a DevOps engineer, to query domain-specific details, including domain ownership, encryption key, and associated policy information. You can utilize this table to gather insights on domains, such as who owns a domain, what encryption key is used, and what policies are applied. The schema outlines the various attributes of the AWS CodeArtifact domain for you, including the domain ARN, domain owner, encryption key, and associated policies.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `codeartifact:ListDomains` | Required to list CodeArtifact domains. |
+| `codeartifact:DescribeDomain` | Required to get details of a specific domain. |
+| `codeartifact:ListTagsForResource` | Required to retrieve tags for a domain. |
+| `codeartifact:GetDomainPermissionsPolicy` | Required to get the domain permissions policy. |
+
 ## Examples
 
 ### Basic info

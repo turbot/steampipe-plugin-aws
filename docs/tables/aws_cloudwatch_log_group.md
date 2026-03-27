@@ -12,6 +12,16 @@ The AWS CloudWatch Log Group is a resource that encapsulates your AWS CloudWatch
 
 The `aws_cloudwatch_log_group` table in Steampipe provides you with information about Log Groups within AWS CloudWatch. This table allows you, as a DevOps engineer, to query Log Group-specific details, including the ARN, creation time, stored bytes, metric filter count, retention period, and associated tags. You can utilize this table to gather insights on Log Groups, such as their size, age, and associated metrics. The schema outlines the various attributes of the Log Group for you, including the ARN, creation time, stored bytes, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `logs:DescribeLogGroups` | Required to list and get log group details |
+| `logs:GetDataProtectionPolicy` | Required for the `data_protection` and `data_protection_policy` columns |
+| `logs:ListTagsForResource` | Required for the `tags` column |
+
 ## Examples
 
 ### List all the log groups that are not encrypted

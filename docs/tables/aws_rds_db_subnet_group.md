@@ -12,6 +12,15 @@ The AWS RDS DB Subnet Group is a collection of subnets that you can designate fo
 
 The `aws_rds_db_subnet_group` table in Steampipe provides you with information about DB subnet groups within Amazon Relational Database Service (RDS). This table allows you, as a database administrator, developer, or other technical professional, to query details about DB subnet groups, including the subnet group name, description, VPC ID, and associated subnets. You can utilize this table to gather insights on DB subnet groups, such as subnet group configurations, associated VPCs, and more. The schema outlines the various attributes of the DB subnet group for you, including the subnet group status, ARN, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `rds:DescribeDBSubnetGroups` | Required to list and get DB subnet group details |
+| `rds:ListTagsForResource` | Required to retrieve tags for the `tags` and `tags_src` columns |
+
 ## Examples
 
 ### DB subnet group basic info

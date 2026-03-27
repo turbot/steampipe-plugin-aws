@@ -12,6 +12,16 @@ AWS Budgets enables you to set custom cost and usage budgets and receive notific
 
 The `aws_budgets_budget` table in Steampipe provides you with information about each budget in your AWS account. This table allows you to query budget-specific details, including budget limits, spending amounts, notification settings, and associated metadata. You can utilize this table to gather insights on budget types, time periods, cost filters, and spending forecasts. The schema outlines the various attributes of a budget including the budget name, type, limit, calculated spend, and associated notifications.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `budgets:DescribeBudgets` | Required to list budgets |
+| `budgets:DescribeBudget` | Required to get budget details |
+| `budgets:DescribeNotificationsForBudget` | Required to get budget notifications |
+
 ## Examples
 
 ### List all budgets

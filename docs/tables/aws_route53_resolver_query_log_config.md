@@ -15,6 +15,15 @@ The `aws_route53_resolver_query_log_config` table in Steampipe provides you with
 **Important Notes**
 - You must have `route53resolver:ListResolverQueryLogConfigs` permission to query the table.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `route53resolver:ListResolverQueryLogConfigs` | Required to list resolver query log configurations. |
+| `route53resolver:GetResolverQueryLogConfig` | Required to get resolver query log configuration details. |
+
 ## Examples
 
 ### Basic info

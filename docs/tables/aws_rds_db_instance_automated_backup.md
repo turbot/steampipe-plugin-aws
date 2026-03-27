@@ -12,6 +12,14 @@ The AWS RDS DB Instance Automated Backup is a feature of Amazon RDS that enables
 
 The `aws_rds_db_instance_automated_backup` table in Steampipe allows you to query AWS RDS DB Instance Automated Backups. This table provides you with data about automated backups for RDS DB instances. It enables you, as a DevOps engineer, database administrator, or other technical professional, to query backup-specific details, including backup status, retention period, and associated metadata. You can utilize this table to gather insights on backups, such as backup statuses, encrypted backups, verification of backup retention periods, and more. The schema outlines the various attributes of the automated backup for you, including the backup ARN, backup creation date, backup size, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `rds:DescribeDBInstanceAutomatedBackups` | Required to list and get automated backup details |
+
 ## Examples
 
 ### Basic info

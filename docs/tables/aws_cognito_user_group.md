@@ -12,6 +12,16 @@ AWS Cognito user groups provide a way to manage and categorize users in Amazon C
 
 The `aws_cognito_user_group` table provides insights into user groups within Amazon Cognito user pools. As a security administrator or developer, you can query this table to retrieve detailed information about group configurations, including IAM role assignments, precedence values, and descriptions. This can be useful for auditing user permissions, ensuring proper group configurations, and managing access controls within your Cognito user pools.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `cognito-idp:ListUserPools` | Required to list user pools (parent hydrate) |
+| `cognito-idp:ListGroups` | Required to list user groups |
+| `cognito-idp:GetGroup` | Required to get user group details |
+
 ## Examples
 
 ### Basic info

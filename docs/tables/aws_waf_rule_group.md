@@ -12,6 +12,17 @@ The AWS WAF Rule Group is a component of the AWS Web Application Firewall (WAF) 
 
 The `aws_waf_rule_group` table in Steampipe provides you with information about Web Application Firewall (WAF) rule groups within AWS WAF. This table allows you, as a security or DevOps engineer, to query rule group-specific details, including the rule group ID, name, metric name, and associated rules. You can utilize this table to gather insights on rule groups, such as the types of rules within a rule group, the actions for each rule, and more. The schema outlines the various attributes of the WAF rule group for you, including the rule group ID, name, metric name, and associated rules.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `waf:ListRuleGroups` | Required to list rule groups |
+| `waf:GetRuleGroup` | Required to get rule group details (metric_name) |
+| `waf:ListActivatedRulesInRuleGroup` | Required to get activated rules in the rule group |
+| `waf:ListTagsForResource` | Required to get rule group tags |
+
 ## Examples
 
 ### Basic info

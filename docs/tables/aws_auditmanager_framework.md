@@ -12,6 +12,15 @@ The AWS Audit Manager Framework is a feature of AWS Audit Manager that helps you
 
 The `aws_auditmanager_framework` table in Steampipe provides you with information about frameworks within AWS Audit Manager. This table allows you, as a DevOps engineer, to query framework-specific details, including the framework's ARN, ID, type, and associated metadata. You can utilize this table to gather insights on frameworks, such as the number of controls associated with each framework, the compliance type, and more. The schema outlines the various attributes of the Audit Manager Framework for you, including the framework ARN, creation date, last updated date, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `auditmanager:ListAssessmentFrameworks` | Required to list assessment frameworks |
+| `auditmanager:GetAssessmentFramework` | Required to get assessment framework details |
+
 ## Examples
 
 ### Basic info

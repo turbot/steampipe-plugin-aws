@@ -12,6 +12,14 @@ An AWS VPC Security Group acts as a virtual firewall for your instance to contro
 
 The `aws_vpc_security_group` table in Steampipe provides you with information about Security Groups within AWS Virtual Private Cloud (VPC). This table enables you, as a DevOps engineer, to query security group-specific details, including configurations, associated policies, and related metadata. You can utilize this table to gather insights on security groups, such as understanding the security rules applied, verifying the security policies, and more. The schema outlines for you the various attributes of the security group, including the group ID, name, description, owner ID, and associated VPC ID.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `ec2:DescribeSecurityGroups` | Required to list and get security group details |
+
 ## Examples
 
 ### Basic ingress rule info

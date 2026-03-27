@@ -12,6 +12,16 @@ The AWS GuardDuty Publishing Destination is a feature of AWS GuardDuty that allo
 
 The `aws_guardduty_publishing_destination` table in Steampipe provides you with information about publishing destinations in AWS GuardDuty. This table allows you as a security analyst or DevOps engineer to query destination-specific details, including the destination type, status, and associated metadata. You can utilize this table to gather insights on destinations, such as their current statuses, the types of destinations, and more. The schema outlines the various attributes of the publishing destination for you, including the destination type, destination ARN, and status.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `guardduty:ListDetectors` | Required to list detectors (parent hydrate). |
+| `guardduty:ListPublishingDestinations` | Required to list publishing destinations. |
+| `guardduty:DescribePublishingDestination` | Required to get publishing destination details. |
+
 ## Examples
 
 ### Basic info

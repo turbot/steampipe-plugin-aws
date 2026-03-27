@@ -12,6 +12,14 @@ The AWS VPC Egress Only Internet Gateway is a resource that provides egress only
 
 The `aws_vpc_egress_only_internet_gateway` table in Steampipe provides you with information about Egress Only Internet Gateways within Amazon Virtual Private Cloud (VPC). This table allows you, as a DevOps engineer, to query gateway-specific details, including the gateway's attachments, creation time, and associated tags. You can utilize this table to gather insights on gateways, such as the gateways associated with a specific VPC, the state of the gateway's attachments, and more. The schema outlines the various attributes of the Egress Only Internet Gateway for you, including the gateway ID, VPC ID, and attachment state.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `ec2:DescribeEgressOnlyInternetGateways` | Required to list and get egress-only internet gateway details |
+
 ## Examples
 
 ### Egress only internet gateway basic info

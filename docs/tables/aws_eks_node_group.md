@@ -12,6 +12,16 @@ The AWS EKS Node Group is a resource within Amazon Elastic Kubernetes Service (E
 
 The `aws_eks_node_group` table in Steampipe provides you with information about each node group within an AWS Elastic Kubernetes Service (EKS) cluster. This table allows you, as a DevOps engineer, system administrator, or other technical professional, to query node-group-specific details, including the node group ARN, creation timestamp, health status, and associated metadata. You can utilize this table to gather insights on node groups, such as the status of each node, the instance types used, and more. The schema outlines the various attributes of the EKS node group for you, including the node role, subnets, scaling configuration, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `eks:ListClusters` | Required to list EKS clusters (parent resource) |
+| `eks:ListNodegroups` | Required to list node groups for each cluster |
+| `eks:DescribeNodegroup` | Required to get node group details |
+
 ## Examples
 
 ### Basic info

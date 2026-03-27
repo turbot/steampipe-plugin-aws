@@ -12,6 +12,14 @@ The AWS SSO Customer Managed Policy Attachment is a feature of AWS Single Sign-O
 
 The `aws_ssoadmin_customer_policy_attachment` table in Steampipe provides you with information about the customer managed policy attachments of AWS SSO permission sets. This table allows you, as a DevOps engineer, to query policy-specific details, including the instance ARN, permission set ARN, policy name, and policy path. You can utilize this table to gather insights on policy attachments, such as the attached customer managed policies for each permission set, and more. The schema outlines the various attributes of the customer managed policy attachment for you, including the instance ARN, permission set ARN, policy name, and policy path.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `sso:ListCustomerManagedPolicyReferencesInPermissionSet` | Required to list customer managed policy attachments for a permission set |
+
 ## Examples
 
 ### Basic info

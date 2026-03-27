@@ -12,6 +12,16 @@ The AWS CodeDeploy Deployment Group is a set of individual instances, CodeDeploy
 
 The `aws_codedeploy_deployment_group` table in Steampipe provides you with information about deployment groups within AWS CodeDeploy. This table allows you as a DevOps engineer to query deployment group-specific details, including deployment configurations, target revisions, and associated alarm configurations. You can utilize this table to gather insights on deployment groups, such as deployment configuration names, target revisions, and alarm configurations. The schema outlines the various attributes of the deployment group for you, including the deployment group name, service role ARN, deployment configuration name, target revision, and associated alarm configurations.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `codedeploy:ListDeploymentGroups` | Required to list deployment groups. |
+| `codedeploy:GetDeploymentGroup` | Required to get details of a specific deployment group. |
+| `codedeploy:ListTagsForResource` | Required to retrieve tags for a deployment group. |
+
 ## Examples
 
 ### Basic info

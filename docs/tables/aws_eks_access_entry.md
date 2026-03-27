@@ -12,6 +12,16 @@ AWS EKS Access Entries provide a way to grant IAM principals (users or roles) ac
 
 The `aws_eks_access_entry` table in Steampipe provides you with information about access entries associated with each Amazon EKS cluster. This table allows you, as a DevOps engineer or security administrator, to query access entry-specific details, including the IAM principal ARN, associated Kubernetes groups, access policies, and associated metadata. You can utilize this table to gather insights on cluster access management, such as which IAM principals have access to specific clusters, what type of access they have, and the Kubernetes groups they are associated with. The schema outlines the various attributes of the EKS access entry for you, including the principal ARN, access entry type, username, Kubernetes groups, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `eks:ListClusters` | Required to list EKS clusters (parent resource) |
+| `eks:ListAccessEntries` | Required to list access entries for each cluster |
+| `eks:DescribeAccessEntry` | Required to get access entry details |
+
 ## Examples
 
 ### Basic info

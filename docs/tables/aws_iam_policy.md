@@ -12,6 +12,16 @@ The AWS Identity and Access Management (IAM) Policy is a resource that allows yo
 
 The `aws_iam_policy` table in Steampipe provides you with information about IAM policies within AWS Identity and Access Management (IAM). This table allows you, as a DevOps engineer, to query policy-specific details, including permissions, attachments, and associated metadata. You can utilize this table to gather insights on policies, such as policies with wildcard permissions, verification of policy documents, and more. The schema outlines the various attributes of the IAM policy for you, including the policy ARN, creation date, update date, attached entities, and policy default version ID.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `iam:ListPolicies` | Required to list IAM policies |
+| `iam:GetPolicy` | Required to get policy details and tags |
+| `iam:GetPolicyVersion` | Required to get policy document content |
+
 **Important Notes**
 - The `policy` and `policy_std` columns require additional calls - You can greatly decrease your query time by NOT selecting those columns when you don't need them.
 

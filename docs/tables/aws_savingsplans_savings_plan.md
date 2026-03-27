@@ -12,6 +12,14 @@ AWS Savings Plans offer a flexible pricing model that provides significant savin
 
 The `aws_savingsplans_savings_plan` table in Steampipe provides you with information about AWS Savings Plans within your AWS account. This table allows you, as a DevOps engineer, cloud architect, or financial analyst, to query savings plan details, including commitment amounts, payment options, duration terms, and current states. You can utilize this table to gather insights on cost optimization, track savings plan utilization, and manage financial commitments. The schema outlines the various attributes of the savings plan, including the plan ID, type, payment details, and coverage information.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `savingsplans:DescribeSavingsPlans` | Required to list and get savings plans |
+
 **Important Notes**
 - This table supports optional quals. Queries with optional quals are optimized to reduce query time and cost. Optional quals are supported for the following columns:
   - `commitment` - Filter by commitment amount (using `=` operator)

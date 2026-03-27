@@ -12,6 +12,14 @@ The AWS EC2 SSL Policies are predefined security policies that determine the SSL
 
 The `aws_ec2_ssl_policy` table in Steampipe provides you with information about SSL policies used in AWS Elastic Compute Cloud (EC2) Load Balancers. This table allows you as a developer or cloud architect to query SSL policy-specific details, including the policy name, the SSL protocols, and the cipher suite configurations. You can utilize this table to gather insights on the SSL policies, such as enabled SSL protocols, preferred cipher suites, and more. The schema outlines the various attributes of the SSL policy for you, including the policy name, the SSL protocols, the SSL ciphers, and the server order preference.
 
+## Required Permissions
+
+Your principal must have the following permissions to use this table:
+
+| Permission | Description |
+|------------|-------------|
+| `elasticloadbalancing:DescribeSSLPolicies` | Required to retrieve SSL policy information. |
+
 ## Examples
 
 ### Basic info

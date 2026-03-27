@@ -12,6 +12,14 @@ The AWS Disaster Recovery Service Recovery Instance is a component of the AWS Di
 
 The `aws_drs_recovery_instance` table in Steampipe provides you with information about recovery instances within AWS Disaster Recovery Service (DRS). This table allows you, as a DevOps engineer, to query recovery instance-specific details, including instance type, recovery instance ARN, and associated tags. You can utilize this table to gather insights on recovery instances, such as instance type, recovery instance ARN, and associated tags. The schema outlines the various attributes of the recovery instance for you, including the instance type, recovery instance ARN, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `drs:DescribeRecoveryInstances` | Required to list and describe recovery instances |
+
 ## Examples
 
 ### Basic Info

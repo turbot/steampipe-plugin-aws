@@ -12,6 +12,16 @@ The AWS Redshift Serverless Workgroup is a feature of Amazon Redshift that enabl
 
 The `aws_redshiftserverless_workgroup` table in Steampipe provides you with information about workgroups within AWS Redshift Serverless. This table allows you as a DevOps engineer to query workgroup-specific details, including query execution settings, enforce workgroup configuration, and associated metadata. You can utilize this table to gather insights on workgroups, such as workgroup settings, enforced configurations, query execution details, and more. The schema outlines the various attributes of the Redshift Serverless workgroup for you, including the workgroup name, state, creation time, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `redshift-serverless:ListWorkgroups` | Required to list workgroups |
+| `redshift-serverless:GetWorkgroup` | Required to get workgroup details |
+| `redshift-serverless:ListTagsForResource` | Required to retrieve tags for workgroups |
+
 ## Examples
 
 ### Basic info

@@ -12,6 +12,15 @@ AWS Bedrock Agents are AI-powered assistants that can be customized to perform s
 
 The `aws_bedrock_agent` table in Steampipe provides you with information about agents within AWS Bedrock. This table allows you, as a developer or ML engineer, to query agent-specific details, including configuration, status, and associated metadata. You can utilize this table to gather insights on agents, such as their foundation models, instructions, session settings, and more. The schema outlines the various attributes of the agent for you, including the agent ID, name, status, and associated IAM roles.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `bedrock:ListAgents` | Required to list agents |
+| `bedrock:GetAgent` | Required to get agent details for the `arn`, `agent_resource_role_arn`, `agent_version`, `created_at`, `prepared_at`, `idle_session_ttl_in_seconds`, `foundation_model`, `instruction`, `orchestration_type`, `customer_encryption_key_arn`, `failure_reasons`, `agent_collaboration`, `recommended_actions`, `custom_orchestration`, `memory_configuration`, `prompt_override_configuration`, and `akas` columns |
+
 ## Examples
 
 ### Basic info

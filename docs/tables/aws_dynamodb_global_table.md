@@ -12,6 +12,15 @@ The AWS DynamoDB Global Table is a fully managed, multi-region, and multi-active
 
 The `aws_dynamodb_global_table` table in Steampipe provides you with information about Global Tables within AWS DynamoDB. This table allows you, as a DevOps engineer, to query global table-specific details, including the table name, creation time, status, and other related details. You can utilize this table to gather insights on global tables, such as the tables' replication status, their regions, and more. The schema outlines for you the various attributes of the DynamoDB Global Table, including the table ARN, creation time, status, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `dynamodb:ListGlobalTables` | Required to list global tables |
+| `dynamodb:DescribeGlobalTable` | Required to get global table details for the `global_table_arn`, `global_table_status`, `creation_date_time`, `replication_group`, and `akas` columns |
+
 ## Examples
 
 ### List of regions where global table replicas are present

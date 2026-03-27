@@ -12,6 +12,15 @@ The AWS Elastic Block Store (EBS) is a high-performance block storage service de
 
 The `aws_ebs_volume` table in Steampipe provides you with information about volumes within AWS Elastic Block Store (EBS). This table allows you, as a DevOps engineer, to query volume-specific details, including size, state, type, and associated metadata. You can utilize this table to gather insights on volumes, such as their encryption status, IOPS performance, and snapshot details. The schema outlines the various attributes of the EBS volume for you, including the volume ID, creation time, attached instances, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `ec2:DescribeVolumes` | Required to list and get EBS volumes |
+| `ec2:DescribeVolumeAttribute` | Required to get volume attributes (auto_enable_io, product_codes) |
+
 ## Examples
 
 ### List of unencrypted EBS volumes

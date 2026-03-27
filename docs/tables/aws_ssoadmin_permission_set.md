@@ -12,6 +12,18 @@ The AWS SSO Admin Permission Set is a component of AWS Single Sign-On (SSO) that
 
 The `aws_ssoadmin_permission_set` table in Steampipe provides you with information about the permission sets associated with AWS Single Sign-On (SSO) service. This table allows you, as a DevOps engineer, to query permission set-specific details, including the permission set name, description, created date, and related metadata. You can utilize this table to gather insights on permission sets, such as the instances of each permission set, associated policies, and more. The schema outlines the various attributes of the permission set for you, including the permission set ARN, created date, session duration, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `sso:ListPermissionSets` | Required to list permission sets |
+| `sso:DescribePermissionSet` | Required to get permission set details (name, description, session_duration, relay_state, created_date) |
+| `sso:ListTagsForResource` | Required to get permission set tags |
+
+**Note:** The `sso:ListInstances` permission is also required as this table uses the SSO instances as a parent hydrate.
+
 ## Examples
 
 ### Basic info

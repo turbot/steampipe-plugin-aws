@@ -12,6 +12,18 @@ The AWS WAF Regional WebACL is a resource within the AWS WAF service that allows
 
 The `aws_wafregional_web_acl` table in Steampipe provides you with information about Web Access Control Lists (WebACLs) in AWS WAF Regional. This table allows you, as a security professional, to query WebACL-specific details, including associated rules, default actions, metric names, and associated metadata. You can utilize this table to gather insights on WebACLs, such as their associated rules, default actions, and more. The schema outlines for you the various attributes of the WebACL, including the WebACL ID, ARN, name, metric name, default action, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `waf-regional:ListWebACLs` | Required to list web ACLs |
+| `waf-regional:GetWebACL` | Required to get web ACL details (arn, default_action, metric_name, rules) |
+| `waf-regional:GetLoggingConfiguration` | Required to get logging configuration |
+| `waf-regional:ListResourcesForWebACL` | Required to get associated resources |
+| `waf-regional:ListTagsForResource` | Required to get web ACL tags |
+
 ## Examples
 
 ### Basic info

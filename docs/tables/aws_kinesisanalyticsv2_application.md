@@ -12,6 +12,18 @@ The AWS Kinesis Analytics Applications is a feature of Amazon Kinesis Data Analy
 
 The `aws_kinesisanalyticsv2_application` table in Steampipe provides you with information about applications within AWS Kinesis Analytics. This table allows you, as a DevOps engineer, to query application-specific details, including the application name, ARN, description, status, runtime environment, and more. You can utilize this table to gather insights on applications, such as the application's creation time, last update time, and the application version. The schema outlines the various attributes of the Kinesis Analytics application for you, including the application ARN, creation time, last update time, application version, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `kinesisanalytics:ListApplications` | Required to list applications |
+| `kinesisanalytics:DescribeApplication` | Required to get application details |
+| `kinesisanalytics:ListTagsForResource` | Required to get application tags |
+
+**Note:** The `tags`, `tags_src`, and several detail columns require the `kinesisanalytics:DescribeApplication` permission.
+
 ## Examples
 
 ### Basic info

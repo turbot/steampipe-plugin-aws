@@ -12,6 +12,16 @@ The AWS Simple Queue Service (SQS) is a fully managed message queuing service th
 
 The `aws_sqs_queue` table in Steampipe provides you with information about each queue in AWS Simple Queue Service (SQS). This table allows you, as a DevOps engineer, to query queue-specific details, including ARN, URL, and associated metadata. You can utilize this table to gather insights on queues, such as their visibility timeout, message retention period, and delivery delay settings. The schema outlines the various attributes of the SQS queue for you, including the queue ARN, URL, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `sqs:ListQueues` | Required to list SQS queues. |
+| `sqs:GetQueueAttributes` | Required to get queue attributes and details. |
+| `sqs:ListQueueTags` | Required to retrieve tags for a queue (for the `tags` column). |
+
 ## Examples
 
 ### Basic info

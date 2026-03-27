@@ -12,6 +12,14 @@ The AWS DynamoDB Metrics service provides detailed performance metrics for your 
 
 The `aws_dynamodb_metric_account_provisioned_read_capacity_util` table in Steampipe provides you with information about account provisioned read capacity utilization metrics within AWS DynamoDB. This table allows you, as a DevOps engineer, to query metric-specific details, including the average, maximum, and minimum read capacity utilization. You can utilize this table to gather insights on DynamoDB performance, such as understanding the read capacity utilization of your DynamoDB tables, identifying potential performance bottlenecks, and planning capacity accordingly. The schema outlines the various attributes of the DynamoDB metric, including the region, account_id, and timestamp for you.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `cloudwatch:GetMetricStatistics` | Required to retrieve CloudWatch metric statistics |
+
 ## Examples
 
 ### Basic info

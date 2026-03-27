@@ -12,6 +12,17 @@ The AWS Global Accelerator Endpoint Group is a component of AWS Global Accelerat
 
 The `aws_globalaccelerator_endpoint_group` table in Steampipe provides you with information about endpoint groups within AWS Global Accelerator. This table enables you, as a DevOps engineer, to query group-specific details, including the health state, traffic dial percentage, and associated endpoints. You can utilize this table to gather insights on endpoint groups, such as endpoint configurations, health check settings, and more. The schema outlines the various attributes of the endpoint group for you, including the endpoint group ARN, listener ARN, traffic dial percentage, and health check configurations.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `globalaccelerator:ListAccelerators` | Required to list parent accelerators |
+| `globalaccelerator:ListListeners` | Required to list listeners for each accelerator |
+| `globalaccelerator:ListEndpointGroups` | Required to list endpoint groups for each listener |
+| `globalaccelerator:DescribeEndpointGroup` | Required to get endpoint group details |
+
 ## Examples
 
 ### Basic info

@@ -12,6 +12,17 @@ The AWS Route 53 Resolver Rule is a feature of Amazon Route 53, a highly availab
 
 The `aws_route53_resolver_rule` table in Steampipe provides you with information about DNS resolver rules within AWS Route 53. This table allows you, as a DevOps engineer, to query resolver rule-specific details, including rule action, domain name, rule type, and associated metadata. You can utilize this table to gather insights on resolver rules, such as rule configuration, rule status, and rule action. The schema outlines the various attributes of the resolver rule for you, including the rule ID, resolver endpoint ID, rule action, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `route53resolver:ListResolverRules` | Required to list resolver rules. |
+| `route53resolver:GetResolverRule` | Required to get resolver rule details. |
+| `route53resolver:ListResolverRuleAssociations` | Required to get resolver rule associations. |
+| `route53resolver:ListTagsForResource` | Required to get resolver rule tags. |
+
 ## Examples
 
 ### Basic info

@@ -17,6 +17,14 @@ The `aws_s3_multipart_upload` table in Steampipe provides you with information a
 - You must specify a `bucket_name` in a where or join clause in order to use this table.
 - The table lists all in-progress multipart uploads for the specified bucket.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `s3:ListMultipartUploads` | Required to list multipart uploads |
+
 ## Examples
 
 ### Basic info

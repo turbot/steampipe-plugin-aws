@@ -12,6 +12,19 @@ The AWS Identity and Access Management (IAM) Roles are a feature of your AWS acc
 
 The `aws_iam_role` table in Steampipe provides you with information about IAM roles within AWS Identity and Access Management (IAM). This table allows you, as a DevOps engineer, to query role-specific details, including permissions, trust policies, and associated metadata. You can utilize this table to gather insights on roles, such as roles with wildcard permissions, trust relationships between roles, verification of trust policies, and more. The schema outlines the various attributes of the IAM role for you, including the role ARN, creation date, attached policies, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `iam:ListRoles` | Required to list IAM roles |
+| `iam:GetRole` | Required to get role details and tags |
+| `iam:ListInstanceProfilesForRole` | Required to list instance profiles for a role |
+| `iam:ListAttachedRolePolicies` | Required to list attached role policies |
+| `iam:ListRolePolicies` | Required to list inline role policies |
+| `iam:GetRolePolicy` | Required to get inline policy documents |
+
 ## Examples
 
 ### List IAM roles that have an inline policy.

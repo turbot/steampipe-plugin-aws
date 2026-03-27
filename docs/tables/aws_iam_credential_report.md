@@ -12,6 +12,15 @@ The AWS IAM Credential Report is a document that provides details about how the 
 
 The `aws_iam_credential_report` table in Steampipe provides you with information about IAM credential reports within AWS Identity and Access Management (IAM). This table allows you, as a DevOps engineer, to query user-specific details, including access keys, password status, and MFA device usage. You can utilize this table to gather insights on IAM users, such as inactive users, users with password-enabled login, access key usage, and more. The schema outlines the various attributes of the IAM credential report, including the user name, user creation time, access key details, and password last used date. For more information about the credential report, see [Getting Credential Reports](https://docs.aws.amazon.com/IAM/latest/UserGuide/credential-reports.html) in the IAM User Guide.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `iam:GetCredentialReport` | Required to retrieve the credential report |
+| `iam:GenerateCredentialReport` | Required to generate the credential report (must be run separately before querying) |
+
 **Important Notes**
 - You need a valid credential report to exist for this table. To generate one, please run the following AWS CLI command - `aws iam generate-credential-report`.
 

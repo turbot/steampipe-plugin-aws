@@ -12,6 +12,15 @@ AWS CloudWatch Log Delivery Source represents a source configuration for vended 
 
 The `aws_cloudwatch_log_delivery_source` table in Steampipe provides you with information about source configurations for vended log delivery in AWS CloudWatch Logs. This table allows you, as a DevOps engineer, security analyst, or cloud administrator, to query source-specific details, including the associated service, log type, and resource ARNs. You can utilize this table to gather insights on log delivery sources, such as identifying all CloudFront distributions configured for vended logs, understanding which services are configured to send logs, and monitoring your overall logging architecture. The schema outlines the various attributes of the delivery source for you, including the source name, ARN, service, creation time, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `logs:DescribeDeliverySources` | Required to list delivery sources |
+| `logs:GetDeliverySource` | Required to get delivery source details |
+
 ## Examples
 
 ### Basic info

@@ -12,6 +12,15 @@ AWS Health Affected Entities are items that are impacted by events. These entiti
 
 The `aws_health_affected_entity` table in Steampipe provides you with detailed information about entities affected by AWS Health events. This table allows you, as a system administrator or DevOps engineer, to query entity-specific details, including entity ARN, event ARN, status, last updated time, and associated tags. You can utilize this table to gain insights into the health status of AWS resources, enabling proactive monitoring and maintenance. The schema outlines the various attributes of the affected entity for you, such as entity ARN, event ARN, entity value, last updated time, status, and tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `health:DescribeEvents` | Required to list health events (parent hydrate) |
+| `health:DescribeAffectedEntities` | Required to list affected entities for each event |
+
 ## Examples
 
 ### Basic info

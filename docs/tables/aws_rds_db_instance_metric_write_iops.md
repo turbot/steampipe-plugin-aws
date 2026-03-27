@@ -14,6 +14,15 @@ The `aws_rds_db_instance_metric_write_iops` table in Steampipe gives you informa
 
 The `aws_rds_db_instance_metric_write_iops` table provides metric statistics at 5 minute intervals for the most recent 5 days.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `rds:DescribeDBInstances` | Required to list DB instances (parent hydrate) |
+| `cloudwatch:GetMetricStatistics` | Required to retrieve write IOPS metrics |
+
 ## Examples
 
 ### Basic info

@@ -12,6 +12,16 @@ In AWS IoT Core, an IoT Thing Group is a logical collection of IoT devices (Thin
 
 The `aws_iot_thing_group` table can be utilized to obtain detailed information about IoT Thing Groups. This includes their names, IDs, descriptions, and hierarchical structures. This table is essential for IoT administrators and developers for effective organization and oversight of groups of IoT devices within AWS.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `iot:ListThingGroups` | Required to list thing groups |
+| `iot:DescribeThingGroup` | Required to get thing group details |
+| `iot:ListTagsForResource` | Required to get tags for thing groups |
+
 ## Examples
 
 ### Basic info

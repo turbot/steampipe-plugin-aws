@@ -12,6 +12,14 @@ AWS Cost Allocation Tags help you organize and track your AWS costs by adding us
 
 The `aws_ce_cost_allocation_tags` table in Steampipe provides you with information about Cost Allocation Tags in your AWS account. This table allows you to query tag-specific details, including tag keys, tag types, and active/inactive status. You can utilize this table to gather insights on which tags are actively being used for cost allocation, track last used dates, and manage tag statuses. The schema outlines the various attributes of a cost allocation tag including the tag key, type, and update dates.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `ce:ListCostAllocationTags` | Required to list cost allocation tags |
+
 ## Examples
 
 ### List all cost allocation tags

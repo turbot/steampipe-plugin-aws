@@ -18,6 +18,14 @@ The `aws_ec2_instance_type` table in Steampipe provides you with information abo
 - To filter by a specific `instance_type`, you need to include it in the WHERE clause, such as `where instance_type = 't2.small'`, to retrieve a single instance type.
 - If you want to fetch instance types using a wildcard pattern, you can use `instance_type_pattern` in the WHERE clause, like `where instance_type_pattern = 't2*'`.
 
+## Required Permissions
+
+Your principal must have the following permissions to use this table:
+
+| Permission | Description |
+|------------|-------------|
+| `ec2:DescribeInstanceTypes` | Required to retrieve instance type information. |
+
 ## Examples
 
 ### List of instance types which supports dedicated host

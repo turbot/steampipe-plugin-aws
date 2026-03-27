@@ -12,6 +12,15 @@ The Amazon ElastiCache Cluster is a part of AWS's ElastiCache service that offer
 
 The `aws_elasticache_cluster` table in Steampipe provides you with information about each ElastiCache Cluster within your AWS account. This table enables you, as a DevOps engineer, database administrator, or other IT professional, to query cluster-specific details, including configuration, status, and associated metadata. You can utilize this table to gather insights on clusters, such as their availability zones, cache node types, engine versions, and more. The schema outlines the various attributes of the ElastiCache Cluster for you, including the cluster ID, creation date, current status, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `elasticache:DescribeCacheClusters` | Required to list and get ElastiCache cluster details |
+| `elasticache:ListTagsForResource` | Required to retrieve tags for ElastiCache clusters (used for `tags` and `tags_src` columns) |
+
 ## Examples
 
 ### List clusters that are not encrypted at rest

@@ -14,6 +14,15 @@ The `aws_s3tables_table_bucket` table provides insights into table buckets withi
 
 The `aws_s3tables_table_bucket` table provides information about S3 Tables table buckets in your AWS account. As a data engineer or cloud administrator, this table helps you manage and monitor your table bucket resources. You can use this table to identify table buckets, analyze their properties, and verify owner information.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `s3tables:ListTableBuckets` | Required to list table buckets |
+| `s3tables:GetTableBucket` | Required to get table bucket details |
+
 ## Examples
 
 ### Basic info

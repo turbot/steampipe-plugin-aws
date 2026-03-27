@@ -12,6 +12,15 @@ The Amazon WorkSpaces service provides fully managed, persistent desktops in the
 
 The `aws_workspaces_workspace` table in Steampipe provides you with information about each workspace within Amazon WorkSpaces. This table allows you, as a DevOps engineer, to query workspace-specific details, including workspace properties, state, type, and associated metadata. You can utilize this table to gather insights on workspaces, such as workspace status, user properties, root volume, user volume, and more. The schema outlines the various attributes of the workspace for you, including the workspace ID, directory ID, bundle ID, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `workspaces:DescribeWorkspaces` | Required to list and get WorkSpaces details. |
+| `workspaces:DescribeTags` | Required to retrieve tags for a workspace (for the `tags` and `tags_src` columns). |
+
 ## Examples
 
 ## Basic info

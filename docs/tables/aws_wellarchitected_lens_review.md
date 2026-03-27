@@ -12,6 +12,16 @@ The AWS Well-Architected Tool Lens Review is a feature of the AWS Well-Architect
 
 The `aws_wellarchitected_lens_review` table in Steampipe provides you with information about lens reviews within the AWS Well-Architected Tool. This table allows you, as a DevOps engineer, to query review-specific details, including the associated workload, lens, and milestone information. You can utilize this table to gather insights on lens reviews, such as the risk level of each review, the number of high-risk issues, and the number of improvement plans. The schema outlines the various attributes of the lens review for you, including the workload ID, lens alias, milestone number, and other associated metadata.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `wellarchitected:ListWorkloads` | Required to list workloads (parent hydrate) |
+| `wellarchitected:ListLensReviews` | Required to list lens reviews |
+| `wellarchitected:GetLensReview` | Required to get lens review details and additional columns (`notes`, `pillar_review_summaries`) |
+
 ## Examples
 
 ### Basic info

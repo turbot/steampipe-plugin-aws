@@ -12,6 +12,15 @@ The AWS Elastic Kubernetes Service (EKS) Cluster is a managed service that simpl
 
 The `aws_eks_cluster` table in Steampipe provides you with information about EKS clusters within AWS Elastic Kubernetes Service (EKS). This table enables you, as a DevOps engineer, to query cluster-specific details, including cluster name, status, endpoint, and associated metadata. You can utilize this table to gather insights on clusters, such as their current status, role ARN, VPC configurations, and more. The schema outlines the various attributes of the EKS cluster, including the cluster ARN, creation date, attached security groups, and associated tags for you.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `eks:ListClusters` | Required to list EKS clusters |
+| `eks:DescribeCluster` | Required to get cluster details |
+
 ## Examples
 
 ### Basic info

@@ -12,6 +12,18 @@ The AWS Lambda Alias is a feature of AWS Lambda service that provides a pointer 
 
 The `aws_lambda_alias` table in Steampipe provides you with information about alias resources within AWS Lambda. This table allows you, as a DevOps engineer, to query alias-specific details, including the associated function name, function version, and alias ARN. You can utilize this table to gather insights on aliases, such as the alias description, routing configuration, and revision ID. The schema outlines the various attributes of the Lambda alias for you, including the name, ARN, function version, and associated routing configuration.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `lambda:ListFunctions` | Required to list Lambda functions (parent resource) |
+| `lambda:ListAliases` | Required to list aliases for each function |
+| `lambda:GetAlias` | Required to get alias details |
+| `lambda:GetPolicy` | Required to retrieve the alias resource policy (for `policy` and `policy_std` columns) |
+| `lambda:GetFunctionUrlConfig` | Required to retrieve function URL configuration (for `url_config` column) |
+
 ## Examples
 
 ### Lambda alias basic info

@@ -12,6 +12,14 @@ The AWS Resource Explorer Supported Resource Types is a feature of AWS Resource 
 
 The `aws_resource_explorer_supported_resource_type` table in Steampipe provides you with information about supported resource types for AWS Resource Groups. This table allows you, as a DevOps engineer or other technical professional, to query details about supported resource types, including their names and whether they can be included in a resource group. You can utilize this table to gather insights on resource types, such as which resources can be grouped together for easy management and configuration. The schema outlines the various attributes of the supported resource type for you, including the resource type and whether it is groupable.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `resource-explorer-2:ListSupportedResourceTypes` | Required to list supported resource types |
+
 ## Examples
 
 ### Basic info

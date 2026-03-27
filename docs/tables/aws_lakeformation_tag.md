@@ -12,6 +12,15 @@ The `aws_lakeformation_tag` table allows you to query **AWS Lake Formation LF-ta
 
 The `aws_lakeformation_tag` table provides insights into **LF-tags** applied to AWS Lake Formation resources. LF-tags (Lake Formation tags) enable attribute-based access control (ABAC), allowing administrators to grant permissions dynamically based on tag keys and values instead of manually assigning policies to users or roles. This table helps track **registered LF-tags**, their associated **AWS account, region, and partition**, and provides a list of **possible values** an attribute can take.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `lakeformation:ListLFTags` | Required to list Lake Formation LF-tags |
+| `lakeformation:GetLFTag` | Required to get LF-tag details |
+
 ## **Examples**
 
 ### List all AWS Lake Formation LF-tags

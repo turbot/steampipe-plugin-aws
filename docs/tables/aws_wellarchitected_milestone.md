@@ -12,6 +12,16 @@ The AWS Well-Architected Tool Milestone is a resource within the AWS Well-Archit
 
 The `aws_wellarchitected_milestone` table in Steampipe provides you with information about the milestones of a workload within AWS Well-Architected Tool. This table allows you, as a DevOps engineer, architect, or developer, to query milestone-specific details, including the milestone name, date, and associated workload information. You can utilize this table to gather insights on milestones, such as the milestone history of a workload, changes made in each milestone, and more. The schema outlines the various attributes of the milestone for you, including the milestone number, record ID, workload ID, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `wellarchitected:ListWorkloads` | Required to list workloads (parent hydrate) |
+| `wellarchitected:ListMilestones` | Required to list milestones |
+| `wellarchitected:GetMilestone` | Required to get milestone details and the `workload` column |
+
 ## Examples
 
 ### Basic Info

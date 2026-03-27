@@ -12,6 +12,14 @@ The Amazon Elastic File System (EFS) Access Points provide a customized view int
 
 The `aws_efs_access_point` table in Steampipe provides you with information about Access Points within Amazon Elastic File System (EFS). This table enables you, as a DevOps engineer, system administrator, or other technical professional, to query access point-specific details, including the file system it is associated with, its access point ID, and other related metadata. You can utilize this table to gather insights on access points, such as their operating system type, root directory creation info, and more. The schema outlines the various attributes of the access point for you, including the access point ARN, creation time, life cycle state, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `elasticfilesystem:DescribeAccessPoints` | Required to list and get details of EFS access points. |
+
 ## Examples
 
 ### Basic info

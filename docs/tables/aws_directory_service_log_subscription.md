@@ -12,6 +12,15 @@ The AWS Directory Service Log Subscription is a feature of AWS Directory Service
 
 The `aws_directory_service_log_subscription` table in Steampipe provides you with information about each log subscription associated with the AWS Directory Service. This table allows you, as a DevOps engineer, to query log subscription-specific details, including the directory ID, log group name, and subscription status. You can utilize this table to gather insights on log subscriptions, such as subscription status, associated log groups, and more. The schema outlines for you the various attributes of the log subscription, including the directory ID, log group name, and subscription status.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `ds:DescribeDirectories` | Required to list directories (parent hydrate). |
+| `ds:ListLogSubscriptions` | Required to list log subscriptions for directories. |
+
 ## Examples
 
 ### Basic info

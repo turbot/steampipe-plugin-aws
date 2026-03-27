@@ -14,6 +14,15 @@ The `aws_ec2_instance_metric_cpu_utilization_hourly` table in Steampipe provides
 
 The `aws_ec2_instance_metric_cpu_utilization_hourly` table provides you with metric statistics at 1 hour intervals for the most recent 60 days.
 
+## Required Permissions
+
+Your principal must have the following permissions to use this table:
+
+| Permission | Description |
+|------------|-------------|
+| `cloudwatch:GetMetricStatistics` | Required to retrieve CloudWatch metric statistics. |
+| `ec2:DescribeInstances` | Required to list instances for metric retrieval. |
+
 ## Examples
 
 ### Basic info

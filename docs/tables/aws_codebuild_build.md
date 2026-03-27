@@ -12,6 +12,15 @@ AWS CodeBuild is a fully managed continuous integration service that compiles so
 
 The `aws_codebuild_build` table in Steampipe provides you with information about builds in AWS CodeBuild. This table allows you as a DevOps engineer to query build-specific details, including build statuses, source details, build environment, and associated metadata. You can utilize this table to gather insights on builds, such as build status, source version, the duration of the build, and more. The schema outlines for you the various attributes of the CodeBuild build, including the build ID, build status, start and end time, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `codebuild:ListBuilds` | Required to list builds |
+| `codebuild:BatchGetBuilds` | Required to get build details |
+
 ## Examples
 
 ### Basic info

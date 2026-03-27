@@ -12,6 +12,14 @@ AWS Security Hub provides a comprehensive view of your security alerts and compl
 
 The `aws_securityhub_enabled_product_subscription` table enables security analysts and cloud administrators to gather detailed insights into the products that are enabled in AWS Security Hub. You can query various aspects of these products, such as their activation URLs, integration types, categories, and company details. This table is particularly useful for monitoring the active security products, managing integrations, and ensuring that your security tools are configured correctly.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `securityhub:ListEnabledProductsForImport` | Required to list enabled product subscriptions |
+
 ## Examples
 
 ### Basic product information

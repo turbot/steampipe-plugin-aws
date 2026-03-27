@@ -12,6 +12,14 @@ The AWS API Gateway V2 Routes is a feature within the Amazon API Gateway service
 
 The `aws_api_gatewayv2_route` table in Steampipe provides you with information about routes within AWS API Gateway V2. This table allows you, as a DevOps engineer, to query route-specific details, including the route key, route response selection expression, and target. You can utilize this table to gather insights on routes, such as route configurations, route response behaviors, and more. The schema outlines the various attributes of the route for you, including the API identifier, route ID, route key, and associated metadata.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `apigateway:GET` | Required to list and get routes |
+
 ## Examples
 
 ### Basic info

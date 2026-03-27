@@ -12,6 +12,16 @@ AWS Roles Anywhere enables trusted entities outside of an AWS account to carry o
 
 The `aws_rolesanywhere_trust_anchor` table in Steampipe provides you with information about Trust Anchors with Roles Anywhere. This table allows you, as a DevOps engineer, to query Anchor-specific details, including certificate bundles, expiry notification settings, and associated metadata. You can utilize this table to gather insights on Trust Anchors, such as Anchors configured to use self-signed bundles vs ACM bundles, certificates not configured to notify on expiration, and more. The schema outlines the various attributes of the Trust Anchor for you, including the ARN, certificate data, and create and update times.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `rolesanywhere:ListTrustAnchors` | Required to list trust anchors |
+| `rolesanywhere:GetTrustAnchor` | Required to get trust anchor details |
+| `rolesanywhere:ListTagsForResource` | Required to retrieve tags for trust anchors |
+
 ## Examples
 
 ### List enabled Trust Anchors.

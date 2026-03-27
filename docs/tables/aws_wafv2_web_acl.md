@@ -12,6 +12,18 @@ AWS WAFv2 WebACLs are a key component of AWS WAF, a web application firewall tha
 
 The `aws_wafv2_web_acl` table in Steampipe provides you with information about WebACL resources within AWS WAFv2. This table allows you, as a DevOps engineer, to query WebACL-specific details, including associated rules, actions, visibility configurations, and associated metadata. You can utilize this table to gather insights on WebACLs, such as rules associated with each WebACL, actions for each rule, and the scope of the WebACL. The schema outlines for you the various attributes of the WebACL, including the ARN, capacity, default action, description, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `wafv2:ListWebACLs` | Required to list web ACLs |
+| `wafv2:GetWebACL` | Required to get web ACL details (capacity, default_action, rules, visibility_config, etc.) |
+| `wafv2:ListResourcesForWebACL` | Required to get associated resources |
+| `wafv2:GetLoggingConfiguration` | Required to get logging configuration |
+| `wafv2:ListTagsForResource` | Required to get web ACL tags |
+
 ## Examples
 
 ### Basic info

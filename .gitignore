@@ -38,3 +38,6 @@ node_modules
 
 # Ignore dist folders
 dist/
+
+# Claude Code work in progress
+.claude/wip/

@@ -12,6 +12,16 @@ The AWS Security Hub Standards Subscriptions is a feature of AWS Security Hub th
 
 The `aws_securityhub_standards_subscription` table in Steampipe provides you with information about standards subscriptions within AWS Security Hub. This table allows you, as a DevOps engineer, to query subscription-specific details, including the standard's ARN, name, description, and compliance status. You can utilize this table to gather insights on standards, such as their status, updates, and the regions in which they are enabled. The schema outlines the various attributes of the standards subscription for you, including the standards ARN, status, and enabled timestamp.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `securityhub:GetEnabledStandards` | Required to list standards subscriptions and get subscription details |
+
+**Note:** The `securityhub:GetEnabledStandards` permission is also required to retrieve the `standards_status`, `standards_status_reason_code`, `standards_subscription_arn`, and `standards_input` columns.
+
 ## Examples
 
 ### Basic info

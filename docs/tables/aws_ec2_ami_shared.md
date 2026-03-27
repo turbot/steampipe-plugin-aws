@@ -18,6 +18,14 @@ The `aws_ec2_ami_shared` table in Steampipe provides you with information about 
 - To optimize query timing and API calls, use the optional query parameters `owner_ids` or `image_ids` to perform batch operations.
 - If you want to list all of the images in your account then you can use the `aws_ec2_ami` table.
 
+## Required Permissions
+
+Your principal must have the following permissions to use this table:
+
+| Permission | Description |
+|------------|-------------|
+| `ec2:DescribeImages` | Required to retrieve shared AMI information. |
+
 ## Examples
 
 ### Basic info

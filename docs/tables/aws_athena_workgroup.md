@@ -12,6 +12,15 @@ An AWS Athena Workgroup is a resource that acts as a primary server for running 
 
 The `aws_athena_workgroup` table in Steampipe provides you with information about workgroups within AWS Athena. This table allows you as a DevOps engineer to query workgroup-specific details, including workgroup name, state, description, creation time, and more. You can utilize this table to gather insights on workgroups, such as workgroup configurations, encryption configurations, and enforcement settings. The schema outlines the various attributes of the Athena workgroup for you, including the workgroup ARN, state, tags, and configuration details.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `athena:ListWorkGroups` | Required to list workgroups |
+| `athena:GetWorkGroup` | Required to get workgroup details |
+
 ## Examples
 
 ### List all workgroups with basic information

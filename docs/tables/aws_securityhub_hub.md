@@ -12,6 +12,18 @@ The AWS Security Hub provides a comprehensive view of your high-priority securit
 
 The `aws_securityhub_hub` table in Steampipe provides you with information about Hub resources within AWS Security Hub. This table allows you, as a DevOps engineer, to query Hub-specific details, including the ARN, subscription status, and auto-enable controls. You can utilize this table to gather insights on Hub resources, such as their subscription status, whether auto-enable controls are activated, and more. The schema outlines the various attributes of the Security Hub for you, including the Hub ARN, auto-enable controls status, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `securityhub:DescribeHub` | Required to list and get hub details |
+| `securityhub:GetAdministratorAccount` | Required to get administrator account details |
+| `securityhub:ListTagsForResource` | Required to get hub tags |
+
+**Note:** The `securityhub:GetAdministratorAccount` permission is required to retrieve the `administrator_account` column. The `securityhub:ListTagsForResource` permission is required to retrieve the `tags` column.
+
 ## Examples
 
 ### Basic info

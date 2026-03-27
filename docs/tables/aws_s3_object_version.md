@@ -17,6 +17,15 @@ The `aws_s3_object_version` table in Steampipe provides you with information abo
 - You must specify a `bucket_name` in a where or join clause in order to use this table.
 - It's recommended that you specify the `prefix` column when querying buckets with a large number of object versions to reduce the query time.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `s3:ListObjectVersions` | Required to list object versions |
+| `s3:HeadBucket` | Required to get bucket region |
+
 ## Examples
 
 ### Basic Info

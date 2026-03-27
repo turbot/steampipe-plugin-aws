@@ -12,6 +12,16 @@ The AWS Glue Connection is a component of AWS Glue which allows you to store and
 
 The `aws_glue_connection` table in Steampipe provides you with information about connections within AWS Glue. This table allows you, as a DevOps engineer, to query connection-specific details, including the connection name, the connection type, the physical connection requirements, and the connection properties. You can utilize this table to gather insights on connections, such as the type of connections, their properties, and the requirements for physical connections. The schema outlines the various attributes of the AWS Glue connection for you, including the catalog ID, creation time, last updated time, match criteria, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `glue:GetConnections` | Required to list Glue connections |
+| `glue:GetConnection` | Required to get details of a specific connection |
+| `glue:GetTags` | Required to retrieve tags for the connection |
+
 ## Examples
 
 ### Basic info

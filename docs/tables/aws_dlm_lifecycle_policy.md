@@ -12,6 +12,17 @@ The AWS DLM (Data Lifecycle Manager) Lifecycle Policy is a service that automate
 
 The `aws_dlm_lifecycle_policy` table in Steampipe provides you with information about DLM (Data Lifecycle Manager) lifecycle policies within AWS. This table enables you, as a DevOps engineer, to query policy-specific details, including policy ID, policy description, state, status message, and execution details. You can utilize this table to gather insights on policies, such as the policy execution frequency, target tags, and retention rules. The schema outlines the various attributes of the DLM lifecycle policy for you, including policy ARN, creation date, policy details, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `dlm:GetLifecyclePolicies` | Required to list lifecycle policies |
+| `dlm:GetLifecyclePolicy` | Required to get lifecycle policy details |
+
+**Note:** Several detail columns require the `dlm:GetLifecyclePolicy` permission.
+
 ## Examples
 
 ### Basic Info

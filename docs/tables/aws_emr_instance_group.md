@@ -12,6 +12,15 @@ The AWS Elastic MapReduce (EMR) Instance Group is a component of Amazon EMR that
 
 The `aws_emr_instance_group` table in Steampipe provides you with information about instance groups within AWS Elastic MapReduce (EMR). This table allows you, as a DevOps engineer, to query instance group-specific details, including instance group ID, instance type, instance count, and associated metadata. You can utilize this table to gather insights on instance groups, such as their current status, market type, and more. The schema outlines the various attributes of the EMR instance group, including the cluster ID, instance group type, EBS volumes, and associated tags for your convenience.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `elasticmapreduce:ListClusters` | Required to list EMR clusters |
+| `elasticmapreduce:ListInstanceGroups` | Required to list instance groups within clusters |
+
 ## Examples
 
 ### Basic info

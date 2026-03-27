@@ -12,6 +12,14 @@ The AWS CloudWatch Log Resource Policy is a feature of Amazon CloudWatch that al
 
 The `aws_cloudwatch_log_resource_policy` table in Steampipe provides you with information about log resource policies within Amazon CloudWatch Logs. This table allows you, as a DevOps engineer, to query policy-specific details, including the policy name, policy document, and last updated timestamp. You can utilize this table to gather insights on policies, such as what actions are allowed or denied, the resources to which the policy applies, and the conditions under which the policy takes effect. The schema outlines for you the various attributes of the CloudWatch Logs resource policy, including the policy name, policy document, and last updated timestamp.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `logs:DescribeResourcePolicies` | Required to list resource policies |
+
 ## Examples
 
 ### Basic Info

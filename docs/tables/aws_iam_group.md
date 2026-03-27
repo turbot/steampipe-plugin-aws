@@ -12,6 +12,18 @@ The AWS Identity and Access Management (IAM) Group is a feature that allows you 
 
 The `aws_iam_group` table in Steampipe provides you with information about IAM groups within AWS Identity and Access Management (IAM). This table allows you, as a DevOps engineer, to query group-specific details, including group name, path, and ARN. You can utilize this table to gather insights on groups, such as group membership, group policy attachments, and more. The schema outlines the various attributes of the IAM group for you, including the group ARN, creation date, group ID, and associated metadata.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `iam:ListGroups` | Required to list IAM groups |
+| `iam:GetGroup` | Required to get group details and users |
+| `iam:ListAttachedGroupPolicies` | Required to list attached group policies |
+| `iam:ListGroupPolicies` | Required to list inline group policies |
+| `iam:GetGroupPolicy` | Required to get inline policy documents |
+
 ## Examples
 
 ### User details associated with each IAM group

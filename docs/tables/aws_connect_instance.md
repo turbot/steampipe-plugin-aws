@@ -12,6 +12,15 @@ AWS Connect is a cloud contact center service that makes it easy for any busines
 
 The `aws_connect_instance` table in Steampipe provides you with information about Connect instances within AWS. This table allows you, as a DevOps engineer, to query instance-specific details, including instance ID, alias, status, identity management type, and associated metadata. You can utilize this table to gather insights on Connect instances, such as their current status, call configuration, access URLs, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `connect:ListInstances` | Required to list Connect instances. |
+| `connect:DescribeInstance` | Required to get details of a specific Connect instance. |
+
 ## Examples
 
 ### Basic info

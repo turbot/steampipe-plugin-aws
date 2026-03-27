@@ -12,6 +12,15 @@ AWS EMR (Amazon Elastic MapReduce) Security Configuration is a set of security s
 
 The `aws_emr_security_configuration` table in Steampipe allows users to query information about AWS EMR Security Configurations. These configurations are essential for securing EMR clusters, managing encryption, and ensuring compliance with data security standards. Users can retrieve details such as the configuration name, creation date and time, encryption configuration, instance metadata service configuration, and the overall security configuration.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `elasticmapreduce:ListSecurityConfigurations` | Required to list security configurations |
+| `elasticmapreduce:DescribeSecurityConfiguration` | Required to get security configuration details |
+
 ## Examples
 
 ### Basic info

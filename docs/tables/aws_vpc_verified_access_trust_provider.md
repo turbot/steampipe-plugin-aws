@@ -12,6 +12,14 @@ The AWS VPC Verified Access Trust Provider is an AWS service that helps manage a
 
 The `aws_vpc_verified_access_trust_provider` table in Steampipe provides you with information about the trust providers for VPC endpoints within AWS Virtual Private Cloud (VPC). This table allows you, as a DevOps engineer, to query trust provider-specific details, including the provider type, owner, and associated metadata. You can utilize this table to gather insights on trust relationships, such as the services that VPC endpoints can access, verification of trust providers, and more. The schema outlines the various attributes of the trust provider for you, including the provider type, owner, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `ec2:DescribeVerifiedAccessTrustProviders` | Required to list verified access trust provider details |
+
 ## Examples
 
 ### Basic info

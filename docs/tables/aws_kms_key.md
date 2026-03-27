@@ -12,6 +12,19 @@ The AWS Key Management Service (KMS) is a managed service that makes it easy for
 
 The `aws_kms_key` table in Steampipe provides you with information about Key Management Service (KMS) keys within AWS. This table allows you, as a DevOps engineer, to query key-specific details, including cryptographic details, key usage, key state, and associated metadata. You can utilize this table to gather insights on keys, such as keys rotation status, key type, key state, and more. The schema outlines the various attributes of the KMS key for you, including the key ARN, creation date, key state, key usage, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `kms:ListKeys` | Required to list KMS keys |
+| `kms:DescribeKey` | Required to get key details |
+| `kms:ListAliases` | Required for the `aliases` column |
+| `kms:GetKeyRotationStatus` | Required for the `key_rotation_enabled` column |
+| `kms:GetKeyPolicy` | Required for the `policy` and `policy_std` columns |
+| `kms:ListResourceTags` | Required to retrieve tags for keys |
+
 ## Examples
 
 ### Basic info

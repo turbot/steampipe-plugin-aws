@@ -14,6 +14,14 @@ The `aws_s3tables_namespace` table provides insights into namespaces within your
 
 The `aws_s3tables_namespace` table provides information about namespaces in Amazon S3 Tables within your AWS account. As a data engineer or cloud administrator, this table helps you manage and monitor your namespace resources. You can use this table to identify namespaces, analyze their properties, verify owner information, and understand how tables are organized within your S3 Tables environment.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `s3tables:ListNamespaces` | Required to list namespaces |
+
 ## Examples
 
 ### Basic info

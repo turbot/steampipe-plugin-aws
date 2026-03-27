@@ -12,6 +12,15 @@ The AWS CloudWatch Alarms is a feature of Amazon CloudWatch, a monitoring servic
 
 The `aws_cloudwatch_alarm` table in Steampipe provides you with information about alarms within AWS CloudWatch. This table allows you, as a DevOps engineer, to query alarm-specific details, including its current state, configuration, and actions associated with each alarm. You can utilize this table to gather insights on alarms, such as alarms in a particular state, alarms associated with specific AWS resources, and understanding the actions that will be triggered when an alarm state changes. The schema outlines the various attributes of the CloudWatch alarm for you, including the alarm name, alarm description, metric name, comparison operator, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `cloudwatch:DescribeAlarms` | Required to list and get alarm details |
+| `cloudwatch:ListTagsForResource` | Required for the `tags` and `tags_src` columns |
+
 ## Examples
 
 ### Basic info

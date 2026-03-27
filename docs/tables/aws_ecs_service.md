@@ -12,6 +12,17 @@ The AWS Elastic Container Service (ECS) is a highly scalable, high-performance c
 
 The `aws_ecs_service` table in Steampipe provides you with information about the services within the AWS Elastic Container Service (ECS) clusters. This table lets you, as a DevOps engineer, query service-specific details, including service status, task definitions, and associated metadata. You can utilize this table to gather insights on services, such as service health status, task definitions being used, and more. The schema outlines the various attributes of the ECS service for you, including the service ARN, cluster ARN, task definition, desired count, running count, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `ecs:ListClusters` | Required to list ECS clusters (parent resource) |
+| `ecs:ListServices` | Required to list services for each cluster |
+| `ecs:DescribeServices` | Required to get service details |
+| `ecs:ListTagsForResource` | Required to get service tags |
+
 ## Examples
 
 ### Basic info

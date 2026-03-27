@@ -15,6 +15,15 @@ The `aws_neptune_db_cluster` table in Steampipe provides you with information ab
 **Important Notes**
 - This table only returns Neptune DB clusters for you, not RDS or DocumentDB DB clusters.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `neptune:DescribeDBClusters` | Required to list and describe Neptune DB clusters |
+| `neptune:ListTagsForResource` | Required to get tags for Neptune DB clusters |
+
 ## Examples
 
 ### List of DB clusters which are not encrypted

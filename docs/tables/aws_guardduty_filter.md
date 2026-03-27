@@ -12,6 +12,16 @@ The AWS GuardDuty Filter is a feature of AWS GuardDuty that allows you to manage
 
 The `aws_guardduty_filter` table in Steampipe provides you with information about filters within AWS GuardDuty. This table enables you, as a security analyst, to query filter-specific details, including filter conditions, actions, and associated metadata. You can utilize this table to gather insights on filters, such as filter actions, conditions, and the detector ID to which the filter is associated. The schema outlines for you the various attributes of the GuardDuty filter, including the filter name, detector ID, rank, description, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `guardduty:ListDetectors` | Required to list detectors (parent hydrate). |
+| `guardduty:ListFilters` | Required to list filters. |
+| `guardduty:GetFilter` | Required to get filter details. |
+
 ## Examples
 
 ### Basic info

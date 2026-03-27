@@ -12,6 +12,15 @@ The AWS Macie2 Classification Job is a feature of Amazon Macie, a fully managed 
 
 The `aws_macie2_classification_job` table in Steampipe provides you with information about classification jobs within AWS Macie2. This table allows you, as a DevOps engineer, to query job-specific details, including job type, job status, and job creation and completion times. You can utilize this table to gather insights on jobs, such as jobs that are currently running, jobs that have completed, and the results of those jobs. The schema outlines the various attributes of the Macie2 classification job for you, including the job ID, job ARN, S3 bucket definition, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `macie2:ListClassificationJobs` | Required to list classification jobs |
+| `macie2:DescribeClassificationJob` | Required to get details of a specific classification job |
+
 ## Examples
 
 ### Basic info

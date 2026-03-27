@@ -12,6 +12,16 @@ The AWS Service Quotas allows you to view and manage your quotas for AWS service
 
 The `aws_servicequotas_default_service_quota` table in Steampipe provides you with information about the default values of service quotas for AWS services. This table allows you, as a DevOps engineer, to query quota-specific details, including quota names, quota codes, and the default values. You can utilize this table to gather insights on service quotas, such as understanding the default limits for each AWS service, identifying services that might require a quota increase, and more. The schema outlines the various attributes of the service quota for you, including the quota ARN, service name, quota code, quota name, and the default value.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `servicequotas:ListServices` | Required to list services (parent hydrate) |
+| `servicequotas:ListAWSDefaultServiceQuotas` | Required to list default service quotas |
+| `servicequotas:GetAWSDefaultServiceQuota` | Required to get a specific default service quota |
+
 ## Examples
 
 ### Basic info

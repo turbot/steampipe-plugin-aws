@@ -12,6 +12,16 @@ The AWS EventBridge Bus is a component of AWS EventBridge service, which enables
 
 The `aws_eventbridge_bus` table in Steampipe provides you with information about buses within AWS EventBridge. This table allows you, as a DevOps engineer, to query bus-specific details, including the bus name, ARN, policy, and associated metadata. You can utilize this table to gather insights on buses, such as their policies, the events they can handle, and more. The schema outlines the various attributes of the EventBridge bus for you, including the name, ARN, policy, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `events:ListEventBuses` | Required to list event buses |
+| `events:DescribeEventBus` | Required to get event bus details |
+| `events:ListTagsForResource` | Required to retrieve tags for event buses |
+
 ## Examples
 
 ### Basic info

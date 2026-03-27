@@ -12,6 +12,17 @@ The AWS Route 53 Resolver Endpoint is a component of Amazon's Route 53 service, 
 
 The `aws_route53_resolver_endpoint` table in Steampipe provides you with information about Resolver Endpoints within AWS Route 53. This table allows you, as a DevOps engineer, to query endpoint-specific details, including the endpoint's direction (INBOUND or OUTBOUND), IP addresses, status, and associated metadata. You can utilize this table to gather insights on endpoints, such as their security status, IP address associations, and more. The schema outlines the various attributes of the Resolver Endpoint for you, including the endpoint ID, ARN, direction, IP address count, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `route53resolver:ListResolverEndpoints` | Required to list resolver endpoints. |
+| `route53resolver:GetResolverEndpoint` | Required to get resolver endpoint details. |
+| `route53resolver:ListResolverEndpointIpAddresses` | Required to get endpoint IP addresses. |
+| `route53resolver:ListTagsForResource` | Required to get endpoint tags. |
+
 ## Examples
 
 ### List all endpoints

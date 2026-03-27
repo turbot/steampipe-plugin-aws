@@ -12,6 +12,17 @@ AWS DMS (Database Migration Service) Certificate refers to an SSL/TLS certificat
 
 The `aws_dms_certificate` table in Steampipe enables users to query information about AWS DMS Certificates. These certificates are used to secure the data during database migration tasks. Users can retrieve details such as the certificate identifier, ARN, certificate creation date, signing algorithm, valid-to date, and region. Additionally, the table allows users to filter certificates based on various criteria, such as expiration date, signing algorithm, ownership, and more.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `dms:DescribeCertificates` | Required to list certificates |
+| `dms:ListTagsForResource` | Required to get certificate tags |
+
+**Note:** The `tags` and `tags_src` columns require the `dms:ListTagsForResource` permission.
+
 ## Examples
 
 ### Basic info

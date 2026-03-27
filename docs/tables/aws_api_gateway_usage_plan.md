@@ -12,6 +12,14 @@ The AWS API Gateway Usage Plans are a feature of Amazon API Gateway that allows 
 
 The `aws_api_gateway_usage_plan` table in Steampipe provides you with information about usage plans within AWS API Gateway. This table allows you, as a DevOps engineer, to query usage plan specific details, including associated API stages, throttle and quota limits, and associated metadata. You can utilize this table to gather insights on usage plans, such as plans with specific rate limits, the number of requests your clients can make per a given period, and more. The schema outlines the various attributes of the usage plan, including the plan ID, name, description, associated API keys, and associated tags for you.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `apigateway:GET` | Required to list and get usage plans |
+
 ## Examples
 
 ### Basic info

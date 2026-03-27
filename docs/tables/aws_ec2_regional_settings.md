@@ -12,6 +12,16 @@ The AWS EC2 Regional Settings are configurations that apply to an entire region 
 
 The `aws_ec2_regional_settings` table in Steampipe provides you with information about the regional settings of Amazon Elastic Compute Cloud (EC2). This table allows you, as a cloud administrator, security team member, or developer, to query regional settings, including default EBS encryption and the default EBS encryption KMS key. You can utilize this table to gather insights on regional settings, such as the default EBS encryption status, the default EBS encryption KMS key, and the region name. The schema outlines the various attributes of the regional settings for you, including the region, default EBS encryption, and default EBS encryption KMS key.
 
+## Required Permissions
+
+Your principal must have the following permissions to use this table:
+
+| Permission | Description |
+|------------|-------------|
+| `ec2:GetEbsEncryptionByDefault` | Required to retrieve the `default_ebs_encryption_enabled` column. |
+| `ec2:GetEbsDefaultKmsKeyId` | Required to retrieve the `default_ebs_encryption_key` column. |
+| `ec2:GetSnapshotBlockPublicAccessState` | Required to retrieve the `snapshot_block_public_access_state` column. |
+
 ## Examples
 
 ### Basic settings info

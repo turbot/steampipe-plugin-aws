@@ -12,6 +12,15 @@ AWS ElastiCache Serverless Cache is a fully managed, serverless cache service th
 
 The `aws_elasticache_serverless_cache` table in Steampipe provides you with information about each serverless cache within your AWS account. This table enables you, as a DevOps engineer, database administrator, or other IT professional, to query serverless cache-specific details, including configuration, status, and associated metadata. You can utilize this table to gather insights on serverless caches, such as their status, engine version, usage limits, and more. The schema outlines the various attributes of the serverless cache for you, including the cache name, creation date, current status, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `elasticache:DescribeServerlessCaches` | Required to list and get ElastiCache serverless cache details |
+| `elasticache:ListTagsForResource` | Required to retrieve tags for ElastiCache serverless caches (used for `tags` and `tags_src` columns) |
+
 ## Examples
 
 ### List all serverless caches

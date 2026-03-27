@@ -22,6 +22,20 @@ The `aws_s3_object` table in Steampipe provides you with information about objec
   - `sse_customer_key_md5`
   - `sse_customer_key`
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `s3:ListObjectsV2` | Required to list objects in a bucket |
+| `s3:HeadBucket` | Required to get bucket region |
+| `s3:GetObject` | Required to get object body and metadata (body, metadata columns) |
+| `s3:HeadObject` | Required to get object head information (version_id, accept_ranges, cache_control, checksum_*, content_*, etag, expiration, object_lock_*, replication_status, server_side_encryption, sse_* columns) |
+| `s3:GetObjectAttributes` | Required to get object attributes (checksum, object_parts columns) |
+| `s3:GetObjectAcl` | Required to get object ACL (acl column) |
+| `s3:GetObjectTagging` | Required to get object tags (tags, tags_src columns) |
+
 ## Examples
 
 ### Basic info

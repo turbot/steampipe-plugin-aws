@@ -12,6 +12,18 @@ The AWS Backup Vault is a secured place where AWS Backup stores backup data. It 
 
 The `aws_backup_vault` table in Steampipe provides you with information about backup vaults within AWS Backup. This table allows you, as a DevOps engineer, to query vault-specific details, including the vault name, ARN, number of recovery points, and associated metadata. You can utilize this table to gather insights on backup vaults, such as the number of recovery points for each vault, the creation date of each vault, and more. The schema outlines the various attributes of the backup vault for you, including the vault name, ARN, creation date, last resource backup time, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `backup:ListBackupVaults` | Required to list backup vaults |
+| `backup:DescribeBackupVault` | Required to get details of a specific backup vault |
+| `backup:GetBackupVaultNotifications` | Required to get vault notification settings for `sns_topic_arn` and `backup_vault_events` columns |
+| `backup:GetBackupVaultAccessPolicy` | Required to get vault access policy for `policy` and `policy_std` columns |
+| `backup:ListTags` | Required to retrieve tags for the backup vault |
+
 ## Examples
 
 ### Basic Info

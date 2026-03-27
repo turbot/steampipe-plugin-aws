@@ -12,6 +12,16 @@ The AWS SageMaker Domain is a fully managed service that provides every develope
 
 The `aws_sagemaker_domain` table in Steampipe provides you with information about domains within AWS SageMaker Studio. This table allows you, as a data scientist, machine learning engineer, or DevOps engineer, to query domain-specific details, including the domain status, creation time, and associated metadata. You can utilize this table to gather insights on domains, such as the status of a domain, the creation time, the associated app network access type, and more. The schema outlines the various attributes of the SageMaker domain, including the domain ID, domain ARN, domain name, and associated tags for you.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `sagemaker:ListDomains` | Required to list domains |
+| `sagemaker:DescribeDomain` | Required to get domain details |
+| `sagemaker:ListTags` | Required to get domain tags |
+
 ## Examples
 
 ### Basic info

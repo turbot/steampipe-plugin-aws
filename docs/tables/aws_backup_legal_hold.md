@@ -12,6 +12,15 @@ The AWS Backup Legal Hold is a feature within the AWS Backup service that helps 
 
 The `aws_backup_legal_hold` table in Steampipe provides you with information about legal hold settings for AWS Backup resources. This table allows you, as a DevOps engineer, to query legal hold-specific details, including the backup resource ARN, the legal hold status, and the last update time. You can utilize this table to review and monitor the legal hold status of backup resources, ensuring compliance with data retention policies and legal requirements. The schema outlines for you the various attributes of the legal hold, including the backup resource ARN, the legal hold status, and the last update time.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `backup:ListLegalHolds` | Required to list legal holds |
+| `backup:GetLegalHold` | Required to get details of a specific legal hold including `recovery_point_selection` column |
+
 ## Examples
 
 ### Basic Info

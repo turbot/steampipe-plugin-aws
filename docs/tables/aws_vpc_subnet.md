@@ -12,6 +12,14 @@ An AWS VPC (Virtual Private Cloud) Subnet is a range of IP addresses in your VPC
 
 The `aws_vpc_subnet` table in Steampipe provides you with information about subnets within Amazon Virtual Private Cloud (VPC). This table allows you, as a DevOps engineer, to query subnet-specific details, including its configuration, associated VPC, availability zone, and CIDR block. You can utilize this table to gather insights on subnets, such as subnet size, associated route tables, network ACLs, and more. The schema outlines the various attributes of the subnet, including the subnet ID, VPC ID, state, CIDR block, and associated tags for you.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `ec2:DescribeSubnets` | Required to list and get subnet details |
+
 ## Examples
 
 ### Basic VPC subnet IP address info

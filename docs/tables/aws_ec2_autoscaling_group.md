@@ -12,6 +12,15 @@ The AWS EC2 Auto Scaling Groups service allows you to ensure that you have the c
 
 The `aws_ec2_autoscaling_group` table in Steampipe provides you with information about Auto Scaling Groups within AWS EC2. This table allows you, as a DevOps engineer, to query group-specific details, including configuration, associated instances, scaling policies, and associated metadata. You can utilize this table to gather insights on groups, such as their desired, minimum and maximum sizes, default cooldown periods, load balancer names, and more. The schema outlines for you the various attributes of the Auto Scaling Group, including the ARN, creation date, health check type and grace period, launch configuration name, and associated tags.
 
+## Required Permissions
+
+Your principal must have the following permissions to use this table:
+
+| Permission | Description |
+|------------|-------------|
+| `autoscaling:DescribeAutoScalingGroups` | Required to retrieve Auto Scaling Group information. |
+| `autoscaling:DescribePolicies` | Required to retrieve the `policies` column. |
+
 ## Examples
 
 ### Basic info

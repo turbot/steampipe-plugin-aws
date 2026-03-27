@@ -12,6 +12,15 @@ The AWS Security Lake Subscriber is a component of AWS Lake Formation, a service
 
 The `aws_securitylake_subscriber` table in Steampipe provides you with information about subscribers within the AWS Security Lake service. This table allows you, as a DevOps engineer, security analyst, or other technical professional, to query subscriber-specific details, including the subscriber's status, endpoint type, and subscription creation time. You can utilize this table to gather insights on subscribers, such as their current status, the type of endpoint they are subscribed to, and when they were created. The schema outlines the various attributes of the AWS Security Lake Subscriber for you, including the subscriber ARN, endpoint type, status, and creation time.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `securitylake:ListSubscribers` | Required to list subscribers |
+| `securitylake:GetSubscriber` | Required to get subscriber details |
+
 ## Examples
 
 ### Basic info

@@ -12,6 +12,16 @@ The AWS VPC Endpoint Service is a feature that allows private connectivity betwe
 
 The `aws_vpc_endpoint_service` table in Steampipe provides you with information about AWS VPC Endpoint Services. This table allows you, as a DevOps engineer, to query service-specific details, including service type, service name, and whether or not the service is private. You can utilize this table to gather insights on services, such as identifying private services, understanding the types of services available, and more. The schema outlines the various attributes of the VPC Endpoint Service for you, including the service id, service name, service type, and whether or not the service is private.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `ec2:DescribeVpcEndpointServices` | Required to list and get VPC endpoint service details |
+| `ec2:DescribeVpcEndpointServicePermissions` | Required to get endpoint service permissions (for `vpc_endpoint_service_permissions` column) |
+| `ec2:DescribeVpcEndpointConnections` | Required to get endpoint connections (for `vpc_endpoint_connections` column) |
+
 ## Examples
 
 ### Basic info

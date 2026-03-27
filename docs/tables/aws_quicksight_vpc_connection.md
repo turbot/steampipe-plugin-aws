@@ -12,6 +12,15 @@ AWS QuickSight VPC Connection is a feature that allows you to connect QuickSight
 
 The `aws_quicksight_vpc_connection` table in Steampipe provides you with information about VPC connections within AWS QuickSight. This table allows you, as a data analyst or administrator, to query VPC connection-specific details, including configuration, status, and security settings. You can use this table to gather insights on VPC connections, such as their current status, the VPC and security groups they're connected to, security group configurations, and more. The schema outlines the various attributes of the QuickSight VPC connection for you to query, including the connection ID, ARN, creation time, and associated network details.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `quicksight:ListVPCConnections` | Required to list VPC connections |
+| `quicksight:DescribeVPCConnection` | Required to get VPC connection details |
+
 ## Examples
 
 ### Basic info

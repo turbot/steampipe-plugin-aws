@@ -12,6 +12,16 @@ AWS Config Rules is a service that enables you to automate the evaluation of rec
 
 The `aws_config_rule` table in Steampipe provides you with information about Config Rules within the AWS Config service. This table allows you, as a DevOps engineer, to query rule-specific details, including the rule name, ARN, description, scope, and compliance status. You can utilize this table to gather insights on Config Rules, such as rules that are non-compliant, rules applied to specific resources, and more. The schema outlines the various attributes of the Config Rule for you, including the rule ARN, creation date, input parameters, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `config:DescribeConfigRules` | Required to list and get Config rules |
+| `config:ListTagsForResource` | Required to retrieve tags (for `tags` and `tags_src` columns) |
+| `config:DescribeComplianceByConfigRule` | Required to get compliance information (for `compliance_by_config_rule` column) |
+
 ## Examples
 
 ### Basic info

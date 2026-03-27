@@ -12,6 +12,14 @@ AWS Trusted Advisor is a real-time guidance tool that helps you provision your r
 
 The `aws_trusted_advisor_check_result` table in Steampipe provides you with information about individual flagged resources from AWS Trusted Advisor checks. This table allows you, as a DevOps engineer, cloud administrator, or security analyst, to query resource-specific details identified by Trusted Advisor, including resource IDs, statuses, regions, and metadata. You can utilize this table to gather insights on flagged resources, such as identifying critical issues, analyzing resource distribution across regions, and tracking resource-level recommendations. The schema outlines the various attributes of flagged resources, including the check ID, resource information, suppression status, and associated metadata.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `support:DescribeTrustedAdvisorCheckResult` | Required to get the results of a Trusted Advisor check. |
+
 **Important Notes**
 - You must specify both `language` and `check_id` in the WHERE clause to query this table.
 - Each row represents an individual flagged resource rather than a check summary.

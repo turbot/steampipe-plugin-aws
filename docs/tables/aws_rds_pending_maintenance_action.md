@@ -12,6 +12,14 @@ The AWS RDS Pending Maintenance Action is a feature of Amazon Relational Databas
 
 The `aws_rds_pending_maintenance_action` table in Steampipe provides you with information about pending maintenance actions for RDS DB instances and clusters. This table allows you, as a DevOps engineer, to query details about maintenance tasks that are scheduled or required for your RDS resources. You can utilize this table to gather insights on the nature of maintenance actions, their statuses, and timelines for application. The schema outlines the various attributes of the maintenance actions, including the resource identifier, action type, and relevant dates.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `rds:DescribePendingMaintenanceActions` | Required to list pending maintenance actions |
+
 ## Examples
 
 ### List of pending maintenance actions for RDS DB instances

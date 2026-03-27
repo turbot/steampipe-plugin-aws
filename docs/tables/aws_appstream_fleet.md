@@ -12,6 +12,15 @@ The AWS AppStream Fleet is a part of Amazon AppStream 2.0, a fully managed, secu
 
 The `aws_appstream_fleet` table in Steampipe provides you with information about fleets within AWS AppStream. This table allows you, as a DevOps engineer, to query fleet-specific details, including the fleet state, instance type, associated stack details, and more. You can utilize this table to gather insights on fleets, such as the fleet's current capacity, the fleet's idle disconnect timeout settings, and the fleet's stream view. The schema outlines the various attributes of the AppStream Fleet for you, including the fleet ARN, creation time, fleet type, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `appstream:DescribeFleets` | Required to list and describe fleets |
+| `appstream:ListTagsForResource` | Required to get fleet tags |
+
 ## Examples
 
 ### Basic info

@@ -12,6 +12,16 @@ The AWS OAM (Operational Application Management) Sink is a component of the AWS 
 
 The `aws_oam_sink` table in Steampipe provides you with information about each OAM Sink within AWS Operational Application Manager (OAM). This table allows you as a DevOps engineer to query Sink-specific details, including the Sink ARN, creation date, Sink status, and associated metadata. You can utilize this table to gather insights on Sinks, such as Sinks with specific statuses, verification of Sink properties, and more. The schema outlines the various attributes of the OAM Sink for you, including the Sink ARN, creation date, status, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `oam:ListSinks` | Required to list OAM sinks |
+| `oam:GetSink` | Required to get details of a specific sink |
+| `oam:ListTagsForResource` | Required to get tags for sinks |
+
 ## Examples
 
 ### Basic info

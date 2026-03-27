@@ -26,6 +26,14 @@ The following tables also retrieve data from CloudWatch log groups, but have col
 - [aws_cloudtrail_trail_event](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_cloudtrail_trail_event)
 - [aws_vpc_flow_log_event](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_vpc_flow_log_event)
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `logs:FilterLogEvents` | Required to list log events |
+
 ## Examples
 
 ### List events that occurred over the last five minutes

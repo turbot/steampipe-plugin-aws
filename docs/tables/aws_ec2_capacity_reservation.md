@@ -12,6 +12,14 @@ An AWS EC2 Capacity Reservation ensures that you have reserved capacity for your
 
 The `aws_ec2_capacity_reservation` table in Steampipe provides you with information about Capacity Reservations within AWS Elastic Compute Cloud (EC2). This table allows you, as a DevOps engineer, to query reservation-specific details, including reservation ID, reservation ARN, state, instance type, and associated metadata. You can utilize this table to gather insights on reservations, such as reservations per availability zone, reservations per instance type, and more. The schema outlines for you the various attributes of the EC2 Capacity Reservation, including the reservation ID, creation date, instance count, and associated tags.
 
+## Required Permissions
+
+Your principal must have the following permissions to use this table:
+
+| Permission | Description |
+|------------|-------------|
+| `ec2:DescribeCapacityReservations` | Required to retrieve Capacity Reservation information. |
+
 ## Examples
 
 ### Basic info

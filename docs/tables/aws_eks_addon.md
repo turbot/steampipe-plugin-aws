@@ -12,6 +12,16 @@ The AWS EKS Add-Ons are additional software components that enhance the function
 
 The `aws_eks_addon` table in Steampipe provides you with information about add-ons associated with each Amazon EKS cluster. This table allows you, as a DevOps engineer, to query add-on-specific details, including add-on versions, status, and associated metadata. You can utilize this table to gather insights on add-ons, such as the current version of each add-on, the health of add-ons, and more. The schema outlines the various attributes of the EKS add-on for you, including the add-on name, add-on version, service account role ARN, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `eks:ListClusters` | Required to list EKS clusters (parent resource) |
+| `eks:ListAddons` | Required to list add-ons for each cluster |
+| `eks:DescribeAddon` | Required to get add-on details |
+
 ## Examples
 
 ### Basic info

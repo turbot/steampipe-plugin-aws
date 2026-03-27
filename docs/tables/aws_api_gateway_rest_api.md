@@ -12,6 +12,14 @@ The AWS API Gateway Rest API is a fully managed service that makes it easy for d
 
 The `aws_api_gateway_rest_api` table in Steampipe provides you with information about API Gateway REST APIs within AWS API Gateway. This table allows you, as a DevOps engineer, to query REST API-specific details, including the API's name, description, id, and created date. You can utilize this table to gather insights on APIs, such as their deployment status, endpoint configurations, and more. The schema outlines the various attributes of the API Gateway REST API for you, including the API's ARN, created date, endpoint configuration, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `apigateway:GET` | Required to list and get REST APIs |
+
 ## Examples
 
 ### API gateway rest API basic info

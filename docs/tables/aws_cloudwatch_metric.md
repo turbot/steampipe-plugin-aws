@@ -15,6 +15,14 @@ The `aws_cloudwatch_metric` table in Steampipe provides you with information abo
 **Important Notes**
 - You can include up to 10 dimensions in the `dimensions_filter` column.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `cloudwatch:ListMetrics` | Required to list metrics |
+
 ## Examples
 
 ### Basic info

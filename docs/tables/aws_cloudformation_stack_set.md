@@ -12,6 +12,15 @@ The AWS CloudFormation StackSets is a feature within the AWS CloudFormation serv
 
 The `aws_cloudformation_stack_set` table in Steampipe provides you with information about StackSets within AWS CloudFormation. This table allows you, as a DevOps engineer, to query StackSet-specific details, including its configuration, status, and AWS resources associated with it. You can utilize this table to gather insights on StackSets, such as StackSets with specific configurations, their current status, and more. The schema outlines the various attributes of the StackSet for you, including the StackSet ID, description, status, template body, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `cloudformation:ListStackSets` | Required to list stack sets. |
+| `cloudformation:DescribeStackSet` | Required to get details of a specific stack set. |
+
 ## Examples
 
 ### Basic info

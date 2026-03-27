@@ -12,6 +12,15 @@ The AWS Well-Architected Lens is a component of the AWS Well-Architected Framewo
 
 The `aws_wellarchitected_lens` table in Steampipe provides you with information about each Well-Architected Lens within AWS Well-Architected Tool. This table allows you, as a DevOps engineer, to query lens-specific details, including lens name, description, and associated AWS Well-Architected Framework pillars. You can utilize this table to gather insights on lenses, such as their associated pillars and descriptions. The schema outlines the various attributes of the Well-Architected Lens for you, including the lens name, lens version, lens status, and associated pillars.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `wellarchitected:ListLenses` | Required to list lenses |
+| `wellarchitected:GetLens` | Required to get lens details and additional columns (`share_invitation_id`, `tags`) |
+
 ## Examples
 
 ### Basic info

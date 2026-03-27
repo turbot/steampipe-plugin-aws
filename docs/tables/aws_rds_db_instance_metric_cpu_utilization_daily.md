@@ -14,6 +14,15 @@ The `aws_rds_db_instance_metric_cpu_utilization_daily` table in Steampipe provid
 
 The `aws_rds_db_instance_metric_cpu_utilization_daily` table provides you with metric statistics at 24 hour intervals for the last year.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `rds:DescribeDBInstances` | Required to list DB instances (parent hydrate) |
+| `cloudwatch:GetMetricStatistics` | Required to retrieve CPU utilization metrics |
+
 ## Examples
 
 ### Basic info

@@ -10,7 +10,15 @@ The AWS Service Quotas is a service that allows you to view and manage your quot
 
 ## Table Usage Guide
 
-The `aws_servicequotas_service` table in Steampipe provides you with information about services within AWS Service Quotas. With the service's service code, you can then query service quotas for that specific service, including default values, 
+The `aws_servicequotas_service` table in Steampipe provides you with information about services within AWS Service Quotas. With the service's service code, you can then query service quotas for that specific service, including default values,
+
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `servicequotas:ListServices` | Required to list services |
 
 ## Examples
 

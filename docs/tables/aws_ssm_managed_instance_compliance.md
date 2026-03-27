@@ -15,6 +15,14 @@ The `aws_ssm_managed_instance_compliance` table in Steampipe provides you with i
 **Important Notes**
 - You must specify an Managed Instance ID in a `where` or `join` clause (`where resource_id='`) to query this table.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `ssm:ListComplianceItems` | Required to list compliance items for a managed instance. |
+
 ## Examples
 
 ### Basic info

@@ -12,6 +12,14 @@ The AWS VPC Endpoints allow private connectivity to services hosted in AWS, dire
 
 The `aws_vpc_endpoint` table in Steampipe provides you with information about VPC Endpoints within Amazon Virtual Private Cloud (VPC). This table allows you, as a network administrator or DevOps engineer, to query endpoint-specific details, including its service configuration, type (Interface or Gateway), status, and associated resources such as network interfaces, DNS entries, and security groups. You can utilize this table to gather insights on VPC Endpoints, such as their accessibility, security configuration, and integration with other AWS services. The schema outlines the various attributes of the VPC Endpoint for you, including the endpoint ID, VPC ID, service name, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `ec2:DescribeVpcEndpoints` | Required to list and get VPC endpoint details |
+
 ## Examples
 
 ### List of VPC endpoint and the corresponding services

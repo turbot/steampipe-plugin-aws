@@ -12,6 +12,17 @@ The AWS Elastic Container Registry Public Repository is a service that allows yo
 
 The `aws_ecrpublic_repository` table in Steampipe provides you with information about each ECR public repository within your AWS account. This table allows you, as a DevOps engineer, to query repository-specific details, including the repository ARN, repository name, creation date, and associated metadata. You can use this table to gather insights on repositories, such as the number of images per repository, the status of each repository, and more. The schema outlines the various attributes of the ECR public repository for you, including the repository ARN, creation date, image tag mutability, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `ecr-public:DescribeRepositories` | Required to list and get details of ECR public repositories. |
+| `ecr-public:ListTagsForResource` | Required to retrieve tags for repositories. |
+| `ecr-public:GetRepositoryPolicy` | Required to get repository policy information. |
+| `ecr-public:DescribeImages` | Required to get image information for repositories. |
+
 ## Examples
 
 ### Basic info

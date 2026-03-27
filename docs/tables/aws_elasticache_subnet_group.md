@@ -12,6 +12,14 @@ The AWS ElastiCache Subnet Group is a feature of Amazon ElastiCache that allows 
 
 The `aws_elasticache_subnet_group` table in Steampipe provides you with information about each subnet group within the AWS ElastiCache service. This table enables you, as a DevOps engineer, to query subnet group-specific details, such as the associated VPC, subnets, and status. You can utilize this table to gather insights on subnet groups, such as their availability status, the number of subnets within each group, and the VPC they're associated with. The schema outlines the various attributes of the subnet group for you, including the subnet group name, description, VPC ID, and subnet IDs.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `elasticache:DescribeCacheSubnetGroups` | Required to list and get ElastiCache subnet group details |
+
 ## Examples
 
 ### Basic info

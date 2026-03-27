@@ -12,6 +12,17 @@ The AWS CloudFront Origin Access Identity is a special CloudFront feature that a
 
 The `aws_cloudfront_origin_access_identity` table in Steampipe provides you with information about each origin access identity within AWS CloudFront. This table allows you, as a DevOps engineer, to query identity-specific details, including the identity's ID, S3 canonical user ID, caller reference, and associated comment. You can utilize this table to gather insights on origin access identities, such as the identity's configuration and CloudFront caller reference. The schema outlines the various attributes of the origin access identity for you, including the ID, S3 canonical user ID, caller reference, and comment.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `cloudfront:ListCloudFrontOriginAccessIdentities` | Required to list origin access identities |
+| `cloudfront:GetCloudFrontOriginAccessIdentity` | Required to get origin access identity details |
+
+**Note:** The `cloudfront:GetCloudFrontOriginAccessIdentity` permission is required for the following columns: `caller_reference`, `etag`.
+
 ## Examples
 
 ### Basic Info

@@ -12,6 +12,14 @@ The AWS EC2 Transit Gateway is a service that simplifies the process of networki
 
 The `aws_ec2_transit_gateway` table in Steampipe provides you with information about Transit Gateways within Amazon Elastic Compute Cloud (EC2). This table allows you, as a DevOps engineer, to query Transit Gateway-specific details, including its configuration, state, and associations. You can utilize this table to gather insights on Transit Gateways, such as its attached VPCs, VPN connections, Direct Connect gateways, and more. The schema outlines the various attributes of the Transit Gateway for you, including the transit gateway ID, creation time, state, and associated tags.
 
+## Required Permissions
+
+Your principal must have the following permissions to use this table:
+
+| Permission | Description |
+|------------|-------------|
+| `ec2:DescribeTransitGateways` | Required to retrieve transit gateway information. |
+
 ## Examples
 
 ### Basic Transit Gateway info

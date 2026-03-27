@@ -12,6 +12,16 @@ The AWS Serverless Application Repository is a managed repository for serverless
 
 The `aws_serverlessapplicationrepository_application` table in Steampipe provides you with information about Applications within AWS Serverless Application Repository. This table enables you, as a DevOps engineer, to query application-specific details, including application name, status, author, description, labels, license URL, creation time, and more. You can utilize this table to gather insights on applications, such as applications by specific authors, applications with certain labels, applications under certain licenses, and more. The schema outlines the various attributes of the Application for you, including the application ID, home page URL, semantic version, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `serverlessrepo:ListApplications` | Required to list applications |
+| `serverlessrepo:GetApplication` | Required to get application details |
+| `serverlessrepo:GetApplicationPolicy` | Required to retrieve the application policy |
+
 ## Examples
 
 ### Basic info
