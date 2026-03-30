@@ -207,6 +207,7 @@ func tableAwsLambdaFunction(_ context.Context) *plugin.Table {
 				Description: "The deployment package of the function or version.",
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getAwsLambdaFunction,
+				Transform:   transform.FromField("Code").Transform(filterCodeLocation),
 			},
 			{
 				Name:        "environment_variables",
@@ -487,6 +488,18 @@ func getLambdaFunctionUrlConfig(ctx context.Context, d *plugin.QueryData, h *plu
 	}
 
 	return urlConfigs, nil
+}
+
+func filterCodeLocation(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	code, ok := d.Value.(*types.FunctionCodeLocation)
+	if !ok || code == nil {
+		return nil, nil
+	}
+	return map[string]interface{}{
+		"ImageUri":         code.ImageUri,
+		"RepositoryType":   code.RepositoryType,
+		"ResolvedImageUri": code.ResolvedImageUri,
+	}, nil
 }
 
 func functionName(item interface{}) string {
