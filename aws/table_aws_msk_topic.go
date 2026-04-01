@@ -2,9 +2,11 @@ package aws
 
 import (
 	"context"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/kafka"
+	"github.com/aws/aws-sdk-go-v2/service/sts"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -120,6 +122,24 @@ func listMSKTopics(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 	clusterArn := d.EqualsQuals["cluster_arn"].GetStringValue()
 	if clusterArn == "" {
 		return nil, nil
+	}
+
+	// The cluster_arn encodes the owning account (arn:aws:kafka:REGION:ACCOUNT_ID:cluster/...).
+	// Steampipe fans this query out to all configured connections, but only the connection
+	// whose account matches the cluster's account can call kafka-cluster:Connect on it.
+	// Skip early for non-owning connections to avoid cross-account 403 errors.
+	arnParts := strings.Split(clusterArn, ":")
+	if len(arnParts) >= 5 {
+		clusterAccountID := arnParts[4]
+		callerIdentityData, err := getCallerIdentity(ctx, d, &plugin.HydrateData{})
+		if err == nil && callerIdentityData != nil {
+			callerIdentity := callerIdentityData.(*sts.GetCallerIdentityOutput)
+			if callerIdentity.Account != nil && *callerIdentity.Account != clusterAccountID {
+				logger.Debug("aws_msk_topic.listMSKTopics", "skipping connection - account mismatch",
+					"connection_account", *callerIdentity.Account, "cluster_account", clusterAccountID)
+				return nil, nil
+			}
+		}
 	}
 
 	svc, err := KafkaClient(ctx, d)
