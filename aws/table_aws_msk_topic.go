@@ -2,11 +2,10 @@ package aws
 
 import (
 	"context"
-	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/kafka"
-	"github.com/aws/aws-sdk-go-v2/service/sts"
+	"github.com/aws/aws-sdk-go-v2/service/kafka/types"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -28,10 +27,11 @@ func tableAwsMSKTopic(_ context.Context) *plugin.Table {
 			},
 		},
 		List: &plugin.ListConfig{
-			Hydrate:    listMSKTopics,
-			Tags:       map[string]string{"service": "kafka", "action": "ListTopics"},
+			Hydrate:       listMSKTopics,
+			ParentHydrate: listKafkaClusters(string(types.ClusterTypeProvisioned)),
+			Tags:          map[string]string{"service": "kafka", "action": "ListTopics"},
 			KeyColumns: plugin.KeyColumnSlice{
-				{Name: "cluster_arn", Require: plugin.Required},
+				{Name: "cluster_arn", Require: plugin.Optional},
 				{Name: "topic_name", Require: plugin.Optional},
 			},
 		},
@@ -119,26 +119,14 @@ type mskTopicRow struct {
 func listMSKTopics(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	logger := plugin.Logger(ctx)
 
-	clusterArn := d.EqualsQuals["cluster_arn"].GetStringValue()
-	if clusterArn == "" {
-		return nil, nil
-	}
+	cluster := h.Item.(types.Cluster)
+	clusterArn := cluster.ClusterArn
 
-	// The cluster_arn encodes the owning account (arn:aws:kafka:REGION:ACCOUNT_ID:cluster/...).
-	// Steampipe fans this query out to all configured connections, but only the connection
-	// whose account matches the cluster's account can call kafka-cluster:Connect on it.
-	// Skip early for non-owning connections to avoid cross-account 403 errors.
-	arnParts := strings.Split(clusterArn, ":")
-	if len(arnParts) >= 5 {
-		clusterAccountID := arnParts[4]
-		callerIdentityData, err := getCallerIdentity(ctx, d, &plugin.HydrateData{})
-		if err == nil && callerIdentityData != nil {
-			callerIdentity := callerIdentityData.(*sts.GetCallerIdentityOutput)
-			if callerIdentity.Account != nil && *callerIdentity.Account != clusterAccountID {
-				logger.Debug("aws_msk_topic.listMSKTopics", "skipping connection - account mismatch",
-					"connection_account", *callerIdentity.Account, "cluster_account", clusterAccountID)
-				return nil, nil
-			}
+	// If cluster_arn qual is provided, skip clusters that don't match
+	if d.EqualsQuals["cluster_arn"] != nil {
+		qualClusterArn := d.EqualsQuals["cluster_arn"].GetStringValue()
+		if qualClusterArn != *clusterArn {
+			return nil, nil
 		}
 	}
 
@@ -164,7 +152,7 @@ func listMSKTopics(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 	}
 
 	input := kafka.ListTopicsInput{
-		ClusterArn: aws.String(clusterArn),
+		ClusterArn: clusterArn,
 		MaxResults: aws.Int32(maxLimit),
 	}
 
@@ -188,7 +176,7 @@ func listMSKTopics(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 
 		for _, topic := range output.Topics {
 			d.StreamListItem(ctx, mskTopicRow{
-				ClusterArn:            aws.String(clusterArn),
+				ClusterArn:            clusterArn,
 				TopicName:             topic.TopicName,
 				TopicArn:              topic.TopicArn,
 				PartitionCount:        topic.PartitionCount,

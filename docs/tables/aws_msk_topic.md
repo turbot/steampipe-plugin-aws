@@ -10,11 +10,36 @@ An AWS MSK topic is a category or feed name to which records are published in an
 
 ## Table Usage Guide
 
-The `aws_msk_topic` table in Steampipe provides you with information about Kafka topics within AWS MSK clusters. This table allows you to query topic-specific details, including partition count, replication factor, and synchronization status. You can utilize this table to monitor topic health, identify under-replicated topics, and review topic configurations. Note that `cluster_arn` is a required key column for all queries.
+The `aws_msk_topic` table in Steampipe provides you with information about Kafka topics within AWS MSK clusters. This table allows you to query topic-specific details, including partition count, replication factor, and synchronization status. You can utilize this table to monitor topic health, identify under-replicated topics, and review topic configurations across all provisioned MSK clusters. You can optionally filter by `cluster_arn` to narrow results to a specific cluster.
 
 ## Examples
 
 ### Basic info
+List all topics across all provisioned MSK clusters.
+
+```sql+postgres
+select
+  topic_name,
+  topic_arn,
+  partition_count,
+  replication_factor,
+  cluster_arn
+from
+  aws_msk_topic;
+```
+
+```sql+sqlite
+select
+  topic_name,
+  topic_arn,
+  partition_count,
+  replication_factor,
+  cluster_arn
+from
+  aws_msk_topic;
+```
+
+### List topics for a specific cluster
 Explore the topics configured on a specific MSK cluster.
 
 ```sql+postgres
