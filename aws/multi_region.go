@@ -761,7 +761,9 @@ func awsCommercialRegionPrefixes() []string {
 		"ap",
 		"ca",
 		"eu",
+		"il",
 		"me",
+		"mx",
 		"sa",
 		"us",
 	}
