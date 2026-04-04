@@ -12,6 +12,16 @@ The AWS Simple Notification Service (SNS) Topics is a web service that coordinat
 
 The `aws_sns_topic` table in Steampipe provides you with information about each topic in Amazon Simple Notification Service (SNS). This table allows you as a DevOps engineer to query topic-specific details, including the topic name, owner, ARN, and other associated metadata. You can utilize this table to gather insights on SNS topics, such as topic subscription details, policy attributes, and more. The schema outlines for you the various attributes of the SNS topic, including the topic ARN, owner, subscription count, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `sns:ListTopics` | Required to list topics |
+| `sns:GetTopicAttributes` | Required to get topic attributes |
+| `sns:ListTagsForResource` | Required to retrieve tags for topics |
+
 ## Examples
 
 ### List of unencrypted SNS topic

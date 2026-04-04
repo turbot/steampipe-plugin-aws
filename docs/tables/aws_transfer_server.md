@@ -12,6 +12,15 @@ The AWS Transfer for SFTP service provides a secure way to transfer files into a
 
 The `aws_transfer_server` table in Steampipe provides you with information about SFTP servers within AWS Transfer for SFTP. This table allows you, as a DevOps engineer, to query server-specific details, including server configurations, endpoint details, and associated metadata. You can utilize this table to gather insights on SFTP servers, such as server states, user counts, endpoint types, and more. The schema outlines the various attributes of the SFTP server for you, including the server ID, ARN, endpoint type, logging role, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `transfer:ListServers` | Required to list Transfer servers. |
+| `transfer:DescribeServer` | Required to get server details including certificate, host key fingerprint, login banners, security policy, identity provider details, protocol details, endpoint details, protocols, workflow details, structured log destinations, and tags. |
+
 ## Examples
 
 ### Basic info

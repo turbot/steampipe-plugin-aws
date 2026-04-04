@@ -12,6 +12,14 @@ The AWS IAM Policy Simulator is a tool that enables you to understand, test, and
 
 The `aws_iam_policy_simulator` table in Steampipe provides you with information about IAM Policy Simulator within AWS Identity and Access Management (IAM). This table enables you to query evaluation results, matching resources, and involved actions as a DevOps engineer. You can use it to understand the effects of IAM access control policies. You can utilize this table to gather insights on policy simulation, such as the resources involved in the policy, the actions that can be performed, and the evaluation results. The schema outlines the various attributes of the IAM Policy Simulator for you, including the policy source, policy action, policy resource, and evaluation result.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `iam:SimulatePrincipalPolicy` | Required to simulate the effect of policies on a principal |
+
 **Important Notes**
 - You must specify a single `action`, `resource_arn`, and `principal_arn` in a where or join clause in order to use this table.
 

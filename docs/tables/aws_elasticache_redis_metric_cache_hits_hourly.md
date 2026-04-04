@@ -14,6 +14,15 @@ The `aws_elasticache_redis_metric_cache_hits_hourly` table in Steampipe provides
 
 The `aws_elasticache_redis_metric_cache_hits_hourly` table provides you with metric statistics at 1 hour intervals for the most recent 60 days.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `elasticache:DescribeCacheClusters` | Required to list ElastiCache clusters (parent hydrate) |
+| `cloudwatch:GetMetricStatistics` | Required to retrieve cache hits metric statistics |
+
 ## Examples
 
 ### Basic info

@@ -12,6 +12,18 @@ The AWS Systems Manager Maintenance Windows is a feature that allows you to defi
 
 The `aws_ssm_maintenance_window` table in Steampipe provides you with information about Maintenance Windows within AWS Systems Manager. This table allows you, as a DevOps engineer, to query details about scheduled maintenance tasks for AWS resources, including the maintenance window ID, name, description, and schedule. You can utilize this table to gather insights on maintenance windows, such as their duration, cut-off time, and whether they are enabled or not. The schema outlines the various attributes of the maintenance window for you, including the window ID, ARN, owner, enabled status, priority, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `ssm:DescribeMaintenanceWindows` | Required to list maintenance windows. |
+| `ssm:GetMaintenanceWindow` | Required to get detailed information about a specific maintenance window. |
+| `ssm:ListTagsForResource` | Required to get tags for maintenance windows. |
+| `ssm:DescribeMaintenanceWindowTargets` | Required to get targets for a maintenance window (for the `targets` column). |
+| `ssm:DescribeMaintenanceWindowTasks` | Required to get tasks for a maintenance window (for the `tasks` column). |
+
 ## Examples
 
 ### Basic info

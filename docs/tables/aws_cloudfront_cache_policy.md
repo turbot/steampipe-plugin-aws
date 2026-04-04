@@ -12,6 +12,17 @@ The AWS CloudFront Cache Policy is a feature of AWS CloudFront that allows you t
 
 The `aws_cloudfront_cache_policy` table in Steampipe provides you with information about Cache Policies within AWS CloudFront. This table allows you, as a DevOps engineer, to query policy-specific details, including the configuration, status, and associated metadata. You can utilize this table to gather insights on cache policies, such as their identifiers, comment descriptions, the default time to live (TTL), maximum and minimum TTL, and more. The schema outlines the various attributes of the cache policy for you, including the policy ARN, creation time, last modified time, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `cloudfront:ListCachePolicies` | Required to list cache policies |
+| `cloudfront:GetCachePolicy` | Required to get cache policy details |
+
+**Note:** The `cloudfront:GetCachePolicy` permission is required for the following column: `etag`.
+
 ## Examples
 
 ### Basic info

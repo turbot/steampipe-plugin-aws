@@ -15,6 +15,15 @@ The `aws_identitystore_group_membership` table in Steampipe provides you with in
 **Important Notes**
 - You must specify an Identity Store ID in a `where` clause (`where identity_store_id='d-1234567890'`). You can optionally pass `group_id` in the where clause.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `identitystore:ListGroups` | Required to list groups (parent hydrate) |
+| `identitystore:ListGroupMemberships` | Required to list group memberships |
+
 ## Examples
 
 ### Basic info

@@ -12,6 +12,15 @@ Amazon MQ is a managed message broker service provided by AWS (Amazon Web Servic
 
 The `aws_mq_broker` table in Steampipe provides you with information about MQ brokers within AWS. This table allows you, as a DevOps engineer, to query broker specific details, including the boker ARN, creation time, and associated metadata. You can utilize this table to gather insights on nrokers, such as the number of broker nodes, the version and type of the engine used, the state of the broker, and more. The schema outlines the various attributes of the MQ broker for you, including the encryption info, authentication strategy, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `mq:ListBrokers` | Required to list MQ brokers |
+| `mq:DescribeBroker` | Required to get details of a specific broker |
+
 ## Examples
 
 ### Basic Info

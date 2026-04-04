@@ -12,6 +12,15 @@ The AWS VPC Security Group Rule is a feature within Amazon's Virtual Private Clo
 
 The `aws_vpc_security_group_rule` table in Steampipe provides you with information about security group rules within Amazon Virtual Private Cloud (VPC). This table allows you, as a DevOps engineer, security analyst, or system administrator, to query rule-specific details, including rule type, IP protocol, port range, and associated metadata. You can utilize this table to gather insights on security group rules, such as rules with open IP ranges, verification of port ranges, and more. The schema outlines the various attributes of the security group rule for you, including the rule ID, security group ID, IP range, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `ec2:DescribeSecurityGroupRules` | Required to list and get security group rule details |
+| `ec2:DescribeSecurityGroups` | Required to get referenced security group details |
+
 ## Examples
 
 ## List inbound security group rules open to the Internet

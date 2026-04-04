@@ -12,6 +12,14 @@ The AWS EC2 Key Pair is a security feature utilized within Amazon's Elastic Comp
 
 The `aws_ec2_key_pair` table in Steampipe provides you with information about Key Pairs within AWS EC2 (Elastic Compute Cloud). This table allows you, as a DevOps engineer, security team member, or system administrator, to query key pair-specific details, including key fingerprints, key material, and associated tags. You can utilize this table to gather insights on key pairs, such as verifying key fingerprints, checking the existence of specific key pairs, and more. The schema outlines the various attributes of the EC2 key pair for you, including the key pair name, key pair ID, key type, public key, and associated tags.
 
+## Required Permissions
+
+Your principal must have the following permissions to use this table:
+
+| Permission | Description |
+|------------|-------------|
+| `ec2:DescribeKeyPairs` | Required to retrieve key pair information. |
+
 ## Examples
 
 ### Basic keypair info

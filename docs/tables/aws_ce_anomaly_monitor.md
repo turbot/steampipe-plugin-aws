@@ -12,6 +12,14 @@ AWS Cost Anomaly Detection automatically monitors your AWS spending and alerts y
 
 The `aws_ce_anomaly_monitor` table in Steampipe provides you with information about Cost Explorer Anomaly Monitors in your AWS account. This table allows you to query monitor-specific details, including monitor configuration, type, dimensions, evaluation status, and metadata. You can utilize this table to gather insights on your anomaly detection setup, monitor evaluation history, and anomaly detection dimensions. The schema outlines the various attributes of an anomaly monitor including the monitor ARN, name, type, and evaluation dates.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `ce:GetAnomalyMonitors` | Required to list and get anomaly monitors |
+
 ## Examples
 
 ### List all anomaly monitors

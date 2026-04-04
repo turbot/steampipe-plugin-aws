@@ -12,6 +12,14 @@ The AWS VPC Block Public Access Options is a regional security feature that help
 
 The `aws_vpc_block_public_access_options` table in Steampipe provides you with information about the regional VPC Block Public Access (BPA) configurations. This table allows you, as a cloud administrator, security team member, or DevOps engineer, to query regional configuration details, including the VPC BPA mode, exclusions allowed status, and management information. You can utilize this table to gather insights on regional configurations, such as which regions have public access blocked, the current state of VPC BPA, and who manages the configuration. The schema outlines the various attributes of the regional block public access configuration for you, including the internet gateway block mode, exclusions allowed status, and management details.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `ec2:DescribeVpcBlockPublicAccessOptions` | Required to list VPC block public access options |
+
 ## Examples
 
 ### Basic settings info

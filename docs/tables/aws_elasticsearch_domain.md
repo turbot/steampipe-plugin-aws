@@ -12,6 +12,16 @@ The AWS Elasticsearch Service Domain is a fully managed service that makes it ea
 
 The `aws_elasticsearch_domain` table in Steampipe provides you with information about Elasticsearch domains within AWS Elasticsearch Service. This table enables you, as a DevOps engineer, to query domain-specific details, including configuration settings, access policies, and associated metadata. You can utilize this table to gather insights on domains, such as the domain's configuration, access and security settings, and more. The schema outlines the various attributes of the Elasticsearch domain for you, including the domain name, domain ID, ARN, created and deleted status, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `es:ListDomainNames` | Required to list Elasticsearch domains |
+| `es:DescribeElasticsearchDomain` | Required to get domain details |
+| `es:ListTags` | Required to retrieve tags for domains |
+
 ## Examples
 
 ### Basic info

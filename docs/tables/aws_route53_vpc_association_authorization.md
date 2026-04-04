@@ -12,6 +12,15 @@ Amazon Route 53 is a highly available and scalable Domain Name System (DNS) web 
 
 The `aws_route53_vpc_association_authorization` table in Steampipe provides you with information VPCs in other AWS accounts that are authorized to be associated with a specified `hosted_zone_id`.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `route53:ListHostedZones` | Required to list hosted zones (parent hydrate). |
+| `route53:ListVPCAssociationAuthorizations` | Required to list VPC association authorizations. |
+
 ## Examples
 
 ### Basic info

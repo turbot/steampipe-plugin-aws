@@ -12,6 +12,15 @@ AWS CodeBuild Fleet is a feature that allows you to create and manage dedicated 
 
 The `aws_codebuild_fleet` table in Steampipe provides you with information about compute fleets within AWS CodeBuild service. This table allows you, as a DevOps engineer or administrator, to query fleet-specific details, including capacity configurations, status, compute types, and associated metadata. You can utilize this table to gather insights on fleets, such as their current status, capacity utilization, VPC configuration, and more. The schema outlines the various attributes of the CodeBuild fleet for you, including the fleet name, ARN, creation time, capacities, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `codebuild:ListFleets` | Required to list fleets |
+| `codebuild:BatchGetFleets` | Required to get fleet details |
+
 ## Examples
 
 ### Basic info

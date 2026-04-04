@@ -12,6 +12,15 @@ The AWS Key Management Service (KMS) alias is a user-friendly identifier for a K
 
 The `aws_kms_alias` table in Steampipe provides you with information about aliases within AWS Key Management Service (KMS). This table allows you, as a DevOps engineer, to query alias-specific details, including the alias name, alias ARN, and the key it is associated with. You can utilize this table to gather insights on aliases, such as the keys they are associated with and the ARNs of the aliases. The schema outlines the various attributes of the KMS alias for you, including the alias name, alias ARN, and associated key ID.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `kms:ListKeys` | Required to list KMS keys (parent hydrate) |
+| `kms:ListAliases` | Required to list aliases for each key |
+
 ## Examples
 
 ### Basic info

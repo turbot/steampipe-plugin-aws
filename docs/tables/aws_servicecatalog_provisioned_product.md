@@ -25,6 +25,15 @@ This table supports optional quals. Queries with optional quals are optimised to
 	- `last_provisioning_record_id`
 	- `last_successful_provisioning_record_id`
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `servicecatalog:SearchProvisionedProducts` | Required to list provisioned products |
+| `servicecatalog:DescribeProvisionedProduct` | Required to get provisioned product details including launch role ARN |
+
 ## Examples
 
 ### Basic info

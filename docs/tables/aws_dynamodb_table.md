@@ -12,6 +12,18 @@ The AWS DynamoDB service provides fully managed NoSQL database tables that are d
 
 The `aws_dynamodb_table` table in Steampipe provides you with information about tables within AWS DynamoDB. This table allows you, as a DevOps engineer, to query table-specific details, including provisioned throughput, global secondary indexes, local secondary indexes, and associated metadata. You can utilize this table to gather insights on tables, such as their read/write capacity mode, encryption status, and more. The schema outlines the various attributes of the DynamoDB table for you, including the table name, creation date, item count, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `dynamodb:ListTables` | Required to list tables |
+| `dynamodb:DescribeTable` | Required to get table details |
+| `dynamodb:ListTagsOfResource` | Required to retrieve tags for the `tags` and `tags_src` columns |
+| `dynamodb:DescribeContinuousBackups` | Required to get continuous backup status for the `continuous_backups_status` and `point_in_time_recovery_description` columns |
+| `dynamodb:DescribeKinesisStreamingDestination` | Required to get streaming destination details for the `streaming_destination` column |
+
 ## Examples
 
 ### List of Dynamodb tables which are not encrypted with CMK

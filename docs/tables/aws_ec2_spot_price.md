@@ -12,6 +12,14 @@ The AWS EC2 Spot Price is a feature of Amazon Elastic Compute Cloud (EC2) that a
 
 The `aws_ec2_spot_price` table in Steampipe provides you with information about the spot price of EC2 instances within Amazon Web Services (AWS). This table allows you, as a DevOps engineer, to query spot price-specific details, including the instance type, product description, spot price, and the date and time the price was set. You can utilize this table to gather insights on EC2 spot prices, such as the historical price trends, comparison of prices across different instance types, and to make cost-effective decisions. The schema outlines the various attributes of the EC2 spot price for you, including the availability zone, instance type, product description, spot price, and timestamp.
 
+## Required Permissions
+
+Your principal must have the following permissions to use this table:
+
+| Permission | Description |
+|------------|-------------|
+| `ec2:DescribeSpotPriceHistory` | Required to retrieve spot price history information. |
+
 ## Examples
 
 ### List EC2 spot prices for Linux m5.4xlarge instance in eu-west-3a and eu-west-3b availability zones in the last month

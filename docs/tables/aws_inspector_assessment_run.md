@@ -12,6 +12,15 @@ The AWS Inspector Assessment Run is a feature of AWS Inspector that allows you t
 
 The `aws_inspector_assessment_run` table in Steampipe provides you with information about assessment runs within AWS Inspector. This table allows you, as a DevOps engineer, to query run-specific details, including its state, duration, findings, and associated metadata. You can utilize this table to gather insights on runs, such as the number of findings, the state of the run, and the time it took for the run to complete. The schema outlines the various attributes of the assessment run for you, including the run ARN, creation date, state, duration, findings, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `inspector:ListAssessmentRuns` | Required to list assessment runs |
+| `inspector:DescribeAssessmentRuns` | Required to get assessment run details |
+
 ## Examples
 
 ### Basic info

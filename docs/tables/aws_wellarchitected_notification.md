@@ -12,6 +12,14 @@ The AWS Well-Architected Tool Notifications is a feature of AWS Well-Architected
 
 The `aws_wellarchitected_notification` table in Steampipe provides you with information about notifications within AWS Well-Architected Tool. This table allows you, as a DevOps engineer, to query notification-specific details, including the associated workload, notification type, and status. You can utilize this table to gather insights on notifications, such as notifications associated with a specific workload, the status of notifications, and more. The schema outlines the various attributes of the notification for you, including the workload ID, notification type, status, and associated metadata.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `wellarchitected:ListNotifications` | Required to list notifications |
+
 ## Examples
 
 ### List notifications for workloads where lens version is upgraded

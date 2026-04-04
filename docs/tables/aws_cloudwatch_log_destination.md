@@ -12,6 +12,14 @@ AWS CloudWatch Log Destination represents a destination configuration for vended
 
 The `aws_cloudwatch_log_destination` table in Steampipe provides you with information about destination configurations for vended log delivery in AWS CloudWatch Logs. This table allows you, as a DevOps engineer, security analyst, or cloud administrator, to query destination-specific details, including the destination type, ARN, and configuration. You can utilize this table to gather insights on log delivery destinations, such as identifying all S3 buckets configured as log destinations, understanding which CloudWatch Log groups are receiving logs, and monitoring your overall logging architecture. The schema outlines the various attributes of the delivery destination for you, including the destination name, ARN, type, creation time, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `logs:DescribeDestinations` | Required to list destinations |
+
 ## Examples
 
 ### Basic info

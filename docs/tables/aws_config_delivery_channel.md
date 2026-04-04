@@ -12,6 +12,15 @@ The AWS Config Delivery Channel is a feature that enables AWS Config to deliver 
 
 The `aws_config_delivery_channel` table in Steampipe provides insights into the Delivery Channels associated with AWS Config. This table enables DevOps engineers, security analysts, and cloud administrators to query delivery channel details such as the destination S3 bucket, SNS topic for notifications, and delivery status. Use this table to ensure your configuration change data is being delivered correctly and troubleshoot delivery-related issues.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `config:DescribeDeliveryChannels` | Required to list delivery channels |
+| `config:DescribeDeliveryChannelStatus` | Required to get delivery channel status (for `status` column) |
+
 ## Examples
 
 ### Retrieve basic delivery channel information

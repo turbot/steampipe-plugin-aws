@@ -12,6 +12,15 @@ The AWS CodeBuild Project is a component of AWS CodeBuild, a fully managed conti
 
 The `aws_codebuild_project` table in Steampipe provides you with information about projects within AWS CodeBuild. This table allows you, as a DevOps engineer, to query project-specific details, including project ARN, creation date, project name, service role, and other associated metadata. You can utilize this table to gather insights on projects, such as the status of each project, the source code repository used, the build environment configuration, and more. The schema outlines the various attributes of the CodeBuild project for you, including the project ARN, creation date, last modified date, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `codebuild:ListProjects` | Required to list projects |
+| `codebuild:BatchGetProjects` | Required to get project details |
+
 ## Examples
 
 ### Basic info

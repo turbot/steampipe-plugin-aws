@@ -12,6 +12,14 @@ AWS Batch Job Queues are resources in the AWS Batch service that store jobs unti
 
 The `aws_batch_queue` table provides insights into job queue configurations within AWS Batch. As a DevOps engineer, explore queue-specific details through this table, including priority settings, compute environment associations, and queue statuses. Utilize it to monitor queue configurations, verify compute environment associations, and ensure appropriate job queue priorities are set.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `batch:DescribeJobQueues` | Required to list and describe job queues |
+
 ## Examples
 
 ### Basic info

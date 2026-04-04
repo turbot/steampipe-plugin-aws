@@ -12,6 +12,15 @@ The AWS Route 53 Query Log is a feature of Amazon Route 53 that lets you log the
 
 The `aws_route53_query_log` table in Steampipe provides you with information about DNS queries made to Route 53 hosted zones within AWS Route 53. This table allows you, as a network administrator or DevOps engineer, to query DNS query-specific details, including the hosted zone, query name, query type, and response code. You can utilize this table to gather insights on DNS query patterns, troubleshoot DNS issues, and analyze DNS traffic. The schema outlines the various attributes of the Route 53 query log for you, including the query timestamp, query name, query type, query class, and response code.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `route53:ListQueryLoggingConfigs` | Required to list query logging configurations. |
+| `route53:GetQueryLoggingConfig` | Required to get query logging configuration details. |
+
 ## Examples
 
 ### Basic info

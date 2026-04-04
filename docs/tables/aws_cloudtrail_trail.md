@@ -12,6 +12,24 @@ AWS CloudTrail Trail is a service that enables governance, compliance, operation
 
 The `aws_cloudtrail_trail` table in Steampipe provides you with information about each trail within the AWS CloudTrail service. This table allows you, as a DevOps engineer, to query trail-specific details, including configuration settings, trail status, and associated metadata. You can utilize this table to gather insights on trails, such as CloudTrail configuration, trail status, and more. The schema outlines the various attributes of the trail for you, including the trail ARN, home region, log file validation, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `cloudtrail:DescribeTrails` | Required to list and get trail details |
+| `cloudtrail:GetTrailStatus` | Required to get trail status |
+| `cloudtrail:GetEventSelectors` | Required to get event selectors |
+| `cloudtrail:GetInsightSelectors` | Required to get insight selectors |
+| `cloudtrail:ListTags` | Required to get trail tags |
+
+**Note:** The following columns require additional permissions:
+- `cloudtrail:GetTrailStatus` is required for: `is_logging`, `latest_cloudwatch_logs_delivery_error`, `latest_cloudwatch_logs_delivery_time`, `latest_delivery_error`, `latest_delivery_time`, `latest_digest_delivery_error`, `latest_digest_delivery_time`, `latest_notification_error`, `latest_notification_time`, `start_logging_time`, `stop_logging_time`.
+- `cloudtrail:GetEventSelectors` is required for: `advanced_event_selectors`, `event_selectors`.
+- `cloudtrail:GetInsightSelectors` is required for: `insight_selectors`.
+- `cloudtrail:ListTags` is required for: `tags_src`, `tags`.
+
 ## Examples
 
 ### Basic info

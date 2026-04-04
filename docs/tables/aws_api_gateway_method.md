@@ -12,6 +12,14 @@ Represents a client-facing interface by which the client calls the API to access
 
 The `aws_api_gateway_method` table in Steampipe allows users to query information about AWS API Gateway Methods. These methods represent client-facing interfaces for accessing back-end resources. Users can retrieve details such as the REST API ID, resource ID, HTTP method, path, and whether API key authorization is required. Additionally, users can query methods with specific criteria, such as HTTP method type or authorization type.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `apigateway:GET` | Required to list resources and get method details |
+
 ## Examples
 
 ### Basic info

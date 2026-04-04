@@ -12,6 +12,14 @@ An AWS OpenSearch Reserved Instance provides a significant discount compared to 
 
 The `aws_opensearch_reserved_instance` table in Steampipe provides you with information about Reserved Instances within AWS OpenSearch. This table allows you, as a DevOps engineer, financial analyst, or other technical professional, to query Reserved Instance-specific details, including instance type, start time, duration, pricing information, and current state. You can utilize this table to gather insights on Reserved Instances, such as tracking reservation usage, analyzing cost savings, monitoring expiration dates, and auditing payment options. The schema outlines the various attributes of the Reserved Instance for you, including the reservation ID, instance type, duration, fixed price, usage price, and associated metadata.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `es:DescribeReservedInstances` | Required to describe OpenSearch reserved instances |
+
 ## Examples
 
 ### Basic Reserved Instance info

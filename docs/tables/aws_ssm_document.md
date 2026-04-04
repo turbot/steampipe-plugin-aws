@@ -12,6 +12,16 @@ The AWS Systems Manager Document (SSM Document) is a resource that defines the a
 
 The `aws_ssm_document` table in Steampipe provides you with information about SSM documents within AWS Systems Manager (SSM). This table enables you, as a DevOps engineer, to query document-specific details, including the document name, version, owner, status, and permissions, among others. You can utilize this table to gather insights on SSM documents, such as their current status, the document format, and the permissions associated with each document. The schema outlines for you the various attributes of the SSM document, including the document name, document version, owner, permissions, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `ssm:ListDocuments` | Required to list SSM documents. |
+| `ssm:DescribeDocument` | Required to get detailed information about a specific document. |
+| `ssm:DescribeDocumentPermission` | Required to get document sharing permissions. |
+
 ## Examples
 
 ### Basic info

@@ -12,6 +12,15 @@ The AWS Cognito Identity Pool is a service that provides temporary AWS credentia
 
 The `aws_cognito_identity_pool` table in Steampipe provides you with information about identity pools within AWS Cognito. This table enables you, as a DevOps engineer, to query identity pool-specific details, including its ID, ARN, configuration, and associated roles. You can utilize this table to gather insights on identity pools, such as their authentication providers, supported logins, and whether unauthenticated logins are allowed. The schema outlines the various attributes of the identity pool for you, including the identity pool ID, ARN, creation date, last modified date, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `cognito-identity:ListIdentityPools` | Required to list identity pools |
+| `cognito-identity:DescribeIdentityPool` | Required to get identity pool details including tags and providers |
+
 ## Examples
 
 ### Basic info

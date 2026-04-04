@@ -12,6 +12,17 @@ The AWS Database Migration Service Replication Instances are fully managed, serv
 
 The `aws_dms_replication_instance` table in Steampipe provides you with information about each replication instance in an AWS Database Migration Service. This table allows you, as a database administrator, to query replication-specific details, including engine version, instance class, allocated storage, and associated metadata. You can utilize this table to gather insights on replication instances, such as their current state, multi-AZ mode, publicly accessible status, and more. The schema outlines the various attributes of the replication instance, including the replication instance ARN, replication instance identifier, availability zone, and associated tags for you.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `dms:DescribeReplicationInstances` | Required to list and get replication instances |
+| `dms:ListTagsForResource` | Required to get replication instance tags |
+
+**Note:** The `tags` and `tags_src` columns require the `dms:ListTagsForResource` permission.
+
 ## Examples
 
 ### Basic info

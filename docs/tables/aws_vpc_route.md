@@ -12,6 +12,14 @@ The AWS VPC Route is a component of Amazon Virtual Private Cloud (VPC) that allo
 
 The `aws_vpc_route` table in Steampipe gives you information about each route in a route table within a VPC. This table allows you, as a DevOps engineer, to query route-specific details, including the destination CIDR block, the ID of the route table the route is in, and the type of target (e.g., internet gateway, virtual private gateway, etc.). You can utilize this table to gather insights on routes, such as verifying route configurations, checking route targets, and examining route propagation. The schema outlines the various attributes of the route for you, including the destination CIDR block, route table ID, and associated targets.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `ec2:DescribeRouteTables` | Required to list route tables (parent hydrate) |
+
 ## Examples
 
 ### List of route tables whose routes are directed to the internet

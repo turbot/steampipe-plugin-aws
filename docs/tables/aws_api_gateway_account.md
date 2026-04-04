@@ -12,6 +12,14 @@ AWS API Gateway Account represents the account-level settings for Amazon API Gat
 
 The `aws_api_gateway_account` table in Steampipe provides you with information about Account settings within AWS API Gateway. This table allows you, as a DevOps engineer, to query Account-specific details, including throttle settings, CloudWatch role ARN, API key version, and supported features. You can utilize this table to gather insights on Account settings, such as throttle limits, monitoring configuration, and feature availability. The schema outlines the various attributes of the Account for you, including the CloudWatch role ARN, throttle settings, API key version, and supported features.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `apigateway:GET` | Required to get account settings |
+
 ## Examples
 
 ### Basic info

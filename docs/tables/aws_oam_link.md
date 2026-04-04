@@ -12,6 +12,15 @@ The AWS OAM (Operations Account Management) Link is a service that allows you to
 
 The `aws_oam_link` table in Steampipe provides you with information about the links between an AWS resource and an AWS OAM (Operations Account Management) resource. This table allows you, as a DevOps engineer, to query link-specific details, including the link status, link type, and associated metadata. You can utilize this table to gather insights on links, such as their current status, the type of AWS resource linked, the type of OAM resource linked, and more. The schema outlines for you the various attributes of the OAM link, including the link ID, creation date, status, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `oam:ListLinks` | Required to list OAM links |
+| `oam:GetLink` | Required to get details of a specific link |
+
 ## Examples
 
 ### Basic info

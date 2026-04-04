@@ -12,6 +12,10 @@ The AWS IAM Action is a component of the AWS Identity and Access Management (IAM
 
 The `aws_iam_action` table in Steampipe provides you with information about IAM actions within AWS Identity and Access Management (IAM). This table allows you, as a DevOps engineer, to query action-specific details, including the action name, description, resource types, and condition keys. You can utilize this table to gather insights on actions, such as actions allowed for a specific resource type, actions that support specific condition keys, and more. The schema outlines the various attributes of the IAM action, including the action name, description, resource types, condition keys, and associated metadata.
 
+## Required Permissions
+
+This table does not require any AWS IAM permissions as it sources data from the [Parliament](https://github.com/duo-labs/parliament) library, which provides a static list of IAM actions.
+
 **Important Notes**
 - You can access the list of possible IAM actions in AWS, along with their access levels and descriptions. The data is sourced from [Parliament](https://github.com/duo-labs/parliament).
 

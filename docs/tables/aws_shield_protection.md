@@ -14,6 +14,18 @@ The `aws_shield_protection` table in Steampipe allows you to query AWS Shield Ad
 
 **Note:** The column `resource_type` only has a value when it was part of the where clause. For a list of valid values for filtering by `resource_type`, please refer to the [AWS documentation](https://docs.aws.amazon.com/waf/latest/DDOSAPIReference/API_InclusionProtectionFilters.html#AWSShield-Type-InclusionProtectionFilters-ResourceTypes).
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `shield:ListProtections` | Required to list protections |
+| `shield:DescribeProtection` | Required to get protection details |
+| `shield:ListTagsForResource` | Required to get protection tags |
+
+**Note:** The `shield:ListTagsForResource` permission is required to retrieve the `tags_src` and `tags` columns.
+
 ## Examples
 
 ### Basic info

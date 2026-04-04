@@ -12,6 +12,15 @@ The AWS RDS DB Cluster is a component of Amazon Relational Database Service (RDS
 
 The `aws_rds_db_cluster` table in Steampipe provides you with information about DB clusters within Amazon Relational Database Service (RDS). This table allows you, as a DevOps engineer, to query DB cluster-specific details, including configuration, status, and security settings. You can utilize this table to gather insights on DB clusters, such as their availability, backup settings, encryption status, and more. The schema outlines the various attributes of the DB cluster for you, including the DB cluster identifier, creation time, DB cluster members, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `rds:DescribeDBClusters` | Required to list and get DB cluster details |
+| `rds:DescribePendingMaintenanceActions` | Required to retrieve pending maintenance actions for the `pending_maintenance_actions` column |
+
 ## Examples
 
 ### List of DB clusters which are not encrypted

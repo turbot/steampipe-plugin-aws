@@ -12,6 +12,16 @@ The AWS Cloud Map Service Instance is a component of AWS Cloud Map that allows y
 
 The `aws_service_discovery_instance` table in Steampipe provides you with information about service instances within AWS Cloud Map. This table allows you, as a DevOps engineer, to query instance-specific details, including instance ID, attributes, and health status. You can utilize this table to gather insights on instances, such as instances with specific attributes, health status of instances, and more. The schema outlines the various attributes of the service instance for you, including the instance ID, service ID, attributes, and health status.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `servicediscovery:ListInstances` | Required to list instances |
+| `servicediscovery:GetInstance` | Required to get instance details |
+| `servicediscovery:ListServices` | Required to list services (parent hydrate) |
+
 ## Examples
 
 ### Basic info

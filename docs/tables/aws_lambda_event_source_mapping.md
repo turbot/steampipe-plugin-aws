@@ -12,6 +12,15 @@ The AWS Lambda Event Source Mapping is a service that enables the connection of 
 
 The `aws_lambda_event_source_mapping` table in Steampipe provides you with information about event source mappings within AWS Lambda. This table allows you, as a DevOps engineer, to query mapping-specific details, including the source ARN, function ARN, batch size, and last processing result. You can utilize this table to gather insights on mappings, such as those with errors, the state of the mapping, the maximum record age, and more. The schema outlines for you the various attributes of the event source mapping, including the UUID, creation date, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `lambda:ListEventSourceMappings` | Required to list event source mappings |
+| `lambda:GetEventSourceMapping` | Required to get event source mapping details |
+
 ## Examples
 
 ### Basic Info

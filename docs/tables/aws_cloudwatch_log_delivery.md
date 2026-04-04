@@ -12,6 +12,15 @@ AWS CloudWatch Log Delivery represents a delivery configuration for vended log d
 
 The `aws_cloudwatch_log_delivery` table in Steampipe provides you with information about delivery configurations for vended log delivery in AWS CloudWatch Logs. This table allows you, as a DevOps engineer, security analyst, or cloud administrator, to query delivery-specific details, including the associated source, destination, and status. You can utilize this table to gather insights on log delivery configurations, such as identifying where specific services are sending their logs, determining which destinations are receiving logs, and monitoring the status of your log delivery pipelines. The schema outlines the various attributes of the delivery configuration for you, including the delivery ID, source name, destination ARN, creation time, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `logs:DescribeDeliveries` | Required to list deliveries |
+| `logs:GetDelivery` | Required to get delivery details |
+
 ## Examples
 
 ### Basic info

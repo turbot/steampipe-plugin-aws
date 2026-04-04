@@ -12,6 +12,16 @@ The AWS Route 53 Domain service is a scalable and highly available domain name s
 
 The `aws_route53_domain` table in Steampipe allows you to query detailed information about domain names registered with Route 53, a scalable Domain Name System (DNS) web service in AWS. This table provides you, as a DevOps engineer, with domain-specific details such as domain name, status, expiration date, and associated tags. You can utilize this table to retrieve details about domain names, including their registration, renewal, and transfer status, and also to verify the associated tags. The schema outlines various attributes of the domain, including the domain name, auto renew, transfer lock, expiry date, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `route53domains:ListDomains` | Required to list domains. |
+| `route53domains:GetDomainDetail` | Required to get domain details. |
+| `route53domains:ListTagsForDomain` | Required to get domain tags. |
+
 ## Examples
 
 ### Basic info

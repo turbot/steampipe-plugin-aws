@@ -12,6 +12,15 @@ The AWS IAM Access Advisor is a tool that helps you view and understand the perm
 
 The `aws_iam_access_advisor` table in Steampipe provides you with information about the service last accessed data for IAM entities like users, groups, and roles within AWS Identity and Access Management (IAM). This table allows you, as a DevOps engineer, to query details about the services that IAM entities can access, the actions they can perform, and when they last accessed the services. You can utilize this table to gather insights on access patterns, such as identifying unused permissions or verifying least privilege policies. The schema outlines the various attributes of the IAM entity, including the entity ARN, last accessed time, and the services accessible.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `iam:GenerateServiceLastAccessedDetails` | Required to generate the service last accessed details report |
+| `iam:GetServiceLastAccessedDetails` | Required to retrieve service last accessed details |
+
 **Important Notes**
 
 - You ***must*** specify a single `principal_arn` in a `where` or `join` clause in order to use this table.  

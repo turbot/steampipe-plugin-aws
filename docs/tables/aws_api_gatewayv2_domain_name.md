@@ -12,6 +12,14 @@ The AWS API Gateway Domain Name is a component of Amazon API Gateway that you as
 
 The `aws_api_gatewayv2_domain_name` table in Steampipe provides you with information about each domain name within the AWS API Gateway Service. This table allows you to query domain name details, including associated API mappings, security policy, and associated tags. The schema outlines the various attributes of the domain name for you, including the domain name ARN, domain name, endpoint type, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `apigateway:GET` | Required to list and get domain names |
+
 ## Examples
 
 ### Basic info

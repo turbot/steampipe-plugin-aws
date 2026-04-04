@@ -12,6 +12,14 @@ The AWS EC2 Instance Availability is a feature that allows you to monitor the op
 
 The `aws_ec2_instance_availability` table in Steampipe provides you with information about the availability of AWS EC2 instances in each AWS region. This table allows you, as a DevOps engineer, to query instance-specific details, including instance type, product description, and spot price history. You can utilize this table to gather insights on instance availability, such as the types of instances available in a region, the spot price history of an instance type, and more. The schema outlines the various attributes of the EC2 instance availability for you, including the instance type, product description, timestamp of the spot price history, and the spot price itself.
 
+## Required Permissions
+
+Your principal must have the following permissions to use this table:
+
+| Permission | Description |
+|------------|-------------|
+| `ec2:DescribeInstanceTypeOfferings` | Required to retrieve instance type availability information. |
+
 ## Examples
 
 ### List of instance types available in us-east-1 region

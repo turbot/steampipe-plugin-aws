@@ -12,6 +12,14 @@ An AWS EC2 Network Interface is a virtual network interface that you can attach 
 
 The `aws_ec2_network_interface` table in Steampipe provides you with information about Network Interfaces within AWS Elastic Compute Cloud (EC2). This table allows you, as a DevOps engineer, to query network interface-specific details, including the attached instances, associated security groups, subnet information, and more. You can utilize this table to gather insights on network interfaces, such as their status, type, private and public IP addresses, and the associated subnet and VPC details. The schema outlines for you the various attributes of the EC2 network interface, including the interface ID, description, owner ID, availability zone, and associated tags.
 
+## Required Permissions
+
+Your principal must have the following permissions to use this table:
+
+| Permission | Description |
+|------------|-------------|
+| `ec2:DescribeNetworkInterfaces` | Required to retrieve network interface information. |
+
 ## Examples
 
 ### Basic IP address info

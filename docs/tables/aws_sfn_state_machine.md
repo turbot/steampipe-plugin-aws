@@ -12,6 +12,16 @@ The AWS Step Functions State Machine is a component of AWS Step Functions servic
 
 The `aws_sfn_state_machine` table in Steampipe provides you with information about State Machines within AWS Step Functions. This table allows you, as a DevOps engineer, to query state machine-specific details, including ARN, name, type, status, creation date, and associated metadata. You can utilize this table to gather insights on state machines, such as their current status, type, role ARN, and more. The schema outlines the various attributes of the state machine for you, including the state machine ARN, creation date, definition, role ARN, and status.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `states:ListStateMachines` | Required to list state machines |
+| `states:DescribeStateMachine` | Required to get state machine details |
+| `states:ListTagsForResource` | Required to retrieve tags for state machines |
+
 ## Examples
 
 ### Basic info

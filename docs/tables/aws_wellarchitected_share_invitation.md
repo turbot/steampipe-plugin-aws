@@ -12,6 +12,14 @@ The AWS Well-Architected Tool Share Invitations are part of AWS's Well-Architect
 
 The `aws_wellarchitected_share_invitation` table in Steampipe provides you with information about share invitations within the AWS Well-Architected Tool. This table allows you, as a DevOps engineer, to query invitation-specific details, including the invitation status, the recipient's AWS account ID, and associated metadata. You can utilize this table to gather insights on share invitations, such as pending invitations, accepted invitations, and more. The schema outlines the various attributes of the share invitation for you, including the invitation ARN, workload ID, permission type, and invitation status.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `wellarchitected:ListShareInvitations` | Required to list share invitations |
+
 ## Examples
 
 ### Basic info

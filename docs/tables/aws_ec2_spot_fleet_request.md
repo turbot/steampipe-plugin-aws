@@ -12,6 +12,14 @@ The AWS EC2 Spot Fleet Request is a component of Amazon's Elastic Compute Cloud 
 
 The `aws_ec2_spot_fleet_request` table in Steampipe provides you with information about Spot Fleet requests within AWS Elastic Compute Cloud (EC2). This table allows you, as a DevOps engineer, to query spot fleet request-specific details, including request state, configuration, capacity settings, and associated metadata. You can utilize this table to gather insights on spot fleet requests, such as their current state, allocation strategies, pricing configurations, and more. The schema outlines the various attributes of the EC2 spot fleet request for you, including the request ID, state, target capacity, and associated tags.
 
+## Required Permissions
+
+Your principal must have the following permissions to use this table:
+
+| Permission | Description |
+|------------|-------------|
+| `ec2:DescribeSpotFleetRequests` | Required to retrieve spot fleet request information. |
+
 ## Examples
 
 ### Basic info

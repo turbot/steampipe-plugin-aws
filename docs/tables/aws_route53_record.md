@@ -15,6 +15,15 @@ The `aws_route53_record` table in Steampipe provides you with information about 
 **Important Notes**
 - We recommend specifying the `name` and `type` columns when querying zones with a large number of records to reduce the query time.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `route53:ListHostedZones` | Required to list hosted zones (parent hydrate). |
+| `route53:ListResourceRecordSets` | Required to list resource record sets. |
+
 ## Examples
 
 ### Basic info

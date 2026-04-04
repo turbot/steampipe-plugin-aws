@@ -12,6 +12,18 @@ The Amazon DocumentDB Cluster is a fully managed, MongoDB compatible database se
 
 The `aws_docdb_cluster` table in Steampipe provides you with information about Amazon DocumentDB clusters within AWS. This table allows you as a DevOps engineer, database administrator, or other technical professional to query cluster-specific details, including configurations, status, and associated metadata. You can utilize this table to gather insights on clusters, such as their availability, backup and restore settings, encryption status, and more. The schema outlines the various attributes of the DocumentDB cluster for you, including the cluster ARN, creation time, DB subnet group, associated VPC, and backup retention period.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `docdb-elastic:ListClusters` | Required to list clusters |
+| `docdb-elastic:GetCluster` | Required to get cluster details |
+| `docdb-elastic:ListTagsForResource` | Required to get cluster tags |
+
+**Note:** The `tags` and `tags_src` columns require the `docdb-elastic:ListTagsForResource` permission.
+
 ## Examples
 
 ## Basic Info

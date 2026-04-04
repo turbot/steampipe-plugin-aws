@@ -14,6 +14,15 @@ The `aws_costoptimizationhub_recommendation` table in Steampipe allows you to qu
 
 The schema outlines various attributes of the cost optimization recommendations, including estimated savings, resource details, recommendation types, and implementation efforts. It also provides timestamps for the last refresh and additional metadata such as tags and ARNs.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `cost-optimization-hub:ListRecommendations` | Required to list cost optimization recommendations. |
+| `cost-optimization-hub:GetRecommendation` | Required to get details of a specific recommendation. |
+
 **Important Notes**
 - This table supports optional quals. Queries with optional quals are optimized to use additional filtering provided by the AWS API function to narrow down the results for better query performance.. Optional quals are supported for the following columns:
   - `recommendation_account_id`

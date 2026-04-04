@@ -12,6 +12,16 @@ The AWS Backup service provides a centralized framework to manage and automate d
 
 The `aws_backup_framework` table in Steampipe provides you with information about each backup framework within AWS Backup service. This table empowers you, as a DevOps engineer, to query backup plan-specific details, including the backup plan's ARN, version, creation date, deletion date, and more. You can utilize this table to gather insights on backup plans, such as their status, associated rules, and other relevant metadata. The schema outlines the various attributes of the backup plan for you, including the backup plan ARN, version, creation and deletion dates, and more.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `backup:ListFrameworks` | Required to list backup frameworks |
+| `backup:DescribeFramework` | Required to get details of a specific framework including `framework_controls` and `framework_status` columns |
+| `backup:ListTags` | Required to retrieve tags for the framework |
+
 ## Examples
 
 ### Basic info

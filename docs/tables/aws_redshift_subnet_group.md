@@ -12,6 +12,14 @@ The AWS Redshift Subnet Group is a collection of subnets that you may want to de
 
 The `aws_redshift_subnet_group` table in Steampipe provides you with information about subnet groups within AWS Redshift. This table allows you, as a DevOps engineer, to query subnet group-specific details, including their names, descriptions, VPC IDs, subnet IDs, and their status. You can utilize this table to gather insights on subnet groups, such as which subnet groups are available, their associated VPCs and subnets, and their current status. The schema outlines the various attributes of the subnet group for you, including the subnet group name, VPC ID, subnet IDs, and status.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `redshift:DescribeClusterSubnetGroups` | Required to list and get subnet group details |
+
 ## Examples
 
 ### Basic info

@@ -12,6 +12,14 @@ The AWS VPC Network ACL is a security layer that controls traffic in and out of 
 
 The `aws_vpc_network_acl` table in Steampipe provides you with information about Network Access Control Lists (ACLs) within Amazon Virtual Private Cloud (VPC). This table allows you, as a DevOps engineer, security analyst, or system administrator, to query ACL-specific details, including rules, associations, and related metadata. You can utilize this table to gather insights on ACLs, such as rule configurations, associated subnets, and more. The schema outlines the various attributes of the Network ACL for you, including the ACL ID, VPC ID, default status, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `ec2:DescribeNetworkAcls` | Required to list and get network ACL details |
+
 ## Examples
 
 ### List the attached VPC IDs for each network ACL

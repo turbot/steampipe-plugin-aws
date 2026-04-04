@@ -12,6 +12,15 @@ AWS Backup Protected Resources are the critical data, system configurations, and
 
 The `aws_backup_protected_resource` table in Steampipe provides you with information about the resources that are backed up by AWS Backup service. This table allows you, as a DevOps engineer, security analyst, or system administrator, to query resource-specific details, including resource ARN, type, backup plan ID, and the last backup time. You can utilize this table to gather insights on backed up resources, such as retrieving the last backup time, identifying resources that are not backed up, verifying the backup plan associated with each resource, and more. The schema outlines the various attributes of the backed up resource, including the resource ARN, resource type, backup plan ID, and last backup time for you.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `backup:ListProtectedResources` | Required to list protected resources |
+| `backup:DescribeProtectedResource` | Required to get details of a specific protected resource including restore job information |
+
 ## Examples
 
 ### Basic Info

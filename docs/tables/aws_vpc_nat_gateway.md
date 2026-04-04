@@ -12,6 +12,14 @@ An AWS VPC NAT Gateway is a highly available, managed Network Address Translatio
 
 The `aws_vpc_nat_gateway` table in Steampipe provides you with information about each NAT Gateway within Amazon Virtual Private Cloud (VPC). This table allows you, as a DevOps engineer, to query NAT Gateway-specific details, including its current state, the subnet it is associated with, and any associated Elastic IP addresses. You can utilize this table to verify the configuration and status of NAT Gateways, ensuring they are properly connected and functioning within your VPC. The schema outlines the various attributes of the NAT Gateway for you, including the NAT Gateway ID, creation time, state, subnet ID, and associated IP addresses.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `ec2:DescribeNatGateways` | Required to list and get NAT gateway details |
+
 ## Examples
 
 ### IP address details of the NAT gateway

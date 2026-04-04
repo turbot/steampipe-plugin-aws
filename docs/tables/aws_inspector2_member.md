@@ -12,6 +12,14 @@ The AWS Inspector is a security assessment service that helps improve the securi
 
 The `aws_inspector2_member` table in Steampipe provides you with information about AWS Inspector Members. This table allows you, as a DevOps engineer, to query member-specific details, including account IDs, emails, and associated metadata. You can utilize this table to gather insights on member accounts, such as the account status, the account's relationship with the AWS Inspector assessment target, and more. The schema outlines the various attributes of the AWS Inspector Member for you, including the account ID, email, and the ARN of the AWS Inspector assessment target.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `inspector2:ListMembers` | Required to list members |
+
 ## Examples
 
 ### Basic info

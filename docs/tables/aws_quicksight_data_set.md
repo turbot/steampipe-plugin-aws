@@ -12,6 +12,15 @@ AWS QuickSight is a fully managed, serverless business intelligence service that
 
 The `aws_quicksight_data_set` table in Steampipe provides you with information about datasets within AWS QuickSight. This table allows you, as a data analyst or administrator, to query dataset-specific details, including the data source, import mode, and associated configurations. You can utilize this table to gather insights on datasets, such as dataset structure, associated data sources, import configurations, and more. The schema outlines the various attributes of the QuickSight dataset for you to query, including the dataset ID, ARN, creation time, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `quicksight:ListDataSets` | Required to list datasets |
+| `quicksight:DescribeDataSet` | Required to get dataset details |
+
 ## Examples
 
 ### Basic info

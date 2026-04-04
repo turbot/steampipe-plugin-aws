@@ -12,6 +12,14 @@ The AWS Resource Tagging API allows you to manage tags for AWS resources. It pro
 
 The `aws_tagging_resource` table in Steampipe provides you with information about resources and their associated tags in AWS. This table allows you, as a DevOps engineer, to query resource-specific details, including resource ARN, resource type, and associated tags. You can utilize this table to gather insights on resources, such as resources with specific tags, resources of a certain type, and more. The schema outlines the various attributes of the AWS resource for you, including the resource ARN, resource type, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `tag:GetResources` | Required to list and get resources with their associated tags. |
+
 ## Examples
 
 ### Basic info

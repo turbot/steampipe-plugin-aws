@@ -12,6 +12,18 @@ The AWS CloudTrail is a service that enables governance, compliance, operational
 
 The `aws_cloudtrail_query` table in Steampipe provides you with information about CloudTrail events within AWS. This table allows you, as a DevOps engineer, to query event-specific details, including the identity of the API caller, the time of the API call, the source IP address of the API caller, and the request parameters made. You can utilize this table to gather insights on account activity, such as actions taken through the AWS Management Console, AWS SDKs, command line tools, and other AWS services. The schema outlines the various attributes of the CloudTrail event for you, including the event name, event time, event source, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `cloudtrail:ListEventDataStores` | Required to list event data stores (parent hydrate) |
+| `cloudtrail:ListQueries` | Required to list CloudTrail Lake queries |
+| `cloudtrail:DescribeQuery` | Required to get query details |
+
+**Note:** The `cloudtrail:DescribeQuery` permission is required for the following columns: `delivery_s3_uri`, `delivery_status`, `error_message`, `bytes_scanned`, `events_matched`, `events_scanned`, `execution_time_in_millis`, `query_string`.
+
 ## Examples
 
 ### Basic info

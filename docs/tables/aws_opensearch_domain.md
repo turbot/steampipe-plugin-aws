@@ -12,6 +12,16 @@ The AWS OpenSearch Service (successor to Amazon Elasticsearch Service) allows yo
 
 The `aws_opensearch_domain` table in Steampipe provides you with information about domains within the AWS OpenSearch Service. This table allows you as a DevOps engineer to query domain-specific details, including configurations, access policies, and associated metadata. You can utilize this table to gather insights on domains, such as their encryption status, node-to-node encryption options, automated snapshot settings, and more. The schema outlines the various attributes of the OpenSearch domain for you, including the domain ARN, domain ID, created date, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `es:ListDomainNames` | Required to list OpenSearch domain names |
+| `es:DescribeDomain` | Required to get details of a specific domain |
+| `es:ListTags` | Required to get tags for domains |
+
 ## Examples
 
 ### Basic info

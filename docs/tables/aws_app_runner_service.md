@@ -12,6 +12,15 @@ AWS App Runner is a fully managed service that makes it easy to build, deploy, a
 
 The `aws_app_runner_service` table enables cloud administrators and DevOps engineers to gather detailed insights into their App Runner services. You can query various aspects of the services, such as their scaling configurations, network settings, health checks, and service URLs. This table is particularly useful for monitoring service health, managing configurations, and ensuring that your applications are running efficiently.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `apprunner:ListServices` | Required to list App Runner services |
+| `apprunner:DescribeService` | Required to get service details |
+
 ## Examples
 
 ### Basic service information

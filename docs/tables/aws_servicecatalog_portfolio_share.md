@@ -19,6 +19,15 @@ The `aws_servicecatalog_portfolio_share` table in Steampipe provides you with in
   - `ORGANIZATIONAL_UNIT` - Shares to organizational units
   - `ORGANIZATION_MEMBER_ACCOUNT` - Shares to organization member accounts
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `servicecatalog:ListPortfolios` | Required to list portfolios (parent hydrate) |
+| `servicecatalog:DescribePortfolioShares` | Required to list portfolio shares |
+
 ## Examples
 
 ### List all portfolio shares by type

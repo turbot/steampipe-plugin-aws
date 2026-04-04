@@ -12,6 +12,15 @@ The AWS DynamoDB Backup service provides on-demand and continuous backups of you
 
 The `aws_dynamodb_backup` table in Steampipe provides you with information about backups in AWS DynamoDB. This table allows you, as a DevOps engineer, to query backup-specific details, including backup ARN, backup creation date, backup size, backup status, and more. You can utilize this table to gather insights on backups, such as backup status, backup type, size in bytes, and more. The schema outlines the various attributes of the DynamoDB backup for you, including the backup ARN, backup creation date, backup size, backup status, and more.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `dynamodb:ListBackups` | Required to list backups |
+| `dynamodb:DescribeBackup` | Required to get backup details |
+
 ## Examples
 
 ### List backups with their corresponding tables

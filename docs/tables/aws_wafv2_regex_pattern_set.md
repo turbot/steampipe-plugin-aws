@@ -12,6 +12,16 @@ The AWS WAFv2 Regex Pattern Set is a feature within the AWS Web Application Fire
 
 The `aws_wafv2_regex_pattern_set` table in Steampipe provides you with information about Regex Pattern Sets within AWS WAFv2. This table allows you, as a DevOps engineer, to query regex pattern set-specific details, including the ID, name, and the regular expressions included in the set. You can utilize this table to gather insights on the regex patterns, such as the ARN, ID, lock token, and the regular expressions included in the pattern set. The schema outlines the various attributes of the regex pattern set for you, including the ARN, ID, lock token, name, regular expression list, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `wafv2:ListRegexPatternSets` | Required to list regex pattern sets |
+| `wafv2:GetRegexPatternSet` | Required to get regex pattern set details (regular_expressions) |
+| `wafv2:ListTagsForResource` | Required to get regex pattern set tags |
+
 ## Examples
 
 ### Basic info

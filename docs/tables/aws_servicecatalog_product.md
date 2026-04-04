@@ -12,6 +12,15 @@ The AWS Service Catalog Product allows you to create, manage, and distribute cat
 
 The `aws_servicecatalog_product` table in Steampipe provides you with information about products within AWS Service Catalog. This table allows you, as a DevOps engineer, to query product-specific details, including product owner, type, and associated metadata. You can utilize this table to gather insights on products such as their distribution status, launch paths, provisioning artifacts, and more. The schema outlines the various attributes of the AWS Service Catalog Product for you, including the product ARN, creation time, product type, owner, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `servicecatalog:SearchProducts` | Required to list products |
+| `servicecatalog:DescribeProduct` | Required to get product details including budgets, launch paths, and provisioning artifacts |
+
 ## Examples
 
 ### Basic info

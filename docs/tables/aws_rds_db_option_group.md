@@ -12,6 +12,15 @@ The AWS RDS DB Option Groups service allows you to manage and configure addition
 
 The `aws_rds_db_option_group` table in Steampipe provides you with information about the option groups within Amazon Relational Database Service (RDS). This table allows you, as a database administrator or developer, to query option group-specific details, including the options and parameters associated with the group, the engine name, and the major engine version. You can utilize this table to gather insights on option groups, such as identifying the configurations of specific databases, verifying the parameters of option groups, and more. The schema outlines the various attributes of the RDS DB Option Group for you, including the name, ARN, description, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `rds:DescribeOptionGroups` | Required to list and get option group details |
+| `rds:ListTagsForResource` | Required to retrieve tags for the `tags` and `tags_src` columns |
+
 ## Examples
 
 ### Basic parameter group info

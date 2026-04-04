@@ -12,6 +12,14 @@ The AWS Security Hub Standards Control is a feature of AWS Security Hub that pro
 
 The `aws_securityhub_standards_control` table in Steampipe provides you with information about each security standard control available in your AWS account. This table allows you, as a DevOps engineer, security analyst, or other professional, to query control-specific details, including its status, related AWS resources, severity, and compliance status. You can utilize this table to gather insights on controls, such as controls that are currently non-compliant, controls that have a high severity level, and more. The schema outlines the various attributes of the standards control for you, including the control ID, control status, related AWS resources, severity, and compliance status.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `securityhub:DescribeStandardsControls` | Required to list standards controls |
+
 ## Examples
 
 ### Basic info

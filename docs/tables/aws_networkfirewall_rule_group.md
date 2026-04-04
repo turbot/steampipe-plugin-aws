@@ -12,6 +12,15 @@ The AWS Network Firewall Rule Group is a component of AWS Network Firewall, a ma
 
 The `aws_networkfirewall_rule_group` table in Steampipe provides you with information about rule groups within AWS Network Firewall. This table allows you, as a DevOps engineer, to query rule group-specific details, including the rule group ARN, capacity, rule group name, and associated tags. You can utilize this table to gather insights on rule groups, such as the rule group's capacity, the rule group's name, and more. The schema outlines for you the various attributes of the Network Firewall rule group, including the rule group ARN, capacity, rule group name, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `network-firewall:ListRuleGroups` | Required to list Network Firewall rule groups |
+| `network-firewall:DescribeRuleGroup` | Required to get details of a specific rule group |
+
 ## Examples
 
 ### Basic info

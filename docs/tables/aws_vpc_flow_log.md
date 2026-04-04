@@ -12,6 +12,14 @@ The AWS VPC Flow Logs is a feature that enables you to capture information about
 
 The `aws_vpc_flow_log` table in Steampipe provides you with information about AWS VPC Flow Logs within Amazon Virtual Private Cloud (VPC). This table lets you, as a network administrator or security analyst, query flow log-specific details, including source and destination IP addresses, traffic volume, and associated metadata. You can utilize this table to gather insights on network traffic, such as identifying patterns of data transfer, monitoring network performance, diagnosing overly restrictive security group rules, and more. The schema outlines the various attributes of the VPC Flow Log for you, including the log status, creation time, log destination, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `ec2:DescribeFlowLogs` | Required to list and get VPC flow log details |
+
 ## Examples
 
 ### List flow logs with their corresponding VPC Ids, subnet Ids, or network interface Ids

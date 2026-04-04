@@ -12,6 +12,17 @@ The AWS Inspector Assessment Template is a resource within AWS Inspector that he
 
 The `aws_inspector_assessment_template` table in Steampipe provides you with information about assessment templates within AWS Inspector. This table allows you, as a DevOps engineer, security analyst, or other technical professional, to query template-specific details, including the ARN, duration, rules package ARNs, and user attributes for findings. You can utilize this table to gather insights on assessment templates, such as identifying templates with specific rules, verifying template configurations, and more. The schema outlines the various attributes of the assessment template for you, including the template ARN, duration, rules package ARNs, user attributes for findings, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `inspector:ListAssessmentTemplates` | Required to list assessment templates |
+| `inspector:DescribeAssessmentTemplates` | Required to get assessment template details |
+| `inspector:ListTagsForResource` | Required to get tags for the assessment template |
+| `inspector:ListEventSubscriptions` | Required to get event subscriptions for the assessment template |
+
 ## Examples
 
 ### Basic info

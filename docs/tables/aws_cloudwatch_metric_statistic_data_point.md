@@ -30,6 +30,14 @@ The maximum number of data points that can be returned from a single call is 1,4
 
 - We recommend specifying the `period` column in the query to optimize the table output. If you do not specify the `timestamp` then the default value for `period` is 60 seconds. If you specify the `timestamp` then the period will be calculated based on the duration to provide a good spread under the 1440 datapoints.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `cloudwatch:GetMetricStatistics` | Required to get metric statistic data points |
+
 ## Examples
 
 ### Aggregate CPU utilization of all EC2 instances for the last 24 hrs

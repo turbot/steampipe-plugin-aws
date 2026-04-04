@@ -12,6 +12,14 @@ The AWS Security Hub Product is a service that provides a comprehensive view of 
 
 The `aws_securityhub_product` table in Steampipe provides you with information about security products within AWS Security Hub. This table allows you as a security analyst or DevOps engineer to query product-specific details, including product ARN, product name, company name, description, and marketplace URL. You can utilize this table to gather insights on security products, such as their activation status, associated integrations, and more. The schema outlines the various attributes of the security product for you, including the product ARN, name, company name, description, marketplace URL, and activation status.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `securityhub:DescribeProducts` | Required to list and get product details |
+
 ## Examples
 
 ### Basic info

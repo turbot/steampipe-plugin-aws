@@ -12,6 +12,18 @@ The AWS Route 53 Zone is a component of Amazon's scalable Domain Name System (DN
 
 The `aws_route53_zone` table in Steampipe provides you with information about hosted zones within AWS Route 53. This table allows you, as a DevOps engineer, to query zone-specific details, including the hosted zone ID, name, type, record set count, and associated tags. You can utilize this table to gather insights on hosted zones, such as the number of record sets within each zone, the type of zone (public or private), and more. The schema outlines the various attributes of the hosted zone for you, including the zone ID, name, type, record set count, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `route53:ListHostedZones` | Required to list hosted zones. |
+| `route53:GetHostedZone` | Required to get hosted zone details and associated VPCs. |
+| `route53:ListTagsForResource` | Required to get hosted zone tags. |
+| `route53:ListQueryLoggingConfigs` | Required to get query logging configurations. |
+| `route53:GetDNSSEC` | Required to get DNSSEC status (public zones only). |
+
 ## Examples
 
 ### Basic Zone Info

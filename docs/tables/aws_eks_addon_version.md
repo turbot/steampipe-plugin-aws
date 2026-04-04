@@ -12,6 +12,15 @@ The AWS EKS Add-On Versions are a part of the Amazon Elastic Kubernetes Service 
 
 The `aws_eks_addon_version` table in Steampipe provides you with information about Add-On versions within Amazon Elastic Kubernetes Service (EKS). This table allows you, as a DevOps engineer, to query add-on specific details, including addon name, addon version, architecture, and associated metadata. You can utilize this table to gather insights on add-ons, such as the add-on version status, the specific architectures it supports, and more. The schema outlines the various attributes of the EKS add-on for you, including the add-on name, add-on version, and supported architectures.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `eks:DescribeAddonVersions` | Required to list add-on versions |
+| `eks:DescribeAddonConfiguration` | Required to get add-on configuration details (for addon_configuration column) |
+
 ## Examples
 
 ### Basic info

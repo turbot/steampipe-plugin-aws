@@ -12,6 +12,15 @@ The AWS Identity Store service provides information about identities in your AWS
 
 The `aws_identitystore_group` table in Steampipe provides you with information about groups within AWS Identity Store. This table allows you, as a DevOps engineer, to query group-specific details, including group ID, group name, and associated metadata. You can utilize this table to gather insights on groups, such as group names, verification of group identities, and more. The schema outlines the various attributes of the AWS Identity Store group for you, including the group ID, group name, and display name.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `identitystore:ListGroups` | Required to list groups |
+| `identitystore:DescribeGroup` | Required to get group details |
+
 ## Examples
 
 ### Get group by ID

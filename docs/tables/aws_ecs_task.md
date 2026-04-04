@@ -12,6 +12,17 @@ AWS Elastic Container Service (ECS) Tasks are a running instance of an Amazon EC
 
 The `aws_ecs_task` table in Steampipe provides you with information about tasks within Amazon Elastic Container Service (ECS). This table enables you, as a DevOps engineer, to query task-specific details, including the current task status, task definition, associated cluster, and other metadata. You can utilize this table to gather insights on tasks, such as tasks that are running, stopped, or pending, tasks associated with specific clusters, and more. The schema outlines the various attributes of the ECS task for you, including the task ARN, last status, task definition ARN, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `ecs:ListClusters` | Required to list ECS clusters (parent resource) |
+| `ecs:ListTasks` | Required to list tasks for each cluster |
+| `ecs:DescribeTasks` | Required to get task details |
+| `ecs:GetTaskProtection` | Required to get task protection details (for protection column) |
+
 ## Examples
 
 ### Basic info

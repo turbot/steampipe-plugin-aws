@@ -12,6 +12,15 @@ The Amazon Elastic Container Registry (ECR) Images are Docker images that are st
 
 The `aws_ecr_image` table in Steampipe provides you with information about Images within Amazon Elastic Container Registry (ECR). This table allows you, as a DevOps engineer, to query image-specific details, including image tags, push timestamps, image sizes, and associated metadata. You can utilize this table to gather insights on images, such as image scan findings, image vulnerability details, verification of image tags, and more. The schema outlines the various attributes of the ECR image for you, including the image digest, image tags, image scan status, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `ecr:DescribeRepositories` | Required to list ECR repositories (parent resource) |
+| `ecr:DescribeImages` | Required to get image details |
+
 ## Examples
 
 ### Basic info

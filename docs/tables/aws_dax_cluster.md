@@ -12,6 +12,17 @@ The AWS DAX Cluster is a fully managed, highly available, in-memory cache for Dy
 
 The `aws_dax_cluster` table in Steampipe provides you with information about AWS DAX Clusters. This table allows you, as a DevOps engineer, to query cluster-specific details, including cluster names, node types, status, and associated metadata. You can utilize this table to gather insights on clusters, such as cluster configurations, status, nodes, and more. The schema outlines the various attributes of the DAX cluster for you, including the cluster name, ARN, status, node type, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `dax:DescribeClusters` | Required to list and get cluster details |
+| `dax:ListTags` | Required to get cluster tags |
+
+**Note:** The `tags` and `tags_src` columns require the `dax:ListTags` permission.
+
 ## Examples
 
 ### Basic info

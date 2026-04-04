@@ -18,6 +18,14 @@ The `aws_resource_explorer_resource` table provides insights into resources inde
   - `filter`
   - `view_arn`
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `resource-explorer-2:ListResources` | Required to list resources |
+
 ## Examples
 
 ### Basic info

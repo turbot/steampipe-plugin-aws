@@ -12,6 +12,15 @@ The AWS CloudWatch Log Subscription Filter is a feature of Amazon CloudWatch Log
 
 The `aws_cloudwatch_log_subscription_filter` table in Steampipe provides you with information about AWS CloudWatch Log Subscription Filters. This table enables you, as a DevOps engineer, data analyst, or other technical professional, to query subscription filter-specific details, including the associated log group, filter pattern, and destination ARN. You can utilize this table to gather insights on filters, such as the type of log events each filter is designed to match, the destination to which matched events are delivered, and more. The schema outlines the various attributes of the log subscription filter for you, including the filter name, filter pattern, role ARN, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `logs:DescribeLogGroups` | Required to list log groups (parent hydrate) |
+| `logs:DescribeSubscriptionFilters` | Required to list and get subscription filter details |
+
 ## Examples
 
 ### Basic info

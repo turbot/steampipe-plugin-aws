@@ -12,6 +12,17 @@ The AWS Global Accelerator is a networking service that improves the availabilit
 
 The `aws_globalaccelerator_accelerator` table in Steampipe provides you with information about accelerators within AWS Global Accelerator. These accelerators direct traffic to optimal endpoints over the AWS global network to enhance the availability and performance of your applications. This table allows you, as a DevOps engineer, to query accelerator-specific details, including the accelerator's ARN, creation time, and status. You can utilize this table to gather insights on accelerators, such as the accelerators' DNS names, IP address sets, and associated tags. The schema outlines the various attributes of the accelerator for you, including the accelerator ARN, creation date, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `globalaccelerator:ListAccelerators` | Required to list accelerators |
+| `globalaccelerator:DescribeAccelerator` | Required to get accelerator details |
+| `globalaccelerator:ListTagsForResource` | Required to retrieve tags for accelerators |
+| `globalaccelerator:DescribeAcceleratorAttributes` | Required for the `accelerator_attributes` column |
+
 ## Examples
 
 ### Basic info

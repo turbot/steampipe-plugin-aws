@@ -12,6 +12,15 @@ AWS Access Analyzer findings provide detailed information about potential securi
 
 The `aws_accessanalyzer_finding` table in Steampipe allows you to query information related to findings from the AWS IAM Access Analyzer. This table is essential for security and compliance teams, enabling them to identify, analyze, and manage findings related to resource access policies. Through this table, users can access detailed information about each finding, including the actions involved, the condition that led to the finding, the resource and principal involved, and the finding's status. By leveraging this table, you can efficiently address security and compliance issues in your AWS environment.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `access-analyzer:ListFindings` | Required to list findings |
+| `access-analyzer:GetFinding` | Required to get finding details |
+
 ## Examples
 
 ### Basic Info

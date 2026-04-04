@@ -12,6 +12,14 @@ The AWS Glue Data Catalog is a fully managed, scalable, Apache Hive Metastore co
 
 The `aws_glue_data_catalog_encryption_settings` table in Steampipe provides you with information about the encryption settings of AWS Glue Data Catalogs. This table allows you, as a DevOps engineer or security analyst, to query encryption-specific details, including the encryption-at-rest settings and the return connection password encryption settings. You can utilize this table to gather insights on the encryption settings of your data catalogs, such as understanding the type of encryption used, the AWS KMS key ID used for encryption, and more. The schema outlines the various attributes of the encryption settings for you, including the catalog ID, create time, update time, and associated metadata.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `glue:GetDataCatalogEncryptionSettings` | Required to get data catalog encryption settings |
+
 ## Examples
 
 ### Basic info

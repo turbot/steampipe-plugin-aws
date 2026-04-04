@@ -12,6 +12,15 @@ A Trusted Advisor check is a specific evaluation or assessment performed by Trus
 
 The `aws_trusted_advisor_check_summary` table in Steampipe allows users to query information about AWS Trusted Advisor Check Summaries. These summaries provide insights into the status and details of Trusted Advisor checks, including the check name, check ID, category, description, status, timestamp, and the number of resources flagged, ignored, processed, and suppressed.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `support:DescribeTrustedAdvisorChecks` | Required to list Trusted Advisor checks. |
+| `support:DescribeTrustedAdvisorCheckSummaries` | Required to get check summary details including status, timestamp, and resource counts. |
+
 **Important Notes**
 - You must specify `language` in a `where` clause in order to use this table.
 - Amazon Web Services Support API currently supports the following languages for Trusted Advisor:

@@ -12,6 +12,15 @@ The AWS Cognito User Pool is a user directory in Amazon Cognito. With a user poo
 
 The `aws_cognito_user_pool` table in Steampipe provides you with information about User Pools within AWS Cognito. This table allows you, as a DevOps engineer, to query user pool-specific details, including the pool's configuration, status, and associated metadata. You can utilize this table to gather insights on user pools, such as the pool's creation and last modified dates, password policies, MFA and SMS configuration, and more. The schema outlines the various attributes of the user pool for you, including the pool ID, ARN, name, status, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `cognito-idp:ListUserPools` | Required to list user pools |
+| `cognito-idp:DescribeUserPool` | Required to get user pool details including tags and configuration |
+
 ## Examples
 
 ### Basic info

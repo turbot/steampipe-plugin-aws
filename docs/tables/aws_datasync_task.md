@@ -12,6 +12,18 @@ AWS DataSync is a data transfer service that makes it easy and fast to move data
 
 The `aws_datasync_task` table in Steampipe provides you with information about DataSync tasks within AWS. This table allows you, as a DevOps engineer, to query task-specific details, including task ARN, status, source and destination locations, transfer options, and associated metadata. You can utilize this table to gather insights on tasks, such as their current status, error details, transfer configurations, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `datasync:ListTasks` | Required to list tasks |
+| `datasync:DescribeTask` | Required to get task details |
+| `datasync:ListTagsForResource` | Required to get task tags |
+
+**Note:** The `tags`, `tags_src`, and most detail columns require the `datasync:DescribeTask` permission.
+
 ## Examples
 
 ### Basic info

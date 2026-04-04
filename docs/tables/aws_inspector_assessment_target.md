@@ -12,6 +12,15 @@ The AWS Inspector Assessment Target is a part of the AWS Inspector service, whic
 
 The `aws_inspector_assessment_target` table in Steampipe provides you with information about assessment targets within AWS Inspector. This table allows you, as a DevOps engineer, to query target-specific details, including ARN, name, and associated resource group ARN. You can utilize this table to gather insights on assessment targets, such as their creation time, last updated time, and more. The schema outlines the various attributes of the assessment target for you, including the target ARN, creation date, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `inspector:ListAssessmentTargets` | Required to list assessment targets |
+| `inspector:DescribeAssessmentTargets` | Required to get assessment target details |
+
 ## Examples
 
 ### Basic info

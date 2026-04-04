@@ -12,6 +12,14 @@ The AWS VPC Customer Gateway is a component of Amazon Virtual Private Cloud (Ama
 
 The `aws_vpc_customer_gateway` table in Steampipe provides you with information about each Customer Gateway in a Virtual Private Cloud (VPC). This table allows you as a network administrator, security analyst, or DevOps engineer to query gateway-specific details, including its type, state, and associated metadata. You can utilize this table to gather insights on gateways, such as the type of routing (static or dynamic) it supports, its BGP ASN, and more. The schema outlines the various attributes of the Customer Gateway for you, including the gateway ID, creation time, IP address, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `ec2:DescribeCustomerGateways` | Required to list and get customer gateway details |
+
 ## Examples
 
 ### Customer gateway basic detail

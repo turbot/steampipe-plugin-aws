@@ -12,6 +12,16 @@ AWS IoT Fleet Metrics, part of AWS IoT Device Management, allows for the monitor
 
 The `aws_iot_fleet_metric` table can be utilized to access detailed information about custom metrics defined for IoT device fleets. This table is essential for IoT administrators and analysts who need to oversee fleet performance, status, and operational metrics within AWS.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `iot:ListFleetMetrics` | Required to list fleet metrics |
+| `iot:DescribeFleetMetric` | Required to get fleet metric details |
+| `iot:ListTagsForResource` | Required to get tags for fleet metrics |
+
 ## Examples
 
 ### Basic info

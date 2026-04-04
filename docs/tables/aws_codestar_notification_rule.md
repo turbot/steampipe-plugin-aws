@@ -12,6 +12,15 @@ The AWS CodeStar notification rules allow you to set up notifications for the AW
 
 The `aws_codestar_notification_rule` table in Steampipe provides you with information about notification rules. This table allows you, as a DevOps engineer, to query notification rule details, including the notification rule ARN, status, level of detail, enabled event types, as well as the ARN of the resource producing notifications and the notification targets. You can use this table to gather insights on notification rules, and combine it with other tables such as `aws_codepipeline_pipeline` to check notification rules are set up consistently.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `codestar-notifications:ListNotificationRules` | Required to list notification rules. |
+| `codestar-notifications:DescribeNotificationRule` | Required to get details of a specific notification rule. |
+
 ## Examples
 
 ### Basic info

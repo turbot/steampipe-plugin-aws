@@ -12,6 +12,15 @@ The AWS Glue Data Quality Ruleset is a feature of AWS Glue that enables you to e
 
 The `aws_glue_data_quality_ruleset` table in Steampipe provides you with information about the rulesets used for data quality checks in AWS Glue. This table allows you as a data engineer or developer to query ruleset-specific details, including the ruleset name, status, related applications, and associated metadata. You can utilize this table to gather insights on rulesets, such as ruleset usage, associated applications, status of rulesets, and more. The schema outlines the various attributes of the data quality ruleset for you, including the ruleset ARN, creation date, last modified date, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `glue:ListDataQualityRulesets` | Required to list data quality rulesets |
+| `glue:GetDataQualityRuleset` | Required to get details of a specific ruleset including the `rule_set` column |
+
 ## Examples
 
 ### Basic info

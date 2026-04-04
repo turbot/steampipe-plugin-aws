@@ -12,6 +12,15 @@ The AWS Firewall Manager Applications is a resource that enables you to centrall
 
 The `aws_fms_app_list` table in Steampipe provides you with information about applications within AWS Firewall Manager (FMS). This table allows you, as a DevOps engineer, to query application-specific details, including application ID, protocol, source and destination IP ranges, and source and destination ports. You can utilize this table to gather insights on applications, such as their associated protocols, IP ranges, and ports. The schema outlines the various attributes of the application for you, including the application ARN, creation date, attached policies, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `fms:ListAppsLists` | Required to list FMS app lists |
+| `fms:GetAppsList` | Required to get app list details |
+
 ## Examples
 
 ### Basic info

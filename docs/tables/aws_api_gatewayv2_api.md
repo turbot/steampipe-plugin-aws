@@ -12,6 +12,14 @@ The AWS API Gateway is a fully managed service that makes it easy for developers
 
 The `aws_api_gatewayv2_api` table in Steampipe provides you with information about APIs within AWS API Gateway. This table allows you, as a DevOps engineer, to query API-specific details, including the API ID, name, protocol type, route selection expression, and associated tags. You can utilize this table to gather insights on APIs, such as their configuration details, associated resources, and more. The schema outlines the various attributes of the API for you, including the API key selection expression, CORS configuration, created date, and description.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `apigateway:GET` | Required to list and get APIs |
+
 ## Examples
 
 ### Basic info

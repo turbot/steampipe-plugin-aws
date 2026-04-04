@@ -12,6 +12,17 @@ The AWS S3 Access Point is a feature of the AWS S3 service that simplifies manag
 
 The `aws_s3_access_point` table in Steampipe provides you with information about Access Points within AWS Simple Storage Service (S3). This table enables you, as a DevOps engineer, developer, or data analyst, to query Access Point-specific details, including the Access Point's name, associated bucket, network origin, policy status, and creation time. You can utilize this table to gather insights on Access Points, such as their permissions, associated buckets, and more. The schema outlines the various attributes of the S3 Access Point for you, including the ARN, bucket name, creation date, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `s3:ListAccessPoints` | Required to list access points |
+| `s3:GetAccessPoint` | Required to get access point details (alias, public access block, creation_date, endpoints columns) |
+| `s3:GetAccessPointPolicyStatus` | Required to get access point policy status (access_point_policy_is_public column) |
+| `s3:GetAccessPointPolicy` | Required to get access point policy (policy, policy_std columns) |
+
 ## Examples
 
 ### Basic info

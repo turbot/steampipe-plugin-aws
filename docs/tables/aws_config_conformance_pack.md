@@ -12,6 +12,14 @@ The AWS Config Conformance Pack is a collection of AWS Config rules and remediat
 
 The `aws_config_conformance_pack` table in Steampipe provides you with information about AWS Config conformance packs within the AWS Config service. This table allows you, as a DevOps engineer, to query conformance pack-specific details, including pack names, delivery S3 bucket, and associated metadata. You can utilize this table to gather insights on conformance packs, such as pack ARN, creation time, last update requested time, input parameters, and more. The schema outlines the various attributes of the conformance pack for you, including the pack ARN, delivery S3 bucket, input parameters, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `config:DescribeConformancePacks` | Required to list and get conformance packs |
+
 ## Examples
 
 ### Basic info

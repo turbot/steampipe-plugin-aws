@@ -12,6 +12,14 @@ The AWS EC2 Client VPN Endpoint is a scalable, end-to-end managed VPN service th
 
 The `aws_ec2_client_vpn_endpoint` table in Steampipe provides you with information about the Client VPN endpoints within AWS Elastic Compute Cloud (EC2). This table enables you, as a DevOps engineer, security analyst, or other IT professional, to query VPN endpoint-specific details, including the endpoint configuration, associated network details, connection logs, and associated metadata. You can utilize this table to gather insights on VPN endpoints, such as the associated VPC, Subnets, Security Groups, and more. The schema outlines the various attributes of the VPN endpoint for you, including the endpoint ID, creation time, DNS server, VPN protocol, and associated tags.
 
+## Required Permissions
+
+Your principal must have the following permissions to use this table:
+
+| Permission | Description |
+|------------|-------------|
+| `ec2:DescribeClientVpnEndpoints` | Required to retrieve Client VPN endpoint information. |
+
 ## Examples
 
 ### Basic Info

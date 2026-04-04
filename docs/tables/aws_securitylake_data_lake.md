@@ -12,6 +12,14 @@ The AWS Lake Formation is a service that makes it easy to set up, secure, and ma
 
 The `aws_securitylake_data_lake` table in Steampipe provides you with information about Data Lakes within AWS Lake Formation. This table allows you, as a DevOps engineer, to query Data Lake-specific details, including the Data Lake name, creation time, last modified time, and more. You can utilize this table to gather insights on Data Lakes, such as their creation times, last modified times, and other associated metadata. The schema outlines the various attributes of the Data Lake for you, including the Data Lake name, creation time, last modified time, and more.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `securitylake:ListDataLakes` | Required to list data lakes |
+
 ## Examples
 
 ### Basic info

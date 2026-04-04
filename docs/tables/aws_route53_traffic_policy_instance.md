@@ -12,6 +12,15 @@ The AWS Route 53 Traffic Policy Instance is a component of Amazon's scalable and
 
 The `aws_route53_traffic_policy_instance` table in Steampipe provides you with information about Traffic Policy Instances within AWS Route 53. This table allows you, as a DevOps engineer, to query instance-specific details, including the instance ID, version, DNS name, and associated metadata. You can utilize this table to gather insights on traffic policy instances, such as their configuration, status, and more. The schema outlines the various attributes of the Traffic Policy Instance for you, including the ID, version, DNS name, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `route53:ListTrafficPolicyInstances` | Required to list traffic policy instances. |
+| `route53:GetTrafficPolicyInstance` | Required to get traffic policy instance details. |
+
 ## Examples
 
 ### Basic Info

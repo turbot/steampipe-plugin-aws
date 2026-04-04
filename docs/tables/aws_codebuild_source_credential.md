@@ -12,6 +12,14 @@ The AWS CodeBuild Source Credentials are used to interact with external code rep
 
 The `aws_codebuild_source_credential` table in Steampipe provides you with information about source credentials within AWS CodeBuild. This table allows you as a DevOps engineer to query specific details about source credentials, including the ARN, server type, authentication type, and token. You can utilize this table to gather insights on source credentials, such as identifying the server types, verifying the authentication types, and more. The schema outlines the various attributes of the source credential for you, including the ARN, server type, authentication type, and token.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `codebuild:ListSourceCredentials` | Required to list source credentials |
+
 ## Examples
 
 ### Basic info

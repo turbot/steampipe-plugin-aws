@@ -12,6 +12,15 @@ The Amazon DocumentDB Cluster Instance is a part of Amazon DocumentDB, a fast, s
 
 The `aws_docdb_cluster_instance` table in Steampipe provides you with information about Amazon DocumentDB Cluster Instances. This table allows you as a DevOps engineer, database administrator, or other technical professional to query detailed information about each cluster instance, such as its identifier, associated cluster identifier, instance class, availability zone, engine version, and other relevant metadata. You can utilize this table to gather insights on the configuration, performance, and status of your DocumentDB cluster instances. The schema outlines the various attributes of the DocumentDB cluster instance, including instance ARN, creation time, instance status, and associated tags for you.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `rds:DescribeDBInstances` | Required to list and get details of DocumentDB cluster instances. |
+| `docdb:ListTagsForResource` | Required to retrieve tags for cluster instances. |
+
 ## Examples
 
 ### Basic info

@@ -12,6 +12,16 @@ AWS Roles Anywhere enables trusted entities outside of an AWS account to carry o
 
 The `aws_rolesanywhere_profile` table in Steampipe provides you with information about Roles Anywhere Profiles. This table allows you, as a DevOps engineer, to query Profile-specific details, including boundary policy, certificate field mappings, and associated metadata. You can utilize this table to gather insights on Profiles, such as the IAM roles a Profile can access, which permission restrictions apply to role sessions, and more. The schema outlines the various attributes of the Profile for you, including the ARN, attribute mappings, IAM information, and create and update times.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `rolesanywhere:ListProfiles` | Required to list profiles |
+| `rolesanywhere:GetProfile` | Required to get profile details |
+| `rolesanywhere:ListTagsForResource` | Required to retrieve tags for profiles |
+
 ## Examples
 
 ### List enabled Profiles.

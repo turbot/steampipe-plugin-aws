@@ -12,6 +12,15 @@ The AWS CodeCommit Repository is a fully-managed source control service that hos
 
 The `aws_codecommit_repository` table in Steampipe provides you with information about repositories within AWS CodeCommit. This table allows you, as a DevOps engineer, to query repository-specific details, including repository name, ARN, description, clone URL, last modified date, and other related details. You can utilize this table to gather insights on repositories, such as repositories with specific ARNs, the last modified date of repositories, verification of clone URLs, and more. The schema outlines the various attributes of the CodeCommit repository for you, including the repository name, ARN, clone URL, and associated metadata.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `codecommit:ListRepositories` | Required to list CodeCommit repositories. |
+| `codecommit:ListTagsForResource` | Required to retrieve tags for a repository. |
+
 ## Examples
 
 ### Basic info

@@ -12,6 +12,14 @@ The AWS SSO Admin Account Assignment is a resource within AWS Single Sign-On (SS
 
 The `aws_ssoadmin_account_assignment` table in Steampipe provides you with information about each AWS SSO (Single Sign-On) admin account assignment within your AWS account. This table allows you, as a DevOps engineer, administrator, or AWS user, to query details related to SSO admin account assignments, including the principal type, principal ID, target type, target ID, and permission set. You can utilize this table to gather insights on SSO admin account assignments, such as the account assignments for a specific principal or target, the permission sets assigned to a target, and more. The schema outlines the various attributes of the SSO admin account assignment for you, including the instance ARN, principal type, principal ID, target type, target ID, and permission set.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `sso:ListAccountAssignments` | Required to list account assignments for a permission set |
+
 ## Examples
 
 ### Assignments for a specific permission set and account

@@ -12,6 +12,15 @@ The AWS EC2 Reserved Instances are a type of Amazon EC2 instance that allows you
 
 The `aws_ec2_reserved_instance` table in Steampipe provides you with information about Reserved Instances within Amazon Elastic Compute Cloud (EC2). This table allows you, as a DevOps engineer, to query reserved instance-specific details, including instance type, offering class, and state. You can utilize this table to gather insights on reserved instances, such as their configurations, reserved instance state, and associated tags. The schema outlines the various attributes of the reserved instance for you, including its ARN, instance type, offering class, and associated tags.
 
+## Required Permissions
+
+Your principal must have the following permissions to use this table:
+
+| Permission | Description |
+|------------|-------------|
+| `ec2:DescribeReservedInstances` | Required to retrieve reserved instance information. |
+| `ec2:DescribeReservedInstancesModifications` | Required to retrieve the `reserved_instances_modifications` column. |
+
 ## Examples
 
 ### Basic Info

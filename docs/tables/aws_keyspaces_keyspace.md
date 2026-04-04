@@ -12,6 +12,16 @@ Amazon Keyspaces (for Apache Cassandra) is a scalable, highly available, and man
 
 The `aws_keyspaces_keyspace` table enables cloud administrators and DevOps engineers to gather detailed insights into their Keyspaces keyspaces. You can query various aspects of the keyspace, such as its replication strategy, creation timestamp, and replication regions. This table is useful for monitoring keyspaces configurations and ensuring they align with organizational requirements.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `cassandra:Select` | Required to list keyspaces |
+| `keyspaces:ListKeyspaces` | Required to list keyspaces |
+| `keyspaces:GetKeyspace` | Required to get keyspace details |
+
 ## Examples
 
 ### Basic keyspace information

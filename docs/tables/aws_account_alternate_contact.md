@@ -12,6 +12,14 @@ The AWS Account Alternate Contact is a feature that allows you to designate addi
 
 The `aws_account_alternate_contact` table in Steampipe provides you with information about the alternate contacts associated with your AWS account. You can use this table to query alternate contact-specific details, including the contact type, name, title, email, and phone number if you're a DevOps engineer or an AWS administrator. You can use this table to gather insights on alternate contacts, such as their role in the organization, their contact information, and more. The schema outlines the various attributes of your AWS Account Alternate Contact, including the account id, contact type, name, title, email, and phone number.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `account:GetAlternateContact` | Required to get alternate contact information |
+
 **Important Notes**
 This table supports the optional list key column `linked_account_id`, which comes with the following requirements:
 - You must be an identity in the [organization's management account](https://docs.aws.amazon.com/organizations/latest/userguide/orgs_getting-started_concepts.html#account) or a delegated administrator account.

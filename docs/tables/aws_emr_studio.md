@@ -12,6 +12,15 @@ AWS EMR Studio is an integrated development environment (IDE) that makes it easy
 
 The `aws_emr_studio` table in Steampipe provides you with information about EMR Studios within AWS Elastic MapReduce (EMR). This table allows you, as a DevOps engineer or data engineer, to query studio-specific details, including authentication settings, security configurations, and associated metadata. You can utilize this table to gather insights on studios, such as their authentication mode, security group configurations, and network settings. The schema outlines the various attributes of the EMR Studio for you, including the studio ID, name, ARN, and associated security and network configurations.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `elasticmapreduce:ListStudios` | Required to list EMR studios |
+| `elasticmapreduce:DescribeStudio` | Required to get studio details |
+
 ## Examples
 
 ### Basic info

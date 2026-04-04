@@ -12,6 +12,15 @@ The AWS Disaster Recovery Service (DRS) Recovery Snapshot is a feature of AWS DR
 
 The `aws_drs_recovery_snapshot` table in Steampipe provides you with information about recovery snapshots within AWS Disaster Recovery Service (DRS). This table enables you, as a DevOps engineer, to query snapshot-specific details, including snapshot ID, associated volume ID, start and end times, and associated metadata. You can utilize this table to gather insights on recovery snapshots, such as snapshot status, volume size, and more. The schema outlines the various attributes of the recovery snapshot for you, including the snapshot ID, volume ID, start and end times, snapshot status, and volume size.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `drs:DescribeSourceServers` | Required to list source servers (parent hydrate) |
+| `drs:DescribeRecoverySnapshots` | Required to list and describe recovery snapshots |
+
 ## Examples
 
 ### Basic Info

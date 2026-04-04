@@ -12,6 +12,17 @@ The AWS Database Migration Service (DMS) Source Server is a component of AWS DMS
 
 The `aws_drs_source_server` table in Steampipe provides you with information about source servers within AWS Database Migration Service (DMS). This table allows you, as a DevOps engineer, to query server-specific details, including server type, replication job status, associated replication tasks, and more. You can utilize this table to gather insights on source servers, such as server status, assigned replication tasks, and server configuration details. The schema outlines the various attributes of the source server for you, including the server ID, status, replication job details, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `drs:DescribeSourceServers` | Required to list and describe source servers |
+| `drs:GetLaunchConfiguration` | Required to get launch configuration settings |
+
+**Note:** The `launch_configuration` column requires the `drs:GetLaunchConfiguration` permission.
+
 ## Examples
 
 ### Basic Info

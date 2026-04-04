@@ -12,6 +12,16 @@ AWS MSK Connect is a fully managed service that makes it easy to deploy and run 
 
 The `aws_mskconnect_connector` table in Steampipe provides you with information about MSK Connect connectors within AWS. This table allows you, as a DevOps engineer, to query connector-specific details, including connector ARN, name, state, configuration, and associated metadata. You can utilize this table to gather insights on connectors, such as their current state, Kafka cluster connections, plugin configurations, and more. The schema outlines the various attributes of the MSK Connect connector for you, including the connector name, ARN, state, capacity settings, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `kafkaconnect:ListConnectors` | Required to list MSK Connect connectors |
+| `kafkaconnect:DescribeConnector` | Required to get details of a specific connector |
+| `kafkaconnect:ListTagsForResource` | Required to get tags for connectors |
+
 ## Examples
 
 ### Basic info

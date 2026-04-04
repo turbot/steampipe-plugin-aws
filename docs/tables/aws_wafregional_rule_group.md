@@ -12,6 +12,17 @@ The AWS WAF Regional Rule Groups are a feature of the AWS WAF service that allow
 
 The `aws_wafregional_rule_group` table in Steampipe provides you with information about rule groups within AWS WAF Regional. This table allows you, as a DevOps engineer, to query rule group-specific details, including the rule group ARN, associated rules, and metadata. You can utilize this table to gather insights on rule groups, such as the activated rules in each group, the metric names associated with each rule, and more. The schema outlines the various attributes of the rule group for you, including the rule group ID, name, ARN, metric name, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `waf-regional:ListRuleGroups` | Required to list rule groups |
+| `waf-regional:GetRuleGroup` | Required to get rule group details (metric_name) |
+| `waf-regional:ListActivatedRulesInRuleGroup` | Required to get activated rules in the rule group |
+| `waf-regional:ListTagsForResource` | Required to get rule group tags |
+
 ## Examples
 
 ### Basic info

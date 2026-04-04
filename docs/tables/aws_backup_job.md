@@ -12,6 +12,15 @@ The AWS Backup Jobs are a part of the AWS Backup service, which provides users w
 
 The `aws_backup_job` table in Steampipe provides detailed information about backup jobs within AWS Backup. This table allows you to query specific details of each job, such as its state, target vault name, ARN, recovery points, and associated metadata. By utilizing this table, you can gain insights into backup jobs, including the number of successful or failed jobs, the creation date of each job, and more. The schema outlines various attributes of the backup job, including the target vault name, ARN, creation date, job state, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `backup:ListBackupJobs` | Required to list backup jobs |
+| `backup:DescribeBackupJob` | Required to get details of a specific backup job |
+
 ## Examples
 
 ### Basic Info

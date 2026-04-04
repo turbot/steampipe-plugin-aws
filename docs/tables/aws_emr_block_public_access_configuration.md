@@ -12,6 +12,14 @@ The AWS EMR Block Public Access Configuration is a security feature that helps p
 
 The `aws_emr_block_public_access_configuration` table in Steampipe provides you with information about the block public access configurations for Amazon EMR clusters. This table allows you, as a DevOps engineer, to query configuration-specific details, including the block public access status, permitted public security group rules, and associated metadata. You can utilize this table to gather insights on configurations, such as the number of permitted public security group rules, the block public access status, and more. The schema outlines the various attributes of the block public access configuration for you, including the block public access status, the permitted public security group rules, and the metadata.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `elasticmapreduce:GetBlockPublicAccessConfiguration` | Required to retrieve block public access configuration |
+
 ## Examples
 
 ### Basic info

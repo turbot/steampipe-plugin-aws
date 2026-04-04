@@ -12,6 +12,15 @@ The AWS CloudSearch Domain is a component of AWS CloudSearch, a fully-managed se
 
 The `aws_cloudsearch_domain` table in Steampipe provides you with information about each search domain configured within your AWS account. This table allows you, as a DevOps engineer, data analyst, or other technical professional, to query domain-specific details, including the domain's ARN, creation date, domain ID, and associated metadata. You can utilize this table to gather insights on domains, such as the status, endpoint, and whether the domain requires signing. The schema outlines the various attributes of the CloudSearch domain for you, including the domain ARN, creation date, document count, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `cloudsearch:ListDomainNames` | Required to list CloudSearch domains. |
+| `cloudsearch:DescribeDomains` | Required to get details of CloudSearch domains. |
+
 ## Examples
 
 ### Basic info

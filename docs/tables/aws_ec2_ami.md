@@ -15,6 +15,15 @@ The `aws_ec2_ami` table in Steampipe provides you with information about AMIs (A
 **Important Notes**
 - The `aws_ec2_ami` table only lists images in your account. To list other images shared with you, please use the `aws_ec2_ami_shared` table.
 
+## Required Permissions
+
+Your principal must have the following permissions to use this table:
+
+| Permission | Description |
+|------------|-------------|
+| `ec2:DescribeImages` | Required to retrieve AMI information. |
+| `ec2:DescribeImageAttribute` | Required to retrieve the `launch_permissions` column. |
+
 ## Examples
 
 ### Basic info

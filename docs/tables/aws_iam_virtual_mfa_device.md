@@ -12,6 +12,15 @@ An AWS Identity and Access Management (IAM) Virtual Multi-Factor Authentication 
 
 The `aws_iam_virtual_mfa_device` table in Steampipe provides you with information about Virtual MFA Devices within AWS Identity and Access Management (IAM). This table allows you, as a security administrator or compliance auditor, to query device-specific details, including the device ARN, enablement status, and associated users. You can utilize this table to gather insights on MFA devices, such as which devices are enabled, which users are associated with a particular device, and more. The schema outlines the various attributes of the Virtual MFA Device for you, including the device ARN, enable date, serial number, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `iam:ListVirtualMFADevices` | Required to list virtual MFA devices |
+| `iam:ListMFADeviceTags` | Required to list MFA device tags |
+
 ## Examples
 
 ### Basic info

@@ -12,6 +12,14 @@ The AWS VPC Elastic IP Address Transfer is a feature within Amazon's Virtual Pri
 
 The `aws_vpc_eip_address_transfer` table in Steampipe provides you with information about Elastic IP Address Transfers within Amazon Virtual Private Cloud (VPC). This table allows you, as a DevOps engineer, to query transfer-specific details, including associated Elastic IPs, transfer status, and associated metadata. You can utilize this table to gather insights on transfer events, such as tracking the movement of Elastic IPs, monitoring the status of IP transfers, and more. The schema outlines the various attributes of the Elastic IP Address transfer for you, including the transfer ID, allocation ID, status, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `ec2:DescribeAddressTransfers` | Required to list Elastic IP address transfer details |
+
 ## Examples
 
 ### Basic info

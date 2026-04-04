@@ -12,6 +12,16 @@ The AWS CodeDeploy service automates code deployments to any instance, including
 
 The `aws_codedeploy_app` table in Steampipe provides you with information about applications within AWS CodeDeploy. This table allows you, as a DevOps engineer, to query application-specific details, including application name, compute platform, and linked deployment groups. You can utilize this table to gather insights on applications, such as their deployment configurations, linked deployment groups, and compute platforms. The schema outlines the various attributes of the CodeDeploy application for you, including the application name, application ID, and the linked deployment groups.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `codedeploy:ListApplications` | Required to list CodeDeploy applications. |
+| `codedeploy:GetApplication` | Required to get details of a specific application. |
+| `codedeploy:ListTagsForResource` | Required to retrieve tags for an application. |
+
 ## Examples
 
 ### Basic info

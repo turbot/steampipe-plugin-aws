@@ -12,6 +12,16 @@ AWS GuardDuty is a threat detection service that continuously monitors for malic
 
 The `aws_guardduty_finding` table in Steampipe provides you with information about findings reported by AWS GuardDuty. This table allows you as a security analyst to query finding-specific details, including threat type, severity, and associated resources. You can utilize this table to gather insights on potential security threats, such as unauthorized access attempts, data breaches, or compromised instances. The schema outlines the various attributes of the GuardDuty finding for you, including the finding ID, detector ID, account ID, region, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `guardduty:ListDetectors` | Required to list detectors (parent hydrate). |
+| `guardduty:ListFindings` | Required to list findings. |
+| `guardduty:GetFindings` | Required to get finding details. |
+
 ## Examples
 
 ### Basic info

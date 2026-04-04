@@ -12,6 +12,15 @@ The AWS EC2 Instance Metrics is a feature of Amazon EC2 (Elastic Compute Cloud) 
 
 The `aws_ec2_instance_metric_cpu_utilization` table in Steampipe provides you with information about CPU utilization metrics of EC2 instances within AWS CloudWatch. This table allows you, as a DevOps engineer, system administrator, or other technical professional, to query CPU-specific details, including the instance's average, maximum, and minimum CPU utilization. You can utilize this table to gather insights on instance performance, such as identifying instances with high CPU utilization, analyzing CPU usage patterns, and more. The schema outlines the various attributes of the EC2 instance CPU utilization metrics for you, including the instance ID, namespace, metric name, and statistics.
 
+## Required Permissions
+
+Your principal must have the following permissions to use this table:
+
+| Permission | Description |
+|------------|-------------|
+| `cloudwatch:GetMetricStatistics` | Required to retrieve CloudWatch metric statistics. |
+| `ec2:DescribeInstances` | Required to list instances for metric retrieval. |
+
 ## Examples
 
 ### Basic info

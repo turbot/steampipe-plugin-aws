@@ -16,6 +16,14 @@ The `aws_wellarchitected_consolidated_report` table in Steampipe provides you wi
 - The column `base64_string` value is a Base64-encoded string representation of a lens review report. This data can be used to create a PDF file.
 - The tool https://base64.guru/converter/decode/pdf can be used for converting the Base64-encoded string to a PDF format.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `wellarchitected:GetConsolidatedReport` | Required to get consolidated report data and the `base64_string` column |
+
 ## Examples
 
 ### Basic info

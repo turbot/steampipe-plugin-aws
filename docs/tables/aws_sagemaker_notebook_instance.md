@@ -12,6 +12,16 @@ The AWS SageMaker Notebook Instances are a fully managed service that provides J
 
 The `aws_sagemaker_notebook_instance` table in Steampipe provides you with information about Notebook Instances within AWS SageMaker. This table allows you, as a DevOps engineer, data scientist, or other AWS user, to query Notebook Instance-specific details, including instance status, instance type, associated roles, and other metadata. You can utilize this table to gather insights on instances, such as instances with certain roles, instance statuses, and more. The schema outlines the various attributes of the SageMaker Notebook Instance for you, including the instance name, instance type, role ARN, creation time, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `sagemaker:ListNotebookInstances` | Required to list notebook instances |
+| `sagemaker:DescribeNotebookInstance` | Required to get notebook instance details |
+| `sagemaker:ListTags` | Required to get notebook instance tags |
+
 ## Examples
 
 ### Basic info

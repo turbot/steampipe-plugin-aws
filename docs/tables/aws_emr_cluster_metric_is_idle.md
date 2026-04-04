@@ -14,6 +14,15 @@ The `aws_emr_cluster_metric_is_idle` table in Steampipe provides you with inform
 
 The `aws_emr_cluster_metric_is_idle` table provides you with metric statistics at 5 minute intervals for the most recent 5 days.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `elasticmapreduce:ListClusters` | Required to list EMR clusters |
+| `cloudwatch:GetMetricStatistics` | Required to retrieve CloudWatch metrics |
+
 ## Examples
 
 ### Basic info

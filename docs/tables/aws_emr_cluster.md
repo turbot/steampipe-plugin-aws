@@ -12,6 +12,15 @@ The AWS Elastic MapReduce (EMR) Cluster is a web service that makes it easy to p
 
 The `aws_emr_cluster` table in Steampipe provides you with information about clusters within AWS Elastic MapReduce (EMR). This table allows you as a data engineer to query cluster-specific details, including cluster status, hardware and software configurations, VPC settings, and associated metadata. You can utilize this table to gather insights on EMR clusters, such as cluster states, hardware and software configurations, and verification of VPC settings. The schema outlines the various attributes of the EMR cluster for you, including the cluster ID, name, status, normalized instance hours, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `elasticmapreduce:ListClusters` | Required to list EMR clusters |
+| `elasticmapreduce:DescribeCluster` | Required to get cluster details |
+
 ## Examples
 
 ### Basic info

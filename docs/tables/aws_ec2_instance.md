@@ -12,6 +12,17 @@ The AWS EC2 Instance is a virtual server in Amazon's Elastic Compute Cloud (EC2)
 
 The `aws_ec2_instance` table in Steampipe provides you with information about EC2 Instances within AWS Elastic Compute Cloud (EC2). This table allows you, as a DevOps engineer, to query instance-specific details, including instance state, launch time, instance type, and associated metadata. You can utilize this table to gather insights on instances, such as instances with specific tags, instances in a specific state, instances of a specific type, and more. The schema outlines the various attributes of the EC2 instance for you, including the instance ID, instance state, instance type, and associated tags.
 
+## Required Permissions
+
+Your principal must have the following permissions to use this table:
+
+| Permission | Description |
+|------------|-------------|
+| `ec2:DescribeInstances` | Required to retrieve EC2 instance information. |
+| `ec2:DescribeInstanceAttribute` | Required to retrieve the `disable_api_termination`, `ebs_optimized`, `ena_support`, `enclave_options`, `instance_initiated_shutdown_behavior`, `kernel_id`, `ramdisk_id`, `sriov_net_support`, `user_data` columns. |
+| `ec2:GetLaunchTemplateData` | Required to retrieve the `launch_template_data` column. |
+| `ec2:DescribeInstanceStatus` | Required to retrieve the `instance_status` column. |
+
 ## Examples
 
 ### Instance count in each availability zone

@@ -17,6 +17,15 @@ The `aws_wellarchitected_lens_review_improvement` table in Steampipe provides yo
 - For AWS official lenses, this is either the lens alias, such as serverless, or the lens ARN, such as arn:aws:wellarchitected:us-east-1::lens/serverless. Note that some operations (such as ExportLens and CreateLensShare) are not permitted on AWS official lenses.
 - For custom lenses, this is the lens ARN, such as arn:aws:wellarchitected:us-west-2:123456789012:lens/0123456789abcdef01234567890abcdef.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `wellarchitected:ListWorkloads` | Required to list workloads (parent hydrate) |
+| `wellarchitected:ListLensReviewImprovements` | Required to list lens review improvements |
+
 ## Examples
 
 ## Basic info

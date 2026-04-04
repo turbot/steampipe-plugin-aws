@@ -12,6 +12,16 @@ The AWS Well-Architected Tool is a service that helps you review the state of yo
 
 The `aws_wellarchitected_check_summary` table in Steampipe provides you with information about the check summaries of all workloads within AWS Well-Architected Tool. This table allows you, as a DevOps engineer, to query check-specific details, including the workload ID, lens alias, pillar ID, and risk counts. You can utilize this table to gather insights on checks, such as the number of high-risk items, medium-risk items, and checks that are not applicable. The schema outlines the various attributes of the check summary for you, including the workload ID, lens alias, pillar ID, and risk counts.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `wellarchitected:ListWorkloads` | Required to list workloads (parent hydrate) |
+| `wellarchitected:ListAnswers` | Required to get answer details for workloads |
+| `wellarchitected:ListCheckSummaries` | Required to list check summaries |
+
 ## Examples
 
 ### Basic info

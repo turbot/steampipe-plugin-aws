@@ -12,6 +12,16 @@ An IAM instance profile is a container for an IAM role that you can use to pass 
 
 The `aws_iam_instance_profile` table in Steampipe provides you with information about IAM instance profiles within AWS Identity and Access Management (IAM). This table allows you, as a DevOps engineer, to query instance profile-specific details, including associated roles, creation date, and associated metadata. You can utilize this table to gather insights on instance profiles, such as which roles are attached to each instance profile, identify instance profiles without roles, verification of instance profile configurations, and more. The schema outlines the various attributes of the IAM instance profile for you, including the instance profile ARN, creation date, associated roles, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `iam:ListInstanceProfiles` | Required to list IAM instance profiles |
+| `iam:GetInstanceProfile` | Required to get instance profile details |
+| `iam:ListInstanceProfileTags` | Required to list instance profile tags |
+
 ## Examples
 
 ### List all IAM instance profiles

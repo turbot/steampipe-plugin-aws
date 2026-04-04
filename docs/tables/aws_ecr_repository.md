@@ -12,6 +12,20 @@ The AWS ECR Repository is a managed docker container registry service provided b
 
 The `aws_ecr_repository` table in Steampipe provides you with information about repositories within AWS Elastic Container Registry (ECR). This table allows you, as a DevOps engineer, to query repository-specific details, including repository ARN, repository URI, and creation date. You can utilize this table to gather insights on repositories, such as repository policies, image scanning configurations, image tag mutability, and more. The schema outlines the various attributes of the ECR repository for you, including the repository name, creation date, and associated tags.
 
+## Required Permissions
+
+This table requires the following IAM permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `ecr:DescribeRepositories` | Required to list and get repository details |
+| `ecr:ListTagsForResource` | Required to get repository tags |
+| `ecr:GetRepositoryPolicy` | Required to get repository policy (for policy column) |
+| `ecr:DescribeImages` | Required to get image details (for image scanning findings) |
+| `ecr:DescribeImageScanFindings` | Required to get image scan findings |
+| `ecr:GetLifecyclePolicy` | Required to get lifecycle policy (for lifecycle_policy column) |
+| `ecr:BatchGetRepositoryScanningConfiguration` | Required to get scanning configuration (for repository_scanning_configuration column) |
+
 ## Examples
 
 ### Basic info
