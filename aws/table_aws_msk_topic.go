@@ -122,6 +122,11 @@ func listMSKTopics(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 	cluster := h.Item.(types.Cluster)
 	clusterArn := cluster.ClusterArn
 
+	// Skip clusters that aren't ACTIVE — ListTopics fails on CREATING/DELETING clusters
+	if cluster.State != types.ClusterStateActive {
+		return nil, nil
+	}
+
 	// If cluster_arn qual is provided, skip clusters that don't match
 	if d.EqualsQuals["cluster_arn"] != nil {
 		qualClusterArn := d.EqualsQuals["cluster_arn"].GetStringValue()
