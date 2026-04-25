@@ -220,6 +220,17 @@ func tableAwsRDSDBCluster(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_BOOL,
 				Transform:   transform.FromField("IAMDatabaseAuthenticationEnabled"),
 			},
+            {
+                Name:        "internet_access_gateway_enabled",
+                Description: "Indicates whether the DB cluster has internet-based connectivity enabled through an internet access gateway.",
+				Type:        proto.ColumnType_BOOL,
+                Transform:   transform.FromField("InternetAccessGatewayEnabled"),
+            },
+            {
+                Name:        "iops",
+                Description: "The Provisioned IOPS (I/O operations per second) value.",
+                Type:        proto.ColumnType_INT,
+            },
 			{
 				Name:        "kms_key_id",
 				Description: "The AWS KMS key identifier for the encrypted DB cluster.",
@@ -346,6 +357,18 @@ func tableAwsRDSDBCluster(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_TIMESTAMP,
 				Transform:   transform.FromField("IOOptimizedNextAllowedModificationTime").Transform(transform.NullIfZeroValue),
 			},
+            {
+                Name:        "serverless_v2_platform_version",
+                Description: "The version of the Aurora Serverless V2 platform used by the DB cluster.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("ServerlessV2PlatformVersion"),
+            },
+            {
+                Name:        "vpc_networking_enabled",
+                Description: "Indicates whether the DB cluster uses VPC-based networking.",
+				Type:        proto.ColumnType_BOOL,
+				Transform:   transform.FromField("VPCNetworkingEnabled"),
+            },
 			{
 				Name:        "pending_modified_values",
 				Description: "Information about pending changes to the DB cluster.",
