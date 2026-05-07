@@ -1,0 +1,21 @@
+[
+	{
+		"artifact_s3_location": "{{ output.artifact_s3_location.value }}",
+		"code": {
+			"BlueprintTypes": null,
+			"Dependencies": null,
+			"Handler": "{{ output.code_handler.value }}",
+			"SourceLocationArn": null
+		},
+		"execution_role_arn": "{{ output.iam_role_arn.value }}",
+		"name": "{{ output.resource_aka.value }}",
+		"runtime_version": "{{ output.runtime_version.value }}",
+		"schedule": {
+			"DurationInSeconds": 0,
+			"Expression": "{{ output.schedule_expression.value }}",
+			"RetryConfig": {
+				"MaxRetries": 0
+			}
+		}
+	}
+]
