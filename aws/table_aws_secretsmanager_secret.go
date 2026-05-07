@@ -38,7 +38,7 @@ func tableAwsSecretsManagerSecret(_ context.Context) *plugin.Table {
 		HydrateConfig: []plugin.HydrateConfig{
 			{
 				Func: describeSecretsManagerSecret,
-				Tags: map[string]string{"service": "sagemaker", "action": "DescribeSecret"},
+				Tags: map[string]string{"service": "secretsmanager", "action": "DescribeSecret"},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(AWS_SECRETSMANAGER_SERVICE_ID),
