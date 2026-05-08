@@ -1,0 +1,9 @@
+[
+  {
+    "arn": "{{ output.resource_aka.value }}",
+    "destination_region": "{{ output.aws_region_alternate.value }}",
+    "policy_version": "2012-10-17",
+    "region": "{{ output.aws_region.value }}",
+    "registry_id": "{{ output.aws_account.value }}"
+  }
+]

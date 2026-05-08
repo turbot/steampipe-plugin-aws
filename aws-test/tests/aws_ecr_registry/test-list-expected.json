@@ -1,0 +1,7 @@
+[
+  {
+    "region": "{{ output.aws_region.value }}",
+    "registry_id": "{{ output.aws_account.value }}",
+    "title": "{{ output.aws_account.value }}"
+  }
+]
