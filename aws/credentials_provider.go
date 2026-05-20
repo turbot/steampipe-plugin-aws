@@ -17,11 +17,11 @@ import (
 //
 // Background
 //
-// The steampipe plugin SDK mutates Connection.Config in place when a new
+// The steampipe plugin SDK mutates the connection config in place when a new
 // connection config arrives via UpdateConnectionConfigs (see
 // steampipe-plugin-sdk/plugin/plugin_connection_config.go upsertConnectionData,
-// where d.Connection.Config = configStruct is the live mutation). The SDK
-// comment at that site explicitly acknowledges that a query may already be
+// which calls d.Connection.SetConfig(configStruct) under a write lock). The
+// SDK comment at that site explicitly acknowledges that a query may already be
 // executing with this Connection object, and that the AWS plugin in particular
 // "may refresh the Client using the previous credentials" — which is the bug
 // this provider fixes.
@@ -33,7 +33,7 @@ import (
 // from that goroutine fails with ExpiredToken — even if a fresh valid token
 // has been delivered to Connection.Config by the SDK.
 //
-// By re-reading Connection.Config on every Retrieve(), in-flight goroutines
+// By re-reading the connection config on every Retrieve(), in-flight goroutines
 // holding the same aws.Config pick up rotated credentials on the next signing
 // operation (modulo the CredentialsCache TTL we set below).
 type connectionConfigCredentialsProvider struct {
@@ -43,13 +43,10 @@ type connectionConfigCredentialsProvider struct {
 // Retrieve implements aws.CredentialsProvider. Called by the AWS SDK on every
 // signed request, subject to the wrapping CredentialsCache.
 func (p *connectionConfigCredentialsProvider) Retrieve(_ context.Context) (creds aws.Credentials, err error) {
-	// The SDK writes Connection.Config = configStruct (a two-word interface
-	// assignment) without synchronizing against concurrent readers. A torn
-	// interface read could in theory cause the type assertion below to panic.
-	// In practice the race window is microseconds during a config update and
-	// the consequence is at most one failed signing call which the AWS SDK
-	// retries automatically. Catch any panic here and return it as a normal
-	// error so the SDK can retry cleanly.
+	// Belt-and-suspenders: the SDK's Connection.GetConfig acquires an RLock so
+	// torn interface reads cannot happen via that path. This recover still
+	// converts any other panic inside Retrieve into a clean error the AWS SDK
+	// can retry, rather than propagating through the signing middleware.
 	defer func() {
 		if r := recover(); r != nil {
 			err = fmt.Errorf("connectionConfigCredentialsProvider: panic during Retrieve for connection %q: %v", p.connectionName(), r)
@@ -61,8 +58,10 @@ func (p *connectionConfigCredentialsProvider) Retrieve(_ context.Context) (creds
 		return aws.Credentials{}, errors.New("connectionConfigCredentialsProvider: connection is nil")
 	}
 
-	// Direct type assertion instead of GetConfig(). GetConfig also normalizes
-	// the Regions slice in place and panics on regions = []. Neither belongs in
+	// Read the raw config through the SDK's Connection.GetConfig accessor
+	// (which acquires the RLock) and type-assert directly here. Avoid the
+	// local aws/connection_config.go GetConfig helper — it normalizes the
+	// Regions slice in place and panics on regions = []. Neither belongs in
 	// the AWS request signing path: Retrieve only needs the credential fields,
 	// and a malformed connection config should not crash signing goroutines
 	// deep inside the AWS SDK middleware.
