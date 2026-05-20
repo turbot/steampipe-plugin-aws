@@ -40,6 +40,10 @@ type connectionConfigCredentialsProvider struct {
 	connection *plugin.Connection
 }
 
+// credentialsExpiresInterval is how long the returned aws.Credentials are
+// considered fresh by the SDK's CredentialsCache. Overridable in tests.
+var credentialsExpiresInterval = 60 * time.Second
+
 // Retrieve implements aws.CredentialsProvider. Called by the AWS SDK on every
 // signed request, subject to the wrapping CredentialsCache.
 func (p *connectionConfigCredentialsProvider) Retrieve(_ context.Context) (creds aws.Credentials, err error) {
@@ -100,7 +104,7 @@ func (p *connectionConfigCredentialsProvider) Retrieve(_ context.Context) (creds
 		// Connection.Config is an in-memory type assertion + struct copy,
 		// so a short interval is essentially free.
 		CanExpire: true,
-		Expires:   time.Now().Add(60 * time.Second),
+		Expires:   time.Now().Add(credentialsExpiresInterval),
 	}, nil
 }
 

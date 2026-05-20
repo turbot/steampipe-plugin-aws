@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/turbot/steampipe-plugin-sdk/v6/plugin"
 )
 
@@ -207,5 +208,68 @@ func TestConnectionConfigCredentialsProvider_HandlesUnexpectedConfigType(t *test
 	}
 	if !strings.Contains(err.Error(), "awsConfig") {
 		t.Errorf("error should mention expected type for diagnostics, got: %v", err)
+	}
+}
+
+// TestConnectionConfigCredentialsProvider_CacheLayerPicksUpRotation wraps the
+// provider in the same aws.CredentialsCache the production path uses (via
+// config.WithCredentialsProvider) and verifies that a rotation in
+// Connection.Config is visible to a cache.Retrieve call after the cached
+// value's Expires has passed. This is the production-shaped regression test
+// for the ExpiredToken-under-rotation bug — the unit tests above bypass the
+// cache and only prove the provider returns the right values when invoked.
+//
+// We shrink credentialsExpiresInterval to 50ms so the test runs in tens of
+// milliseconds instead of waiting out the production 60s window.
+func TestConnectionConfigCredentialsProvider_CacheLayerPicksUpRotation(t *testing.T) {
+	orig := credentialsExpiresInterval
+	credentialsExpiresInterval = 50 * time.Millisecond
+	defer func() { credentialsExpiresInterval = orig }()
+
+	ak1, sk1, st1 := "AKIA1ORIGINAL", "secret1original", "token1original"
+	ak2, sk2, st2 := "AKIA2ROTATED", "secret2rotated", "token2rotated"
+
+	conn := &plugin.Connection{Name: "test"}
+	conn.SetConfig(awsConfig{
+		AccessKey:    &ak1,
+		SecretKey:    &sk1,
+		SessionToken: &st1,
+	})
+	provider := &connectionConfigCredentialsProvider{connection: conn}
+	cache := aws.NewCredentialsCache(provider)
+
+	got1, err := cache.Retrieve(context.Background())
+	if err != nil {
+		t.Fatalf("first cache.Retrieve failed: %v", err)
+	}
+	if got1.AccessKeyID != ak1 {
+		t.Errorf("first cache.Retrieve: got AK=%s, want %s", got1.AccessKeyID, ak1)
+	}
+
+	// Rotate the connection config in place — what the SDK does on
+	// UpdateConnectionConfigs.
+	conn.SetConfig(awsConfig{
+		AccessKey:    &ak2,
+		SecretKey:    &sk2,
+		SessionToken: &st2,
+	})
+
+	// Sleep past the cache's Expires window so the next Retrieve goes back to
+	// the provider rather than serving the cached value.
+	time.Sleep(100 * time.Millisecond)
+
+	got2, err := cache.Retrieve(context.Background())
+	if err != nil {
+		t.Fatalf("second cache.Retrieve failed: %v", err)
+	}
+	if got2.AccessKeyID != ak2 {
+		t.Errorf("after rotation, cache returned stale creds: got AK=%s, want %s. "+
+			"This is the ExpiredToken-under-rotation bug — the CredentialsCache held "+
+			"the original creds past their replacement in Connection.Config.",
+			got2.AccessKeyID, ak2)
+	}
+	if got2.SecretAccessKey != sk2 || got2.SessionToken != st2 {
+		t.Errorf("after rotation, cache returned stale creds: got SK=%s ST=%s, want SK=%s ST=%s",
+			got2.SecretAccessKey, got2.SessionToken, sk2, st2)
 	}
 }
