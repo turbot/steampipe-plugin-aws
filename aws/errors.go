@@ -7,7 +7,7 @@ import (
 	"regexp"
 
 	"github.com/aws/smithy-go"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v6/plugin"
 )
 
 // shouldIgnoreErrors:: function which returns an ErrorPredicate for AWS API calls

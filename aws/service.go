@@ -17,7 +17,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws/retry"
 	awshttp "github.com/aws/aws-sdk-go-v2/aws/transport/http"
 	"github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/accessanalyzer"
 	"github.com/aws/aws-sdk-go-v2/service/account"
 	"github.com/aws/aws-sdk-go-v2/service/acm"
@@ -161,8 +160,8 @@ import (
 	"github.com/hashicorp/go-hclog"
 	"github.com/rs/dnscache"
 	"github.com/turbot/go-kit/helpers"
-	"github.com/turbot/steampipe-plugin-sdk/v5/memoize"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v6/memoize"
+	"github.com/turbot/steampipe-plugin-sdk/v6/plugin"
 	"golang.org/x/sync/semaphore"
 )
 
@@ -2247,12 +2246,14 @@ func getBaseClientForAccountUncached(ctx context.Context, d *plugin.QueryData, h
 		return nil, fmt.Errorf("partial credentials found in connection config, missing: access_key")
 	} else if awsSpcConfig.AccessKey != nil && awsSpcConfig.SecretKey != nil {
 		plugin.Logger(ctx).Debug("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "key_pair_found")
-		sessionToken := ""
 		if awsSpcConfig.SessionToken != nil {
 			plugin.Logger(ctx).Debug("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "session_token_found")
-			sessionToken = *awsSpcConfig.SessionToken
 		}
-		provider := credentials.NewStaticCredentialsProvider(*awsSpcConfig.AccessKey, *awsSpcConfig.SecretKey, sessionToken)
+		// Use a provider that re-reads the connection config on every Retrieve,
+		// so in-flight goroutines pick up rotated credentials when the plugin
+		// SDK mutates Connection.Config in-place via UpdateConnectionConfigs.
+		// See aws/credentials_provider.go.
+		provider := &connectionConfigCredentialsProvider{connection: d.Connection}
 		configOptions = append(configOptions, config.WithCredentialsProvider(provider))
 	}
 

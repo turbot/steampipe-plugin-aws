@@ -9,8 +9,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/costexplorer/types"
 	"github.com/golang/protobuf/ptypes/timestamp"
 
-	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v6/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v6/plugin"
 )
 
 // AllCostMetrics is a constant returning all the cost metrics
