@@ -1,3 +1,13 @@
+## v1.30.3 [2026-05-20]
+
+_Bug fixes_
+
+- Fixed `ExpiredToken` errors on long-running queries when Turbot Pipes rotates STS credentials mid-query. The plugin now refreshes credentials on every AWS request signing call instead of capturing them at `aws.Config` construction time, so in-flight goroutines pick up rotated credentials within the 60s CredentialsCache window. ([#2756](https://github.com/turbot/steampipe-plugin-aws/pull/2756))
+
+_Dependencies_
+
+- Upgraded `steampipe-plugin-sdk` to v6.0.0, which adds the `Connection.GetConfig` / `SetConfig` accessors and the per-connection `sync.RWMutex` that the rotation fix above depends on. Plugin builds now require Go 1.26.
+
 ## v1.30.2 [2026-04-03]
 
 _Bug fixes_
