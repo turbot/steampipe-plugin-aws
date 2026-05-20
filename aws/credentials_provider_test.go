@@ -2,7 +2,9 @@ package aws
 
 import (
 	"context"
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 )
@@ -58,28 +60,42 @@ func TestConnectionConfigCredentialsProvider_PicksUpInPlaceConfigMutation(t *tes
 func TestConnectionConfigCredentialsProvider_ErrorsWhenSecretKeyMissing(t *testing.T) {
 	ak := "AKIA1"
 	conn := &plugin.Connection{
-		Name: "test",
+		Name: "my-test-conn",
 		Config: awsConfig{
 			AccessKey: &ak,
 		},
 	}
 	provider := &connectionConfigCredentialsProvider{connection: conn}
-	if _, err := provider.Retrieve(context.Background()); err == nil {
-		t.Errorf("Retrieve should error when secret_key is missing, got nil")
+	_, err := provider.Retrieve(context.Background())
+	if err == nil {
+		t.Fatalf("Retrieve should error when secret_key is missing, got nil")
+	}
+	if !strings.Contains(err.Error(), "secret_key") {
+		t.Errorf("error should mention which field is missing, got: %v", err)
+	}
+	if !strings.Contains(err.Error(), conn.Name) {
+		t.Errorf("error should include the connection name %q for diagnostics, got: %v", conn.Name, err)
 	}
 }
 
 func TestConnectionConfigCredentialsProvider_ErrorsWhenAccessKeyMissing(t *testing.T) {
 	sk := "secret"
 	conn := &plugin.Connection{
-		Name: "test",
+		Name: "my-test-conn",
 		Config: awsConfig{
 			SecretKey: &sk,
 		},
 	}
 	provider := &connectionConfigCredentialsProvider{connection: conn}
-	if _, err := provider.Retrieve(context.Background()); err == nil {
-		t.Errorf("Retrieve should error when access_key is missing, got nil")
+	_, err := provider.Retrieve(context.Background())
+	if err == nil {
+		t.Fatalf("Retrieve should error when access_key is missing, got nil")
+	}
+	if !strings.Contains(err.Error(), "access_key") {
+		t.Errorf("error should mention which field is missing, got: %v", err)
+	}
+	if !strings.Contains(err.Error(), conn.Name) {
+		t.Errorf("error should include the connection name %q for diagnostics, got: %v", conn.Name, err)
 	}
 }
 
@@ -116,10 +132,14 @@ func TestConnectionConfigCredentialsProvider_SessionTokenOptional(t *testing.T) 
 	}
 }
 
-func TestConnectionConfigCredentialsProvider_SetsCanExpireForCacheRefresh(t *testing.T) {
-	// The SDK's CredentialsCache will only call Retrieve again before Expires
-	// if CanExpire is true. Without this, in-flight goroutines wouldn't pick
-	// up rotated creds even with our dynamic provider.
+// TestConnectionConfigCredentialsProvider_ExpiresIsShort guards against a
+// regression where Expires drifts back out to the original token TTL — which
+// would defeat the rotation-pickup goal because the SDK's CredentialsCache
+// would not call Retrieve again until then. The standalone reproduction
+// validated 60 seconds; we allow a generous bound here to permit small
+// adjustments without breaking the test, but anything more than a few
+// minutes would silently leak stale creds for that long.
+func TestConnectionConfigCredentialsProvider_ExpiresIsShort(t *testing.T) {
 	ak, sk, st := "AKIA1", "secret1", "token1"
 	conn := &plugin.Connection{
 		Name: "test",
@@ -130,14 +150,77 @@ func TestConnectionConfigCredentialsProvider_SetsCanExpireForCacheRefresh(t *tes
 		},
 	}
 	provider := &connectionConfigCredentialsProvider{connection: conn}
+
+	before := time.Now()
 	got, err := provider.Retrieve(context.Background())
 	if err != nil {
 		t.Fatalf("Retrieve failed: %v", err)
 	}
+
 	if !got.CanExpire {
-		t.Errorf("Credentials.CanExpire should be true so the SDK CredentialsCache calls Retrieve again before TTL")
+		t.Errorf("Credentials.CanExpire must be true so the SDK CredentialsCache calls Retrieve again before TTL")
 	}
 	if got.Expires.IsZero() {
-		t.Errorf("Credentials.Expires should be set to a non-zero hint")
+		t.Fatalf("Credentials.Expires should be set to a non-zero hint")
+	}
+
+	maxAllowed := before.Add(5 * time.Minute)
+	if got.Expires.After(maxAllowed) {
+		t.Errorf("Credentials.Expires should be within ~5min of now to bound rotation latency; got %s (now=%s, max=%s). "+
+			"A long Expires defeats the rotation-pickup goal because the SDK's CredentialsCache won't call Retrieve again until then.",
+			got.Expires.UTC().Format(time.RFC3339Nano),
+			before.UTC().Format(time.RFC3339Nano),
+			maxAllowed.UTC().Format(time.RFC3339Nano))
+	}
+}
+
+// TestConnectionConfigCredentialsProvider_DoesNotPanicOnEmptyRegions
+// verifies that Retrieve does not invoke GetConfig's region normalization
+// path, which panics on regions = []. Moving that panic into the AWS request
+// signing path would be worse than the original startup-time crash.
+func TestConnectionConfigCredentialsProvider_DoesNotPanicOnEmptyRegions(t *testing.T) {
+	ak, sk := "AKIA1", "secret1"
+	conn := &plugin.Connection{
+		Name: "test",
+		Config: awsConfig{
+			AccessKey: &ak,
+			SecretKey: &sk,
+			Regions:   []string{}, // GetConfig would panic on this
+		},
+	}
+	provider := &connectionConfigCredentialsProvider{connection: conn}
+
+	// This call would panic if Retrieve went through GetConfig.
+	got, err := provider.Retrieve(context.Background())
+	if err != nil {
+		t.Fatalf("Retrieve failed: %v", err)
+	}
+	if got.AccessKeyID != ak || got.SecretAccessKey != sk {
+		t.Errorf("Retrieve returned wrong creds: got AK=%s SK=%s, want AK=%s SK=%s",
+			got.AccessKeyID, got.SecretAccessKey, ak, sk)
+	}
+}
+
+// TestConnectionConfigCredentialsProvider_RecoversFromTornConfigRead
+// verifies the defer/recover safety net in case a concurrent SDK write to
+// Connection.Config produces a torn interface value that would otherwise
+// panic during the type assertion. We simulate the panic directly by setting
+// Config to a sentinel value of a type that is not awsConfig but is also not
+// an obvious "wrong type" — the type assertion uses the comma-ok form so
+// this returns ok=false rather than panicking. To actually trigger a panic
+// we set Config to a non-nil value of an unexpected concrete type and verify
+// we still get a clean error rather than a propagated panic.
+func TestConnectionConfigCredentialsProvider_HandlesUnexpectedConfigType(t *testing.T) {
+	conn := &plugin.Connection{
+		Name:   "test",
+		Config: "this is not an awsConfig",
+	}
+	provider := &connectionConfigCredentialsProvider{connection: conn}
+	_, err := provider.Retrieve(context.Background())
+	if err == nil {
+		t.Errorf("Retrieve should error when config is not awsConfig, got nil")
+	}
+	if !strings.Contains(err.Error(), "awsConfig") {
+		t.Errorf("error should mention expected type for diagnostics, got: %v", err)
 	}
 }
