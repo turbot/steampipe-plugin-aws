@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v6/plugin"
 )
 
 // TestConnectionConfigCredentialsProvider_PicksUpInPlaceConfigMutation
@@ -18,14 +18,12 @@ func TestConnectionConfigCredentialsProvider_PicksUpInPlaceConfigMutation(t *tes
 	ak1, sk1, st1 := "AKIA1ORIGINAL", "secret1original", "token1original"
 	ak2, sk2, st2 := "AKIA2ROTATED", "secret2rotated", "token2rotated"
 
-	conn := &plugin.Connection{
-		Name: "test",
-		Config: awsConfig{
-			AccessKey:    &ak1,
-			SecretKey:    &sk1,
-			SessionToken: &st1,
-		},
-	}
+	conn := &plugin.Connection{Name: "test"}
+	conn.SetConfig(awsConfig{
+		AccessKey:    &ak1,
+		SecretKey:    &sk1,
+		SessionToken: &st1,
+	})
 	provider := &connectionConfigCredentialsProvider{connection: conn}
 
 	got1, err := provider.Retrieve(context.Background())
@@ -37,15 +35,14 @@ func TestConnectionConfigCredentialsProvider_PicksUpInPlaceConfigMutation(t *tes
 			got1.AccessKeyID, got1.SecretAccessKey, got1.SessionToken, ak1, sk1, st1)
 	}
 
-	// Mutate the connection's Config in place, mimicking what the plugin SDK
-	// does at steampipe-plugin-sdk/plugin/plugin_connection_config.go:154
-	// (d.Connection.Config = configStruct) when UpdateConnectionConfigs
-	// delivers rotated credentials.
-	conn.Config = awsConfig{
+	// Rotate the connection's config in place, mimicking what the plugin SDK
+	// does in upsertConnectionData when UpdateConnectionConfigs delivers
+	// rotated credentials.
+	conn.SetConfig(awsConfig{
 		AccessKey:    &ak2,
 		SecretKey:    &sk2,
 		SessionToken: &st2,
-	}
+	})
 
 	got2, err := provider.Retrieve(context.Background())
 	if err != nil {
@@ -59,12 +56,10 @@ func TestConnectionConfigCredentialsProvider_PicksUpInPlaceConfigMutation(t *tes
 
 func TestConnectionConfigCredentialsProvider_ErrorsWhenSecretKeyMissing(t *testing.T) {
 	ak := "AKIA1"
-	conn := &plugin.Connection{
-		Name: "my-test-conn",
-		Config: awsConfig{
-			AccessKey: &ak,
-		},
-	}
+	conn := &plugin.Connection{Name: "my-test-conn"}
+	conn.SetConfig(awsConfig{
+		AccessKey: &ak,
+	})
 	provider := &connectionConfigCredentialsProvider{connection: conn}
 	_, err := provider.Retrieve(context.Background())
 	if err == nil {
@@ -80,12 +75,10 @@ func TestConnectionConfigCredentialsProvider_ErrorsWhenSecretKeyMissing(t *testi
 
 func TestConnectionConfigCredentialsProvider_ErrorsWhenAccessKeyMissing(t *testing.T) {
 	sk := "secret"
-	conn := &plugin.Connection{
-		Name: "my-test-conn",
-		Config: awsConfig{
-			SecretKey: &sk,
-		},
-	}
+	conn := &plugin.Connection{Name: "my-test-conn"}
+	conn.SetConfig(awsConfig{
+		SecretKey: &sk,
+	})
 	provider := &connectionConfigCredentialsProvider{connection: conn}
 	_, err := provider.Retrieve(context.Background())
 	if err == nil {
@@ -111,13 +104,11 @@ func TestConnectionConfigCredentialsProvider_SessionTokenOptional(t *testing.T) 
 	// provider handles that case without panicking and returns an empty
 	// SessionToken.
 	ak, sk := "AKIA1LONGTERM", "secretlongterm"
-	conn := &plugin.Connection{
-		Name: "test",
-		Config: awsConfig{
-			AccessKey: &ak,
-			SecretKey: &sk,
-		},
-	}
+	conn := &plugin.Connection{Name: "test"}
+	conn.SetConfig(awsConfig{
+		AccessKey: &ak,
+		SecretKey: &sk,
+	})
 	provider := &connectionConfigCredentialsProvider{connection: conn}
 	got, err := provider.Retrieve(context.Background())
 	if err != nil {
@@ -141,14 +132,12 @@ func TestConnectionConfigCredentialsProvider_SessionTokenOptional(t *testing.T) 
 // minutes would silently leak stale creds for that long.
 func TestConnectionConfigCredentialsProvider_ExpiresIsShort(t *testing.T) {
 	ak, sk, st := "AKIA1", "secret1", "token1"
-	conn := &plugin.Connection{
-		Name: "test",
-		Config: awsConfig{
-			AccessKey:    &ak,
-			SecretKey:    &sk,
-			SessionToken: &st,
-		},
-	}
+	conn := &plugin.Connection{Name: "test"}
+	conn.SetConfig(awsConfig{
+		AccessKey:    &ak,
+		SecretKey:    &sk,
+		SessionToken: &st,
+	})
 	provider := &connectionConfigCredentialsProvider{connection: conn}
 
 	before := time.Now()
@@ -180,14 +169,12 @@ func TestConnectionConfigCredentialsProvider_ExpiresIsShort(t *testing.T) {
 // signing path would be worse than the original startup-time crash.
 func TestConnectionConfigCredentialsProvider_DoesNotPanicOnEmptyRegions(t *testing.T) {
 	ak, sk := "AKIA1", "secret1"
-	conn := &plugin.Connection{
-		Name: "test",
-		Config: awsConfig{
-			AccessKey: &ak,
-			SecretKey: &sk,
-			Regions:   []string{}, // GetConfig would panic on this
-		},
-	}
+	conn := &plugin.Connection{Name: "test"}
+	conn.SetConfig(awsConfig{
+		AccessKey: &ak,
+		SecretKey: &sk,
+		Regions:   []string{}, // GetConfig would panic on this
+	})
 	provider := &connectionConfigCredentialsProvider{connection: conn}
 
 	// This call would panic if Retrieve went through GetConfig.
@@ -211,10 +198,8 @@ func TestConnectionConfigCredentialsProvider_DoesNotPanicOnEmptyRegions(t *testi
 // we set Config to a non-nil value of an unexpected concrete type and verify
 // we still get a clean error rather than a propagated panic.
 func TestConnectionConfigCredentialsProvider_HandlesUnexpectedConfigType(t *testing.T) {
-	conn := &plugin.Connection{
-		Name:   "test",
-		Config: "this is not an awsConfig",
-	}
+	conn := &plugin.Connection{Name: "test"}
+	conn.SetConfig("this is not an awsConfig")
 	provider := &connectionConfigCredentialsProvider{connection: conn}
 	_, err := provider.Retrieve(context.Background())
 	if err == nil {

@@ -160,8 +160,8 @@ import (
 	"github.com/hashicorp/go-hclog"
 	"github.com/rs/dnscache"
 	"github.com/turbot/go-kit/helpers"
-	"github.com/turbot/steampipe-plugin-sdk/v5/memoize"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v6/memoize"
+	"github.com/turbot/steampipe-plugin-sdk/v6/plugin"
 	"golang.org/x/sync/semaphore"
 )
 

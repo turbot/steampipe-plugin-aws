@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v6/plugin"
 )
 
 // connectionConfigCredentialsProvider is an aws.CredentialsProvider that reads
@@ -66,9 +66,10 @@ func (p *connectionConfigCredentialsProvider) Retrieve(_ context.Context) (creds
 	// the AWS request signing path: Retrieve only needs the credential fields,
 	// and a malformed connection config should not crash signing goroutines
 	// deep inside the AWS SDK middleware.
-	cfg, ok := p.connection.Config.(awsConfig)
+	raw := p.connection.GetConfig()
+	cfg, ok := raw.(awsConfig)
 	if !ok {
-		return aws.Credentials{}, fmt.Errorf("connectionConfigCredentialsProvider: connection %q config is %T, expected awsConfig", p.connection.Name, p.connection.Config)
+		return aws.Credentials{}, fmt.Errorf("connectionConfigCredentialsProvider: connection %q config is %T, expected awsConfig", p.connection.Name, raw)
 	}
 
 	if cfg.AccessKey == nil {
