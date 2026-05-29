@@ -5,6 +5,7 @@ import json
 import requests
 import subprocess
 from jinja2 import Template
+from encoders import CompactishJsonEncoder
 
 # URL for fetching AWS endpoints JSON data
 ENDPOINTS_JSON_URL = "https://raw.githubusercontent.com/aws/aws-sdk-go-v2/master/codegen/smithy-aws-go-codegen/src/main/resources/software/amazon/smithy/aws/go/codegen/endpoints.json"
@@ -12,6 +13,9 @@ ENDPOINTS_JSON_URL = "https://raw.githubusercontent.com/aws/aws-sdk-go-v2/master
 # Define output directories
 OUTPUT_DIR = "internal/aws_endpoint_generator"
 ENDPOINTS_FILE_PATH = os.path.join(OUTPUT_DIR, "endpoints.json")
+CUSTOM_ENDPOINTS_FILE_PATH = os.path.relpath(
+    os.path.join(os.path.dirname(__file__), "custom_endpoints.json"),
+    os.getcwd())
 GENERATED_GO_FILE = "aws/endpoint_service_ids_gen.go"
 
 # Ensure output directories exist
@@ -24,7 +28,7 @@ def download_file(url, output_path):
     try:
         response = requests.get(url, stream=True)
         response.raise_for_status()
-        
+
         with open(output_path, "wb") as file:
             for chunk in response.iter_content(chunk_size=8192):
                 file.write(chunk)
@@ -32,6 +36,69 @@ def download_file(url, output_path):
         print(f"File downloaded successfully: {output_path}")
     except requests.exceptions.RequestException as e:
         print(f"Error downloading file: {e}")
+        exit(1)
+
+
+def merge_custom_endpoints(endpoint_file_path, custom_endpoint_file_path):
+    """Merge the downloaded AWS endpoints file with our custom set of endpoints.
+
+    AWS Go SDK v2 has officially stated that the endpoint metadata file (which this package uses to
+    resolve service region information) is intended as a purely internal construct and is not used
+    as the default approach to endpoint resolution. This means that for some newer services, endpoint
+    metadata may not be present.
+
+    As such, this package now maintains its own set of endpoint metadata which is merged into the set
+    pulled from AWS Go SDK v2.
+
+    See also:
+        - https://github.com/aws/aws-sdk-go-v2/issues/2740
+        - https://github.com/aws/aws-sdk-go-v2/discussions/1026
+    """
+    try:
+        with open(endpoint_file_path, "r", encoding="utf-8") as file:
+            aws_endpoints = json.load(file)
+
+        with open(custom_endpoint_file_path, "r", encoding="utf-8") as file:
+            custom_endpoints = json.load(file)
+    except Exception as e:
+        print(f"Error parsing JSON: {e}")
+        exit(1)
+
+    for service, partition_endpoints in custom_endpoints.items():
+        for partition in aws_endpoints["partitions"]:
+            partition_name = partition["partition"]
+            if partition_name not in partition_endpoints:
+                continue
+
+            aws_service_metadata = partition["services"].get(service, {"endpoints": {}})
+
+            for region, region_endpoints in partition_endpoints[partition_name].items():
+                # Validate the region against the partition.
+                if region not in partition["regions"]:
+                    print(f"Invalid region `{region}` for partition `{partition}`")
+                    exit(1)
+
+                if region not in aws_service_metadata["endpoints"]:
+                    aws_service_metadata["endpoints"][region] = {"variants": []}
+
+                aws_service_metadata["endpoints"][region]["variants"].extend([
+                    {
+                        "hostname": region_endpoint,
+                        "tags": ["custom"]
+                    }
+                    for region_endpoint in region_endpoints
+                ])
+
+            partition["services"][service] = aws_service_metadata
+
+    try:
+        with open(endpoint_file_path, "w", encoding="utf-8") as file:
+            # Use the customised encoder to minimise diffs.
+            json.dump(aws_endpoints, file, cls=CompactishJsonEncoder, indent=2, separators=(',', ' : '))
+
+        print(f"Merged custom endpoints from {custom_endpoint_file_path} into {endpoint_file_path}")
+    except Exception as e:
+        print(f"Error writing merged file: {e}")
         exit(1)
 
 
@@ -63,7 +130,6 @@ const AWS_{{ service | replace(".", "_") | replace("-", "_") | upper }}_SERVICE_
 {% endfor %}
 """
 
-
     template = Template(template_str)
     rendered_content = template.render(service_keys=service_keys)
 
@@ -93,13 +159,16 @@ def main():
     # Step 1: Download the JSON file
     download_file(ENDPOINTS_JSON_URL, ENDPOINTS_FILE_PATH)
 
-    # Step 2: Extract unique service keys
+    # Step 2: Merge the downloaded JSON file with the custom set of endpoints that are maintained internally.
+    merge_custom_endpoints(ENDPOINTS_FILE_PATH, CUSTOM_ENDPOINTS_FILE_PATH)
+
+    # Step 3: Extract unique service keys
     service_keys = extract_unique_service_keys(ENDPOINTS_FILE_PATH)
 
-    # Step 3: Generate the Go file
+    # Step 4: Generate the Go file
     generate_go_file(service_keys, GENERATED_GO_FILE)
 
-    # Step 4: Format the generated Go file
+    # Step 5: Format the generated Go file
     format_go_file(GENERATED_GO_FILE)
 
 

@@ -1,0 +1,124 @@
+{
+  "application-signals": {
+    "aws": {
+      "af-south-1": [
+        "application-signals.af-south-1.api.aws"
+      ],
+      "ap-east-1": [
+        "application-signals.ap-east-1.api.aws"
+      ],
+      "ap-east-2": [
+        "application-signals.ap-east-2.api.aws"
+      ],
+      "ap-northeast-1": [
+        "application-signals.ap-northeast-1.api.aws"
+      ],
+      "ap-northeast-2": [
+        "application-signals.ap-northeast-2.api.aws"
+      ],
+      "ap-northeast-3": [
+        "application-signals.ap-northeast-3.api.aws"
+      ],
+      "ap-south-1": [
+        "application-signals.ap-south-1.api.aws"
+      ],
+      "ap-south-2": [
+        "application-signals.ap-south-2.api.aws"
+      ],
+      "ap-southeast-1": [
+        "application-signals.ap-southeast-1.api.aws"
+      ],
+      "ap-southeast-2": [
+        "application-signals.ap-southeast-2.api.aws"
+      ],
+      "ap-southeast-3": [
+        "application-signals.ap-southeast-3.api.aws"
+      ],
+      "ap-southeast-4": [
+        "application-signals.ap-southeast-4.api.aws"
+      ],
+      "ap-southeast-5": [
+        "application-signals.ap-southeast-5.api.aws"
+      ],
+      "ap-southeast-6": [
+        "application-signals.ap-southeast-6.api.aws"
+      ],
+      "ap-southeast-7": [
+        "application-signals.ap-southeast-7.api.aws"
+      ],
+      "ca-central-1": [
+        "application-signals.ca-central-1.api.aws",
+        "application-signals-fips.ca-central-1.api.aws"
+      ],
+      "ca-west-1": [
+        "application-signals.ca-west-1.api.aws",
+        "application-signals-fips.ca-west-1.api.aws"
+      ],
+      "eu-central-1": [
+        "application-signals.eu-central-1.api.aws"
+      ],
+      "eu-central-2": [
+        "application-signals.eu-central-2.api.aws"
+      ],
+      "eu-north-1": [
+        "application-signals.eu-north-1.api.aws"
+      ],
+      "eu-south-1": [
+        "application-signals.eu-south-1.api.aws"
+      ],
+      "eu-south-2": [
+        "application-signals.eu-south-2.api.aws"
+      ],
+      "eu-west-1": [
+        "application-signals.eu-west-1.api.aws"
+      ],
+      "eu-west-2": [
+        "application-signals.eu-west-2.api.aws"
+      ],
+      "eu-west-3": [
+        "application-signals.eu-west-3.api.aws"
+      ],
+      "il-central-1": [
+        "application-signals.il-central-1.api.aws"
+      ],
+      "me-central-1": [
+        "application-signals.me-central-1.api.aws"
+      ],
+      "me-south-1": [
+        "application-signals.me-south-1.api.aws"
+      ],
+      "mx-central-1": [
+        "application-signals.mx-central-1.api.aws"
+      ],
+      "sa-east-1": [
+        "application-signals.sa-east-1.api.aws"
+      ],
+      "us-east-1": [
+        "application-signals.us-east-1.api.aws",
+        "application-signals-fips.us-east-1.api.aws"
+      ],
+      "us-east-2": [
+        "application-signals.us-east-2.api.aws",
+        "application-signals-fips.us-east-2.api.aws"
+      ],
+      "us-west-1": [
+        "application-signals.us-west-1.api.aws",
+        "application-signals-fips.us-west-1.api.aws"
+      ],
+      "us-west-2": [
+        "application-signals.us-west-2.api.aws",
+        "application-signals-fips.us-west-2.api.aws"
+      ]
+    },
+    "aws-us-gov": {
+      "us-gov-east-1": [
+        "application-signals.us-gov-east-1.api.aws",
+        "application-signals-fips.us-gov-east-1.api.aws"
+      ],
+      "us-gov-west-1": [
+        "application-signals.us-gov-west-1.api.aws",
+        "application-signals-fips.us-gov-west-1.api.aws"
+      ]
+    }
+  }
+}
