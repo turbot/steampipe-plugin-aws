@@ -7,9 +7,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/eks"
 	"github.com/aws/aws-sdk-go-v2/service/eks/types"
 
-	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v6/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v6/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v6/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -98,9 +98,10 @@ func tableAwsEksPodIdentityAssociation(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "tags",
-				Description: "The metadata that you apply to the association to assist with categorization and organization.",
+				Description: resourceInterfaceDescription("tags"),
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getEksPodIdentityAssociation,
+				Transform:   transform.FromField("Tags"),
 			},
 			{
 				Name:        "akas",
@@ -148,13 +149,19 @@ func listEKSPodIdentityAssociations(ctx context.Context, d *plugin.QueryData, h 
 	}
 
 	// Apply optional namespace filter
-	if ns := d.EqualsQuals["namespace"].GetStringValue(); ns != "" {
-		input.Namespace = aws.String(ns)
+	namespace := d.EqualsQuals["namespace"].GetStringValue()
+	if namespace != "" {
+		input.Namespace = aws.String(namespace)
 	}
 
-	// Apply optional service_account filter
-	if sa := d.EqualsQuals["service_account"].GetStringValue(); sa != "" {
-		input.ServiceAccount = aws.String(sa)
+	// Apply optional service_account filter. The EKS API rejects a service
+	// account filter unless a namespace is also provided
+	// ("Service account is set, but namespace is not"), so only push it down
+	// when both quals are present. Otherwise the service_account qual is
+	// applied client-side below.
+	serviceAccount := d.EqualsQuals["service_account"].GetStringValue()
+	if serviceAccount != "" && namespace != "" {
+		input.ServiceAccount = aws.String(serviceAccount)
 	}
 
 	if d.QueryContext.Limit != nil {
@@ -184,6 +191,13 @@ func listEKSPodIdentityAssociations(ctx context.Context, d *plugin.QueryData, h 
 		}
 
 		for _, item := range output.Associations {
+			// The service_account qual is only pushed to the API when a
+			// namespace is also set, so filter client-side to honor a
+			// standalone service_account qual.
+			if serviceAccount != "" && namespace == "" && item.ServiceAccount != nil && *item.ServiceAccount != serviceAccount {
+				continue
+			}
+
 			d.StreamListItem(ctx, &PodIdentityAssociationInfo{
 				ClusterName:    item.ClusterName,
 				AssociationId:  item.AssociationId,

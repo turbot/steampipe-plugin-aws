@@ -2,13 +2,12 @@ package aws
 
 import (
 	"context"
-	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/service/ecr"
 
-	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v6/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v6/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v6/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -25,6 +24,9 @@ func tableAwsEcrRegistry(_ context.Context) *plugin.Table {
 			{
 				Func: getEcrRegistryPolicy,
 				Tags: map[string]string{"service": "ecr", "action": "GetRegistryPolicy"},
+				IgnoreConfig: &plugin.IgnoreConfig{
+					ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"RegistryPolicyNotFoundException"}),
+				},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(AWS_API_ECR_SERVICE_ID),
@@ -51,7 +53,7 @@ func tableAwsEcrRegistry(_ context.Context) *plugin.Table {
 				Description: "The JSON text of the registry permissions policy.",
 				Hydrate:     getEcrRegistryPolicy,
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("PolicyText").Transform(unescape),
+				Transform:   transform.FromField("PolicyText"),
 			},
 			{
 				Name:        "policy_std",
@@ -119,10 +121,6 @@ func getEcrRegistryPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 
 	op, err := svc.GetRegistryPolicy(ctx, &ecr.GetRegistryPolicyInput{})
 	if err != nil {
-		// No policy is set on the registry; surface as NULL rather than an error.
-		if strings.Contains(err.Error(), "RegistryPolicyNotFoundException") {
-			return nil, nil
-		}
 		plugin.Logger(ctx).Error("aws_ecr_registry.getEcrRegistryPolicy", "api_error", err)
 		return nil, err
 	}

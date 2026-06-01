@@ -1269,6 +1269,17 @@ func RDSClient(ctx context.Context, d *plugin.QueryData) (*rds.Client, error) {
 	return rds.NewFromConfig(*cfg), nil
 }
 
+// RDSClientDefaultRegion returns an RDS client bound to the default region. It
+// is used by global resources (e.g. global clusters) whose API returns the same
+// results regardless of the region the request is made in.
+func RDSClientDefaultRegion(ctx context.Context, d *plugin.QueryData) (*rds.Client, error) {
+	cfg, err := getClientForDefaultRegion(ctx, d)
+	if err != nil {
+		return nil, err
+	}
+	return rds.NewFromConfig(*cfg), nil
+}
+
 func RDSDBRecommendationClient(ctx context.Context, d *plugin.QueryData) (*rds.Client, error) {
 	// RDS DB Recommendation has the same endpoint information in the SDK as RDS, but
 	// is actually available in less regions. We have to manually remove them

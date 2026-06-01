@@ -7,9 +7,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/kafka"
 	"github.com/aws/aws-sdk-go-v2/service/kafka/types"
 
-	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v6/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v6/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v6/plugin/transform"
 )
 
 //// TABLE DEFINITION
@@ -21,7 +21,7 @@ func tableAwsMSKTopic(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.AllColumns([]string{"cluster_arn", "topic_name"}),
 			Hydrate:    getMSKTopic,
-			Tags:       map[string]string{"service": "kafka", "action": "DescribeTopic"},
+			Tags:       map[string]string{"service": "kafka", "action": "ListTopics"},
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"NotFoundException"}),
 			},
@@ -33,6 +33,13 @@ func tableAwsMSKTopic(_ context.Context) *plugin.Table {
 			KeyColumns: plugin.KeyColumnSlice{
 				{Name: "cluster_arn", Require: plugin.Optional},
 				{Name: "topic_name", Require: plugin.Optional},
+			},
+			// The topic management APIs require a provisioned cluster running
+			// Apache Kafka 3.6.0 or later. Older clusters return
+			// KafkaVersionUnsupportedException, so skip them rather than
+			// failing the query for the entire account.
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"KafkaVersionUnsupportedException"}),
 			},
 		},
 		HydrateConfig: []plugin.HydrateConfig{
@@ -106,11 +113,11 @@ func tableAwsMSKTopic(_ context.Context) *plugin.Table {
 }
 
 type mskTopicRow struct {
-	ClusterArn           *string
-	TopicName            *string
-	TopicArn             *string
-	PartitionCount       *int32
-	ReplicationFactor    *int32
+	ClusterArn            *string
+	TopicName             *string
+	TopicArn              *string
+	PartitionCount        *int32
+	ReplicationFactor     *int32
 	OutOfSyncReplicaCount *int32
 }
 
@@ -180,6 +187,14 @@ func listMSKTopics(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 		}
 
 		for _, topic := range output.Topics {
+			// TopicNameFilter is a server-side PREFIX match, so an exact "topic_name = 'x'"
+			// qual can return unwanted siblings (e.g. "x-dlq", "x-v2"). Apply a client-side
+			// exact-match filter to honor the equals qual.
+			if d.EqualsQuals["topic_name"] != nil && topic.TopicName != nil &&
+				*topic.TopicName != d.EqualsQuals["topic_name"].GetStringValue() {
+				continue
+			}
+
 			d.StreamListItem(ctx, mskTopicRow{
 				ClusterArn:            clusterArn,
 				TopicName:             topic.TopicName,
@@ -218,22 +233,45 @@ func getMSKTopic(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 		return nil, nil
 	}
 
-	output, err := svc.DescribeTopic(ctx, &kafka.DescribeTopicInput{
-		ClusterArn: aws.String(clusterArn),
-		TopicName:  aws.String(topicName),
-	})
-	if err != nil {
-		logger.Error("aws_msk_topic.getMSKTopic", "api_error", err)
-		return nil, err
+	// DescribeTopic does not return OutOfSyncReplicaCount (only ListTopics' TopicInfo does),
+	// so route the Get through ListTopics + an exact name match. This keeps the row shape
+	// identical to the List path and ensures out_of_sync_replica_count is populated.
+	// TopicNameFilter is a server-side prefix match, so we still verify the name exactly below.
+	input := kafka.ListTopicsInput{
+		ClusterArn:      aws.String(clusterArn),
+		TopicNameFilter: aws.String(topicName),
+		MaxResults:      aws.Int32(100),
 	}
 
-	return mskTopicRow{
-		ClusterArn:        aws.String(clusterArn),
-		TopicName:         output.TopicName,
-		TopicArn:          output.TopicArn,
-		PartitionCount:    output.PartitionCount,
-		ReplicationFactor: output.ReplicationFactor,
-	}, nil
+	paginator := kafka.NewListTopicsPaginator(svc, &input, func(o *kafka.ListTopicsPaginatorOptions) {
+		o.Limit = 100
+		o.StopOnDuplicateToken = true
+	})
+
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			logger.Error("aws_msk_topic.getMSKTopic", "api_error", err)
+			return nil, err
+		}
+
+		for _, topic := range output.Topics {
+			if topic.TopicName == nil || *topic.TopicName != topicName {
+				continue
+			}
+
+			return mskTopicRow{
+				ClusterArn:            aws.String(clusterArn),
+				TopicName:             topic.TopicName,
+				TopicArn:              topic.TopicArn,
+				PartitionCount:        topic.PartitionCount,
+				ReplicationFactor:     topic.ReplicationFactor,
+				OutOfSyncReplicaCount: topic.OutOfSyncReplicaCount,
+			}, nil
+		}
+	}
+
+	return nil, nil
 }
 
 func describeMSKTopic(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
