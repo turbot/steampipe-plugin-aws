@@ -149,6 +149,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ssoadmin"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 	"github.com/aws/aws-sdk-go-v2/service/support"
+	"github.com/aws/aws-sdk-go-v2/service/synthetics"
 	"github.com/aws/aws-sdk-go-v2/service/timestreamwrite"
 	"github.com/aws/aws-sdk-go-v2/service/transfer"
 	"github.com/aws/aws-sdk-go-v2/service/waf"
@@ -1738,6 +1739,19 @@ func SupportClient(ctx context.Context, d *plugin.QueryData) (*support.Client, e
 		return nil, nil
 	}
 	return support.NewFromConfig(*cfg), nil
+}
+
+func SyntheticsClient(ctx context.Context, d *plugin.QueryData, region string) (*synthetics.Client, error) {
+	// CloudWatch Synthetics have both regional resources (e.g. canaries) and global resources (e.g. groups).
+	// Determining the appropriate region for the client is left up to the caller.
+	cfg, err := getClientForRegion(ctx, d, region)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return synthetics.NewFromConfig(*cfg), nil
 }
 
 func TransferClient(ctx context.Context, d *plugin.QueryData) (*transfer.Client, error) {
