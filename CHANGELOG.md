@@ -24,6 +24,7 @@ _Dependencies_
 - Recompiled plugin with [github.com/aws/aws-sdk-go-v2/service/route53 v1.62.1](https://github.com/aws/aws-sdk-go-v2/blob/main/CHANGELOG.md).
 - Recompiled plugin with [github.com/aws/aws-sdk-go-v2/service/s3 v1.97.3](https://github.com/aws/aws-sdk-go-v2/blob/main/CHANGELOG.md).
 - Recompiled plugin with [github.com/aws/aws-sdk-go-v2/service/ssm v1.68.0](https://github.com/aws/aws-sdk-go-v2/blob/main/CHANGELOG.md).
+- Recompiled plugin with [github.com/go-jose/go-jose/v4 v4.1.4](https://github.com/go-jose/go-jose/releases/tag/v4.1.4). ([#2761](https://github.com/turbot/steampipe-plugin-aws/pull/2761)
 - Recompiled plugin with [github.com/hashicorp/go-getter v1.8.6](https://github.com/hashicorp/go-getter/releases/tag/v1.8.6).
 - Recompiled plugin with [go.opentelemetry.io/otel/sdk v1.43.0](https://github.com/open-telemetry/opentelemetry-go/releases/tag/v1.43.0).
 - Recompiled plugin with [google.golang.org/grpc v1.79.3](https://github.com/grpc/grpc-go/releases/tag/v1.79.3).
