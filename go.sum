@@ -808,8 +808,8 @@ github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.18.15 h1:moLQUoVq91Liq
 github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.18.15/go.mod h1:ZH34PJUc8ApjBIfgQCFvkWcUDBtl/WTD+uiYHjd8igA=
 github.com/aws/aws-sdk-go-v2/service/iot v1.53.3 h1:d9R8dezHswXV9am8Sz+1HOsCas1/7YmJQQq7FmpD7rQ=
 github.com/aws/aws-sdk-go-v2/service/iot v1.53.3/go.mod h1:7rtIbAvSP5Nbc1f7sbeWa+uMV+T6khOkWAh6VHsbOZI=
-github.com/aws/aws-sdk-go-v2/service/kafka v1.31.2 h1:jODSVa9LbXmZKRLy4KLFHCfhKlCGzU8FPOClKTqrh9U=
-github.com/aws/aws-sdk-go-v2/service/kafka v1.31.2/go.mod h1:ofW8A+AyFHi/MMYwYI5YkJ5h2JWCCtyHR/P7UQONcyc=
+github.com/aws/aws-sdk-go-v2/service/kafka v1.49.1 h1:BgBatWcQIFqF1l6KGHjv66V0d/ISnWrTwxDx/Jf6EJM=
+github.com/aws/aws-sdk-go-v2/service/kafka v1.49.1/go.mod h1:pMpys+PlrN//vj8j5s0oOAMJjauj81VkHzIZxPVWOro=
 github.com/aws/aws-sdk-go-v2/service/kafkaconnect v1.23.6 h1:ihOQVwcgeNWwKNnlJ7Ar+2vNrT1vHf3TkMMbYkjMqRg=
 github.com/aws/aws-sdk-go-v2/service/kafkaconnect v1.23.6/go.mod h1:y37BbtndiEKtaB7oZAkqSIq3h5pdFqRDZQLV/WFu07s=
 github.com/aws/aws-sdk-go-v2/service/keyspaces v1.10.8 h1:GVvpQbXfUVPnpydvOt+CfZPaZgLcGyJoJRSefunMuIo=

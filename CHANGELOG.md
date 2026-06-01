@@ -1,3 +1,19 @@
+## v1.31.0 [2026-06-01]
+
+_What's new?_
+
+- New tables added
+  - [aws_ecr_registry](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_ecr_registry) ([#2750](https://github.com/turbot/steampipe-plugin-aws/pull/2750)) (Thanks [@chammock](https://github.com/chammock) for the contribution!)
+  - [aws_eks_pod_identity_association](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_eks_pod_identity_association) ([#2748](https://github.com/turbot/steampipe-plugin-aws/pull/2748)) (Thanks [@andriizavoiko](https://github.com/andriizavoiko) for the contribution!)
+  - [aws_msk_topic](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_msk_topic) ([#2723](https://github.com/turbot/steampipe-plugin-aws/pull/2723)) (Thanks [@karolszmndy](https://github.com/karolszmndy) for the contribution!)
+  - [aws_rds_global_cluster](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_rds_global_cluster) ([#2707](https://github.com/turbot/steampipe-plugin-aws/pull/2707)) (Thanks [@ppapishe](https://github.com/ppapishe) for the contribution!)
+  - [aws_synthetics_canary](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_synthetics_canary) ([#2744](https://github.com/turbot/steampipe-plugin-aws/pull/2744)) (Thanks [@leongzhiyong](https://github.com/leongzhiyong) for the contribution!)
+
+_Bug fixes_
+
+- The `aws_cloudwatch_log_subscription_filter` table will now skip log groups using the Infrequent Access log class, which do not support the `DescribeSubscriptionFilters` API, instead of failing the entire query with a `ValidationException` error.
+- Fixed region resolution to recognize the `il` (Israel) and `mx` (Mexico) commercial region prefixes, so connections using region wildcards such as `il-*` or `mx-*` now resolve to the correct partition. ([#2724](https://github.com/turbot/steampipe-plugin-aws/pull/2724)) (Thanks [@Abhi011999](https://github.com/Abhi011999) for the contribution!)
+
 ## v1.30.3 [2026-05-20]
 
 _Bug fixes_

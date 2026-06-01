@@ -79,7 +79,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/inspector v1.21.4
 	github.com/aws/aws-sdk-go-v2/service/inspector2 v1.24.4
 	github.com/aws/aws-sdk-go-v2/service/iot v1.53.3
-	github.com/aws/aws-sdk-go-v2/service/kafka v1.31.2
+	github.com/aws/aws-sdk-go-v2/service/kafka v1.49.1
 	github.com/aws/aws-sdk-go-v2/service/kafkaconnect v1.23.6
 	github.com/aws/aws-sdk-go-v2/service/keyspaces v1.10.8
 	github.com/aws/aws-sdk-go-v2/service/kinesis v1.27.4

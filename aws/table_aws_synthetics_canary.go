@@ -5,10 +5,11 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/synthetics"
+	"github.com/aws/aws-sdk-go-v2/service/synthetics/types"
 
-	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v6/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v6/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v6/plugin/transform"
 )
 
 func tableAwsSyntheticsCanary(_ context.Context) *plugin.Table {
@@ -20,6 +21,9 @@ func tableAwsSyntheticsCanary(_ context.Context) *plugin.Table {
 			KeyColumns: plugin.AllColumns([]string{"name", "region"}),
 			Hydrate:    getSyntheticsCanary,
 			Tags:       map[string]string{"service": "synthetics", "action": "GetCanary"},
+			IgnoreConfig: &plugin.IgnoreConfig{
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
+			},
 		},
 		List: &plugin.ListConfig{
 			KeyColumns: plugin.KeyColumnSlice{
@@ -118,7 +122,7 @@ func tableAwsSyntheticsCanary(_ context.Context) *plugin.Table {
 			{
 				Name:        "success_retention_period_in_days",
 				Description: "The number of days that data for successful runs is retained.",
-				Type:        proto.ColumnType_JSON,
+				Type:        proto.ColumnType_INT,
 			},
 			{
 				Name:        "tags",
@@ -144,6 +148,21 @@ func tableAwsSyntheticsCanary(_ context.Context) *plugin.Table {
 				Name:        "vpc_config",
 				Description: "The VPC configuration of the canary.",
 				Type:        proto.ColumnType_JSON,
+			},
+
+			// Steampipe standard columns
+			{
+				Name:        "title",
+				Description: resourceInterfaceDescription("title"),
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Name"),
+			},
+			{
+				Name:        "akas",
+				Description: resourceInterfaceDescription("akas"),
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getSyntheticsCanaryArn,
+				Transform:   transform.FromValue().Transform(transform.EnsureStringArray),
 			},
 		}),
 	}
@@ -206,5 +225,26 @@ func getSyntheticsCanary(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 		return nil, err
 	}
 
-	return output, nil
+	if output.Canary == nil {
+		return nil, nil
+	}
+
+	return *output.Canary, nil
+}
+
+func getSyntheticsCanaryArn(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	region := d.EqualsQualString(matrixKeyRegion)
+	canary := h.Item.(types.Canary)
+
+	c, err := getCommonColumns(ctx, d, h)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_synthetics_canary.getSyntheticsCanaryArn", "common_data_error", err)
+		return nil, err
+	}
+	commonColumnData := c.(*awsCommonColumnData)
+
+	// arn format - https://docs.aws.amazon.com/service-authorization/latest/reference/list_amazoncloudwatchsynthetics.html
+	arn := "arn:" + commonColumnData.Partition + ":synthetics:" + region + ":" + commonColumnData.AccountId + ":canary:" + *canary.Name
+
+	return arn, nil
 }
