@@ -2,12 +2,14 @@ package aws
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs"
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs/types"
+	"github.com/aws/smithy-go"
 
 	"github.com/turbot/steampipe-plugin-sdk/v6/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v6/plugin"
@@ -153,7 +155,16 @@ func listCloudwatchLogSubscriptionFilters(ctx context.Context, d *plugin.QueryDa
 
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_cloudwatch_alarm.listCloudWatchAlarms", "api_error", err)
+			// The Infrequent Access log class does not support
+			// DescribeSubscriptionFilters and returns a ValidationException. This is
+			// a per-log-group (child hydrate) call, so skip the unsupported log
+			// group rather than failing the entire query. The List IgnoreConfig is
+			// not consulted for child hydrate errors, so this must be handled here.
+			var ae smithy.APIError
+			if errors.As(err, &ae) && ae.ErrorCode() == "ValidationException" {
+				return nil, nil
+			}
+			plugin.Logger(ctx).Error("aws_cloudwatch_log_subscription_filter.listCloudwatchLogSubscriptionFilters", "api_error", err)
 			return nil, err
 		}
 		for _, subscriptionFilter := range output.SubscriptionFilters {
@@ -198,6 +209,14 @@ func getCloudwatchLogSubscriptionFilter(ctx context.Context, d *plugin.QueryData
 	// execute list call
 	op, err := svc.DescribeSubscriptionFilters(ctx, params)
 	if err != nil {
+		// The Infrequent Access log class does not support
+		// DescribeSubscriptionFilters and returns a ValidationException. Treat the
+		// unsupported log group as having no subscription filter.
+		var ae smithy.APIError
+		if errors.As(err, &ae) && ae.ErrorCode() == "ValidationException" {
+			return nil, nil
+		}
+		plugin.Logger(ctx).Error("aws_cloudwatch_log_subscription_filter.getCloudwatchLogSubscriptionFilter", "api_error", err)
 		return nil, err
 	}
 
