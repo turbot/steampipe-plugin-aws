@@ -131,3 +131,11 @@ output "aws_partition" {
 output "account_id" {
   value = data.aws_caller_identity.current.account_id
 }
+
+output "aws_region" {
+  value = data.aws_region.primary.name
+}
+
+output "canary_arn" {
+  value = aws_synthetics_canary.named_test_resource.arn
+}
