@@ -14,6 +14,25 @@ _Bug fixes_
 - The `aws_cloudwatch_log_subscription_filter` table will now skip log groups using the Infrequent Access log class, which do not support the `DescribeSubscriptionFilters` API, instead of failing the entire query with a `ValidationException` error.
 - Fixed region resolution to recognize the `il` (Israel) and `mx` (Mexico) commercial region prefixes, so connections using region wildcards such as `il-*` or `mx-*` now resolve to the correct partition. ([#2724](https://github.com/turbot/steampipe-plugin-aws/pull/2724)) (Thanks [@Abhi011999](https://github.com/Abhi011999) for the contribution!)
 
+_Dependencies_
+
+- Recompiled plugin with [github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.7.8](https://github.com/aws/aws-sdk-go-v2/blob/main/CHANGELOG.md).
+- Recompiled plugin with [github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.65.0](https://github.com/aws/aws-sdk-go-v2/blob/main/CHANGELOG.md).
+- Recompiled plugin with [github.com/aws/aws-sdk-go-v2/service/kinesis v1.43.5](https://github.com/aws/aws-sdk-go-v2/blob/main/CHANGELOG.md).
+- Recompiled plugin with [github.com/aws/aws-sdk-go-v2/service/lambda v1.88.5](https://github.com/aws/aws-sdk-go-v2/blob/main/CHANGELOG.md).
+- Recompiled plugin with [github.com/aws/aws-sdk-go-v2/service/redshift v1.62.1](https://github.com/aws/aws-sdk-go-v2/blob/main/CHANGELOG.md).
+- Recompiled plugin with [github.com/aws/aws-sdk-go-v2/service/route53 v1.62.1](https://github.com/aws/aws-sdk-go-v2/blob/main/CHANGELOG.md).
+- Recompiled plugin with [github.com/aws/aws-sdk-go-v2/service/s3 v1.97.3](https://github.com/aws/aws-sdk-go-v2/blob/main/CHANGELOG.md).
+- Recompiled plugin with [github.com/aws/aws-sdk-go-v2/service/ssm v1.68.0](https://github.com/aws/aws-sdk-go-v2/blob/main/CHANGELOG.md).
+- Recompiled plugin with [github.com/hashicorp/go-getter v1.8.6](https://github.com/hashicorp/go-getter/releases/tag/v1.8.6).
+- Recompiled plugin with [go.opentelemetry.io/otel/sdk v1.43.0](https://github.com/open-telemetry/opentelemetry-go/releases/tag/v1.43.0).
+- Recompiled plugin with [google.golang.org/grpc v1.79.3](https://github.com/grpc/grpc-go/releases/tag/v1.79.3).
+- Updated `idna` to v3.15 in the `generate_parliament_iam_permissions` script. ([#2755](https://github.com/turbot/steampipe-plugin-aws/pull/2755))
+- Updated `lodash` to v4.18.1 in the integration test suite. ([#2730](https://github.com/turbot/steampipe-plugin-aws/pull/2730))
+- Updated `picomatch` to v2.3.2 in the integration test suite. ([#2721](https://github.com/turbot/steampipe-plugin-aws/pull/2721))
+- Updated `requests` to v2.33.0 in the `generate_aws_supported_endpoints` and `generate_parliament_iam_permissions` scripts. ([#2720](https://github.com/turbot/steampipe-plugin-aws/pull/2720), [#2722](https://github.com/turbot/steampipe-plugin-aws/pull/2722))
+- Updated `urllib3` to v2.7.0 in the `generate_aws_supported_endpoints` and `generate_parliament_iam_permissions` scripts. ([#2747](https://github.com/turbot/steampipe-plugin-aws/pull/2747), [#2746](https://github.com/turbot/steampipe-plugin-aws/pull/2746))
+
 ## v1.30.3 [2026-05-20]
 
 _Bug fixes_
