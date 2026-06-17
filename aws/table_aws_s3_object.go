@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 	"io"
 	"strings"
-	"time"
 	"unicode/utf8"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -27,7 +26,7 @@ func tableAwsS3Object(_ context.Context) *plugin.Table {
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "bucket_name", Require: plugin.Required, CacheMatch: query_cache.CacheMatchExact},
 				{Name: "prefix", Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
-				{Name: "start_after", Require: plugin.Optional},
+				{Name: "start_after", Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
 
 				// If you encrypt an object by using server-side encryption with customer-provided
 				// encryption keys (SSE-C) when you store the object in Amazon S3, then when you
@@ -35,9 +34,6 @@ func tableAwsS3Object(_ context.Context) *plugin.Table {
 				{Name: "sse_customer_algorithm", Require: plugin.Optional},
 				{Name: "sse_customer_key", Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
 				{Name: "sse_customer_key_md5", Require: plugin.Optional},
-
-				// Presigned URL expiration in seconds (default: 900)
-				{Name: "presigned_url_expires_in", Require: plugin.Optional},
 			},
 		},
 
@@ -71,10 +67,6 @@ func tableAwsS3Object(_ context.Context) *plugin.Table {
 				Depends: []plugin.HydrateFunc{getBucketRegionForObjects},
 				Tags:    map[string]string{"service": "s3", "action": "GetObjectTagging"},
 			},
-			{
-				Func: getS3ObjectPresignedURL,
-				Tags: map[string]string{"service": "s3", "action": "PresignGetObject"},
-			},
 		},
 		Columns: awsAccountColumns([]*plugin.Column{
 			{
@@ -97,7 +89,7 @@ func tableAwsS3Object(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "start_after",
-				Description: "When set, listing starts after this key in lexicographic order. Use the last key from a previous LIMIT query to paginate. Only works with default key ordering (no ORDER BY).",
+				Description: "Amazon S3 starts listing after this specified key. StartAfter can be any key in the bucket.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromQual("start_after"),
 			},
@@ -346,19 +338,6 @@ func tableAwsS3Object(_ context.Context) *plugin.Table {
 				Hydrate:     headS3Object,
 			},
 			{
-				Name:        "presigned_url",
-				Description: "A presigned URL for the object that can be used to download it without authentication. Use presigned_url_expires_in to control expiration (default 900 seconds).",
-				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromValue(),
-				Hydrate:     getS3ObjectPresignedURL,
-			},
-			{
-				Name:        "presigned_url_expires_in",
-				Description: "The duration in seconds for which the presigned URL is valid. Default is 900 seconds (15 minutes).",
-				Type:        proto.ColumnType_INT,
-				Transform:   transform.FromQual("presigned_url_expires_in"),
-			},
-			{
 				Name:        "acl",
 				Description: "ACLs define which AWS accounts or groups are granted access along with the type of access.",
 				Type:        proto.ColumnType_JSON,
@@ -457,8 +436,6 @@ func listS3Objects(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 		return nil, err
 	}
 
-	equalQuals := d.EqualsQuals
-
 	// default supported max value is 1000 by ListObjectsV2
 	maxItems := int32(1000)
 
@@ -477,6 +454,7 @@ func listS3Objects(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 		FetchOwner: aws.Bool(true),
 	}
 
+	equalQuals := d.EqualsQuals
 	if equalQuals["prefix"] != nil {
 		if equalQuals["prefix"].GetStringValue() != "" {
 			input.Prefix = aws.String(equalQuals["prefix"].GetStringValue())
@@ -792,47 +770,6 @@ func isOutpostObject(storageClass string) bool {
 	// S3 on Outposts provides a new storage class, OUTPOSTS
 	// as in https://docs.aws.amazon.com/AmazonS3/latest/userguide/S3onOutposts.html
 	return strings.EqualFold(storageClass, "OUTPOSTS")
-}
-
-func getS3ObjectPresignedURL(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	bucketName := d.EqualsQuals["bucket_name"].GetStringValue()
-
-	bucketRegion, err := doGetBucketRegion(ctx, d, h, bucketName)
-	if err != nil {
-		return nil, err
-	}
-	if bucketRegion == "" {
-		return nil, nil
-	}
-
-	svc, err := S3Client(ctx, d, bucketRegion)
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_s3_object.getS3ObjectPresignedURL", "client_error", err)
-		return nil, err
-	}
-
-	object := h.Item.(types.Object)
-
-	// Default expiration: 900 seconds (15 minutes)
-	expires := time.Duration(900) * time.Second
-	if d.EqualsQuals["presigned_url_expires_in"] != nil {
-		expiresIn := d.EqualsQuals["presigned_url_expires_in"].GetInt64Value()
-		if expiresIn > 0 {
-			expires = time.Duration(expiresIn) * time.Second
-		}
-	}
-
-	presignClient := s3.NewPresignClient(svc)
-	presignedReq, err := presignClient.PresignGetObject(ctx, &s3.GetObjectInput{
-		Bucket: aws.String(bucketName),
-		Key:    object.Key,
-	}, s3.WithPresignExpires(expires))
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_s3_object.getS3ObjectPresignedURL", "api_error", err)
-		return nil, err
-	}
-
-	return presignedReq.URL, nil
 }
 
 //// TRANSFORM FUNCTIONS
