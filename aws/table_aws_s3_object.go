@@ -457,8 +457,6 @@ func listS3Objects(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 		return nil, err
 	}
 
-	equalQuals := d.EqualsQuals
-
 	// default supported max value is 1000 by ListObjectsV2
 	maxItems := int32(1000)
 
@@ -477,6 +475,7 @@ func listS3Objects(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 		FetchOwner: aws.Bool(true),
 	}
 
+	equalQuals := d.EqualsQuals
 	if equalQuals["prefix"] != nil {
 		if equalQuals["prefix"].GetStringValue() != "" {
 			input.Prefix = aws.String(equalQuals["prefix"].GetStringValue())
