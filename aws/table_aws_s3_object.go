@@ -27,7 +27,7 @@ func tableAwsS3Object(_ context.Context) *plugin.Table {
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "bucket_name", Require: plugin.Required, CacheMatch: query_cache.CacheMatchExact},
 				{Name: "prefix", Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
-				{Name: "start_after", Require: plugin.Optional},
+				{Name: "start_after", Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
 
 				// If you encrypt an object by using server-side encryption with customer-provided
 				// encryption keys (SSE-C) when you store the object in Amazon S3, then when you
@@ -97,7 +97,7 @@ func tableAwsS3Object(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "start_after",
-				Description: "When set, listing starts after this key in lexicographic order. Use the last key from a previous LIMIT query to paginate. Only works with default key ordering (no ORDER BY).",
+				Description: "Amazon S3 starts listing after this specified key. StartAfter can be any key in the bucket.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromQual("start_after"),
 			},
