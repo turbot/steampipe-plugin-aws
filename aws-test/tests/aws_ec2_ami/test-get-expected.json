@@ -5,6 +5,8 @@
       {
         "DeviceName":"/dev/sda1",
         "Ebs": {
+          "AvailabilityZone": null,
+          "AvailabilityZoneId": null,
           "DeleteOnTermination":true,
           "Encrypted":true,
           "Iops":null,
@@ -12,6 +14,7 @@
           "OutpostArn": null,
           "SnapshotId":"{{ output.snapshot_id.value }}",
           "Throughput": null,
+          "VolumeInitializationRate": null,
           "VolumeSize":8,
           "VolumeType":"standard"
         },
@@ -19,18 +22,24 @@
         "VirtualName":null
       }
     ],
+    "deregistration_protection": "disabled",
     "description": "This is a test image.",
     "ena_support": false,
+    "free_tier_eligible": true,
     "hypervisor": "xen",
+    "image_allowed": null,
     "image_id": "{{ output.resource_id.value }}",
     "image_location": "{{ output.account_id.value }}/{{resourceName}}",
     "image_type": "machine",
+    "last_launched_time": null,
     "name": "{{resourceName}}",
     "owner_id": "{{ output.account_id.value }}",
     "platform_details": "Linux/UNIX",
     "public": false,
     "root_device_name": "/dev/sda1",
     "root_device_type": "ebs",
+    "source_image_id": null,
+    "source_image_region": null,
     "sriov_net_support": "simple",
     "tags_src": [
       {
