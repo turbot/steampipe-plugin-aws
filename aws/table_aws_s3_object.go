@@ -26,6 +26,7 @@ func tableAwsS3Object(_ context.Context) *plugin.Table {
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "bucket_name", Require: plugin.Required, CacheMatch: query_cache.CacheMatchExact},
 				{Name: "prefix", Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
+				{Name: "start_after", Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
 
 				// If you encrypt an object by using server-side encryption with customer-provided
 				// encryption keys (SSE-C) when you store the object in Amazon S3, then when you
@@ -85,6 +86,12 @@ func tableAwsS3Object(_ context.Context) *plugin.Table {
 				Description: "The name of the container bucket of this object.",
 				Type:        proto.ColumnType_STRING,
 				Transform:   transform.FromQual("bucket_name"),
+			},
+			{
+				Name:        "start_after",
+				Description: "Amazon S3 starts listing after this specified key. StartAfter can be any key in the bucket.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromQual("start_after"),
 			},
 			{
 				Name:        "last_modified",
@@ -454,6 +461,12 @@ func listS3Objects(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 		}
 	}
 
+	if equalQuals["start_after"] != nil {
+		if equalQuals["start_after"].GetStringValue() != "" {
+			input.StartAfter = aws.String(equalQuals["start_after"].GetStringValue())
+		}
+	}
+
 	// execute list call
 	for {
 		// apply rate limiting
@@ -473,13 +486,14 @@ func listS3Objects(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 				return nil, nil
 			}
 		}
+
 		input.ContinuationToken = objects.NextContinuationToken
 		if objects.NextContinuationToken == nil {
 			break
 		}
 	}
 
-	return nil, err
+	return nil, nil
 }
 
 func getS3Object(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
