@@ -26,6 +26,7 @@ func tableAwsS3Object(_ context.Context) *plugin.Table {
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "bucket_name", Require: plugin.Required, CacheMatch: query_cache.CacheMatchExact},
 				{Name: "prefix", Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
+				{Name: "start_after", Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
 
 				// If you encrypt an object by using server-side encryption with customer-provided
 				// encryption keys (SSE-C) when you store the object in Amazon S3, then when you
@@ -317,6 +318,12 @@ func tableAwsS3Object(_ context.Context) *plugin.Table {
 				Hydrate:     headS3Object,
 			},
 			{
+				Name:        "start_after",
+				Description: "The key to start listing objects after. Amazon S3 returns only objects that sort lexicographically after this key, which can be any key in the bucket.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromQual("start_after"),
+			},
+			{
 				Name:        "tag_count",
 				Description: "The number of tags, if any, on the object.",
 				Type:        proto.ColumnType_STRING,
@@ -452,6 +459,10 @@ func listS3Objects(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 		if equalQuals["prefix"].GetStringValue() != "" {
 			input.Prefix = aws.String(equalQuals["prefix"].GetStringValue())
 		}
+	}
+
+	if startAfter := d.EqualsQualString("start_after"); startAfter != "" {
+		input.StartAfter = aws.String(startAfter)
 	}
 
 	// execute list call
