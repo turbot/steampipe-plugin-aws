@@ -99,7 +99,7 @@ where
 ```
 
 ### List AMIs not launched in the last 90 days
-Identify AMIs that haven't been used recently, helping you find candidates for deregistration to reduce storage costs and simplify your AMI inventory.
+Identify AMIs that haven't been used recently, helping you find candidates for deregistration to reduce storage costs and simplify your AMI inventory. A null `last_launched_time` means the AMI has either never been launched or was last launched before April 2017, when AWS began recording this value (usage is reported with a 24-hour delay).
 
 ```sql+postgres
 select
@@ -123,7 +123,7 @@ select
 from
   aws_ec2_ami
 where
-  last_launched_time < datetime('now', '-90 days')
+  last_launched_time < datetime('now', '-90 day')
   or last_launched_time is null;
 ```
 

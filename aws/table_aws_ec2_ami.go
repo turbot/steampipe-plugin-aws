@@ -105,39 +105,13 @@ func tableAwsEc2Ami(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("DeprecationTime").Transform(transform.NullIfZeroValue),
 			},
 			{
-				Name:        "last_launched_time",
-				Description: "The date and time, in ISO 8601 date-time format, when the AMI was last used to launch an EC2 instance. When the AMI is used to launch an instance, there is a 24-hour delay before that usage is reported.",
-				Type:        proto.ColumnType_TIMESTAMP,
-				Transform:   transform.FromField("LastLaunchedTime").Transform(transform.NullIfZeroValue),
+				Name:        "architecture",
+				Description: "The architecture of the image.",
+				Type:        proto.ColumnType_STRING,
 			},
 			{
 				Name:        "deregistration_protection",
 				Description: "Indicates whether deregistration protection is enabled for the AMI.",
-				Type:        proto.ColumnType_STRING,
-			},
-			{
-				Name:        "free_tier_eligible",
-				Description: "Indicates whether the image is eligible for Amazon Web Services Free Tier.",
-				Type:        proto.ColumnType_BOOL,
-			},
-			{
-				Name:        "image_allowed",
-				Description: "If true, the AMI satisfies the criteria for Allowed AMIs and can be discovered and used in the account.",
-				Type:        proto.ColumnType_BOOL,
-			},
-			{
-				Name:        "source_image_id",
-				Description: "The ID of the source AMI from which the AMI was created. Only appears if the AMI was created using CreateImage, CopyImage, or CreateRestoreImageTask.",
-				Type:        proto.ColumnType_STRING,
-			},
-			{
-				Name:        "source_image_region",
-				Description: "The Region of the source AMI. Only appears if the AMI was created using CreateImage, CopyImage, or CreateRestoreImageTask.",
-				Type:        proto.ColumnType_STRING,
-			},
-			{
-				Name:        "architecture",
-				Description: "The architecture of the image.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
@@ -151,9 +125,19 @@ func tableAwsEc2Ami(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_BOOL,
 			},
 			{
+				Name:        "free_tier_eligible",
+				Description: "Indicates whether the image is eligible for Amazon Web Services Free Tier.",
+				Type:        proto.ColumnType_BOOL,
+			},
+			{
 				Name:        "hypervisor",
 				Description: "The hypervisor type of the image.",
 				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "image_allowed",
+				Description: "If true, the AMI satisfies the criteria for Allowed AMIs and can be discovered and used in the account.",
+				Type:        proto.ColumnType_BOOL,
 			},
 			{
 				Name:        "image_owner_alias",
@@ -170,6 +154,12 @@ func tableAwsEc2Ami(_ context.Context) *plugin.Table {
 				Name:        "kernel_id",
 				Description: "The kernel associated with the image, if any. Only applicable for machine images.",
 				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "last_launched_time",
+				Description: "The date and time, in ISO 8601 date-time format, when the AMI was last used to launch an EC2 instance. When the AMI is used to launch an instance, there is a 24-hour delay before that usage is reported.",
+				Type:        proto.ColumnType_TIMESTAMP,
+				Transform:   transform.FromField("LastLaunchedTime").Transform(transform.NullIfZeroValue),
 			},
 			{
 				Name:        "owner_id",
@@ -205,6 +195,16 @@ func tableAwsEc2Ami(_ context.Context) *plugin.Table {
 			{
 				Name:        "root_device_type",
 				Description: "The type of root device used by the AMI. The AMI can use an EBS volume or an instance store volume.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "source_image_id",
+				Description: "The ID of the source AMI from which the AMI was created. Only appears if the AMI was created using CreateImage, CopyImage, or CreateRestoreImageTask.",
+				Type:        proto.ColumnType_STRING,
+			},
+			{
+				Name:        "source_image_region",
+				Description: "The Region of the source AMI. Only appears if the AMI was created using CreateImage, CopyImage, or CreateRestoreImageTask.",
 				Type:        proto.ColumnType_STRING,
 			},
 			{
