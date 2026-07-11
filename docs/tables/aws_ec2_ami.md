@@ -98,6 +98,35 @@ where
   state = 'failed';
 ```
 
+### List AMIs not launched in the last 90 days
+Identify AMIs that haven't been used recently, helping you find candidates for deregistration to reduce storage costs and simplify your AMI inventory. A null `last_launched_time` means the AMI has either never been launched or was last launched before April 2017, when AWS began recording this value (usage is reported with a 24-hour delay).
+
+```sql+postgres
+select
+  name,
+  image_id,
+  creation_date,
+  last_launched_time
+from
+  aws_ec2_ami
+where
+  last_launched_time < now() - interval '90 days'
+  or last_launched_time is null;
+```
+
+```sql+sqlite
+select
+  name,
+  image_id,
+  creation_date,
+  last_launched_time
+from
+  aws_ec2_ami
+where
+  last_launched_time < datetime('now', '-90 day')
+  or last_launched_time is null;
+```
+
 ### Get volume info for each AMI
 Explore the characteristics of each Amazon Machine Image (AMI), such as volume size and type, encryption status, and deletion policy. This information is vital for managing storage resources efficiently and ensuring data security within your AWS EC2 environment.
 
