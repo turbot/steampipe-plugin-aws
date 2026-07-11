@@ -88,12 +88,6 @@ func tableAwsS3Object(_ context.Context) *plugin.Table {
 				Transform:   transform.FromQual("bucket_name"),
 			},
 			{
-				Name:        "start_after",
-				Description: "Amazon S3 starts listing after this specified key. StartAfter can be any key in the bucket.",
-				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromQual("start_after"),
-			},
-			{
 				Name:        "last_modified",
 				Description: "Last modified time of the object.",
 				Type:        proto.ColumnType_TIMESTAMP,
@@ -324,6 +318,12 @@ func tableAwsS3Object(_ context.Context) *plugin.Table {
 				Hydrate:     headS3Object,
 			},
 			{
+				Name:        "start_after",
+				Description: "The key to start listing objects after. Amazon S3 returns only objects that sort lexicographically after this key, which can be any key in the bucket.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromQual("start_after"),
+			},
+			{
 				Name:        "tag_count",
 				Description: "The number of tags, if any, on the object.",
 				Type:        proto.ColumnType_STRING,
@@ -461,10 +461,8 @@ func listS3Objects(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 		}
 	}
 
-	if equalQuals["start_after"] != nil {
-		if equalQuals["start_after"].GetStringValue() != "" {
-			input.StartAfter = aws.String(equalQuals["start_after"].GetStringValue())
-		}
+	if startAfter := d.EqualsQualString("start_after"); startAfter != "" {
+		input.StartAfter = aws.String(startAfter)
 	}
 
 	// execute list call
@@ -486,14 +484,13 @@ func listS3Objects(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 				return nil, nil
 			}
 		}
-
 		input.ContinuationToken = objects.NextContinuationToken
 		if objects.NextContinuationToken == nil {
 			break
 		}
 	}
 
-	return nil, nil
+	return nil, err
 }
 
 func getS3Object(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
