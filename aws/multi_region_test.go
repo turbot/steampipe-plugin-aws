@@ -49,6 +49,13 @@ func TestMatchRegionsToPatterns(t *testing.T) {
 		{"malformed exclusion excludes nothing", []string{"us-east-*", "!us-[east-1"}, []string{"us-east-1", "us-east-2"}},
 		{"bare bang matches nothing", []string{"us-east-1", "!"}, []string{"us-east-1"}},
 		{"double bang is literal after prefix strip", []string{"*", "!!us-east-1"}, []string{"us-east-1", "us-east-2", "us-west-2", "eu-west-1", "eu-central-1", "ap-southeast-1", "me-south-1", "me-central-1", "us-gov-west-1"}},
+		{"mid-string bang is literal, matches nothing", []string{"us-!east-1"}, nil},
+		{"mid-string bang in exclusion is a no-op", []string{"us-east-*", "!us-!east-1"}, []string{"us-east-1", "us-east-2"}},
+		{"trailing bang is literal, matches nothing", []string{"us-east-1!"}, nil},
+		// Go's path.Match negates character classes with ^, not shell-style !.
+		// Inside a class, ! is a literal member, so [!s] matches the letter s.
+		{"shell-style class negation does not negate", []string{"me-[!s]*"}, []string{"me-south-1"}},
+		{"go-style class negation", []string{"me-[^s]*"}, []string{"me-central-1"}},
 	}
 
 	for _, tc := range testCases {

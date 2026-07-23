@@ -260,6 +260,13 @@ func listQueryRegionsForConnection(ctx context.Context, d *plugin.QueryData) ([]
 	// Filter to regions that match the patterns in the config.
 	targetRegions := matchRegionsToPatterns(awsSpcConfig.Regions, maxTargetRegions)
 
+	// An empty result is not an error (e.g. a gov-partition pattern used on a
+	// commercial account), but is more often a typo or a regions list made up
+	// only of exclusion patterns, so leave a trail for debugging.
+	if len(targetRegions) == 0 {
+		plugin.Logger(ctx).Warn("listQueryRegionsForConnection", "connection_name", d.Connection.Name, "status", "no regions matched the regions config, queries will return no rows", "regions_config", awsSpcConfig.Regions)
+	}
+
 	plugin.Logger(ctx).Debug("listQueryRegionsForConnection", "connection_name", d.Connection.Name, "targetRegions", targetRegions)
 
 	return targetRegions, nil

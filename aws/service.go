@@ -12,6 +12,7 @@ import (
 	"os"
 	"slices"
 	"strconv"
+	"syscall"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -2013,10 +2014,17 @@ func getClientUncached(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 func isDialErrorRetryable(err error) aws.Ternary {
 	var sendErr *smithyhttp.RequestSendError
 	var opErr *net.OpError
-	if errors.As(err, &sendErr) && errors.As(err, &opErr) && opErr.Op == "dial" {
-		return aws.FalseTernary
+	if !errors.As(err, &sendErr) || !errors.As(err, &opErr) || opErr.Op != "dial" {
+		return aws.UnknownTernary
 	}
-	return aws.UnknownTernary
+	// Local resource exhaustion (ephemeral ports, file descriptors) under
+	// highly parallel scans also surfaces as dial errors, but the pressure is
+	// on this host, not the endpoint - retrying with backoff is the right
+	// response, so leave those to the SDK's default classifiers.
+	if errors.Is(err, syscall.EADDRNOTAVAIL) || errors.Is(err, syscall.EMFILE) || errors.Is(err, syscall.ENFILE) {
+		return aws.UnknownTernary
+	}
+	return aws.FalseTernary
 }
 
 func getClientWithMaxRetries(ctx context.Context, d *plugin.QueryData, region string, maxRetries int, minRetryDelay time.Duration) (*aws.Config, error) {

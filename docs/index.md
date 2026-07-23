@@ -211,6 +211,8 @@ Patterns prefixed with `!` exclude their matches instead. This is useful to keep
 
 Exclusions always win, regardless of their position in the list, and only subtract from what the positive patterns matched - a `regions` list containing only exclusion patterns matches no regions.
 
+Note that `!` is only special as the first character of a pattern. Within a character class, negation uses Go match syntax (`me-[^s]*`), not shell syntax (`me-[!s]*` treats the `!` as a literal character).
+
 AWS multi-region connections are common, but be aware that performance may be impacted by the number of regions and the latency to them.
 
 Steampipe will automatically guess your `default_region` from your AWS config
