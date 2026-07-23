@@ -258,19 +258,43 @@ func listQueryRegionsForConnection(ctx context.Context, d *plugin.QueryData) ([]
 	}
 
 	// Filter to regions that match the patterns in the config.
-	var targetRegions []string
-	for _, pattern := range awsSpcConfig.Regions {
-		for _, validRegion := range maxTargetRegions {
-			if ok, _ := path.Match(pattern, validRegion); ok {
-				targetRegions = append(targetRegions, validRegion)
-			}
-		}
+	targetRegions := matchRegionsToPatterns(awsSpcConfig.Regions, maxTargetRegions)
+
+	// An empty result is not an error (e.g. a gov-partition pattern used on a
+	// commercial account), but is more often a typo or a regions list made up
+	// only of exclusion patterns, so leave a trail for debugging.
+	if len(targetRegions) == 0 {
+		plugin.Logger(ctx).Warn("listQueryRegionsForConnection", "connection_name", d.Connection.Name, "status", "no regions matched the regions config, queries will return no rows", "regions_config", awsSpcConfig.Regions)
 	}
-	targetRegions = helpers.StringSliceDistinct(targetRegions)
 
 	plugin.Logger(ctx).Debug("listQueryRegionsForConnection", "connection_name", d.Connection.Name, "targetRegions", targetRegions)
 
 	return targetRegions, nil
+}
+
+// Filter validRegions to those matching the patterns. Patterns use path.Match
+// syntax (e.g. "us-*"). A pattern prefixed with "!" excludes its matches
+// instead, e.g. regions = ["*", "!me-south-1"]. Exclusions always win,
+// regardless of their position in the list, so ["*", "!me-south-1"] and
+// ["!me-south-1", "*"] are equivalent. A list containing only exclusion
+// patterns matches no regions - exclusions only subtract from what the
+// positive patterns matched.
+func matchRegionsToPatterns(patterns []string, validRegions []string) []string {
+	var includes, excludes []string
+	for _, pattern := range patterns {
+		target := &includes
+		if strings.HasPrefix(pattern, "!") {
+			pattern = pattern[1:]
+			target = &excludes
+		}
+		for _, validRegion := range validRegions {
+			if ok, _ := path.Match(pattern, validRegion); ok {
+				*target = append(*target, validRegion)
+			}
+		}
+	}
+	includes = helpers.StringSliceDistinct(includes)
+	return helpers.RemoveFromStringSlice(includes, excludes...)
 }
 
 // WAFRegionMatrix returns the general region list, with a special region

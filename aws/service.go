@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"math"
@@ -11,6 +12,7 @@ import (
 	"os"
 	"slices"
 	"strconv"
+	"syscall"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -158,6 +160,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/wellarchitected"
 	"github.com/aws/aws-sdk-go-v2/service/workspaces"
 	"github.com/aws/smithy-go/logging"
+	smithyhttp "github.com/aws/smithy-go/transport/http"
 	"github.com/hashicorp/go-hclog"
 	"github.com/rs/dnscache"
 	"github.com/turbot/go-kit/helpers"
@@ -1997,6 +2000,33 @@ func getClientUncached(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	return sess, err
 }
 
+// Classify transport-level dial failures (connection refused, no route to
+// host, i/o timeout before the connection is established) as non-retryable.
+// These mean the endpoint cannot be reached at all - no request was ever
+// delivered - so retrying burns the full retry budget against a dead endpoint
+// (e.g. an opted-in but network-unreachable region), at up to the dial
+// timeout per attempt. Failing immediately surfaces the error in seconds
+// instead of minutes.
+// Only dial-phase failures are affected: errors on established connections
+// (e.g. connection reset) and all API-level errors fall through to the
+// default classifiers. Context cancellation is wrapped by the SDK as
+// smithy.CanceledError, not RequestSendError, so it can never match here.
+func isDialErrorRetryable(err error) aws.Ternary {
+	var sendErr *smithyhttp.RequestSendError
+	var opErr *net.OpError
+	if !errors.As(err, &sendErr) || !errors.As(err, &opErr) || opErr.Op != "dial" {
+		return aws.UnknownTernary
+	}
+	// Local resource exhaustion (ephemeral ports, file descriptors) under
+	// highly parallel scans also surfaces as dial errors, but the pressure is
+	// on this host, not the endpoint - retrying with backoff is the right
+	// response, so leave those to the SDK's default classifiers.
+	if errors.Is(err, syscall.EADDRNOTAVAIL) || errors.Is(err, syscall.EMFILE) || errors.Is(err, syscall.ENFILE) {
+		return aws.UnknownTernary
+	}
+	return aws.FalseTernary
+}
+
 func getClientWithMaxRetries(ctx context.Context, d *plugin.QueryData, region string, maxRetries int, minRetryDelay time.Duration) (*aws.Config, error) {
 
 	plugin.Logger(ctx).Debug("getClientWithMaxRetries", "connection_name", d.Connection.Name, "region", region, "status", "starting")
@@ -2032,6 +2062,10 @@ func getClientWithMaxRetries(ctx context.Context, d *plugin.QueryData, region st
 		o.MaxBackoff = 5 * time.Minute
 		o.RateLimiter = NoOpRateLimit{} // With no rate limiter
 		o.Backoff = NewExponentialJitterBackoff(minRetryDelay, maxRetries)
+		// Classifiers are checked in order and the first non-unknown result
+		// wins, so prepending overrides the SDK's default classification of
+		// dial failures as retryable connection errors.
+		o.Retryables = append([]retry.IsErrorRetryable{retry.IsErrorRetryableFunc(isDialErrorRetryable)}, o.Retryables...)
 	})
 	cfg.Retryer = func() aws.Retryer {
 		// UnknownError is the code returned for a 408 from the aws go sdk, these can be frequent on large accounts especially around SNS Topics, etc.
@@ -2067,6 +2101,9 @@ func getClientWithMaxRetries(ctx context.Context, d *plugin.QueryData, region st
 			}
 			newCfg.Retryer = cfg.Retryer
 			newCfg.Region = cfg.Region
+			// Keep the shared HTTP client so custom endpoints get the same
+			// DNS cache, connection limits and dial timeout as AWS endpoints.
+			newCfg.HTTPClient = cfg.HTTPClient
 			cfg = newCfg
 		}
 	}
@@ -2163,6 +2200,16 @@ func initializeHTTPClient() aws.HTTPClient {
 		}()
 	}
 
+	// The maximum time in seconds to wait for a TCP connection to an endpoint
+	// to be established. The AWS SDK default is 30 seconds, which is far more
+	// than a healthy endpoint needs and determines how long an unreachable
+	// endpoint (e.g. an opted-in region that is blocked at the network level)
+	// takes to surface its error. Connections to reachable AWS endpoints
+	// complete in well under 5 seconds, so 10 is generous while keeping dead
+	// endpoint detection fast.
+	// Set to 0 to keep the AWS SDK default.
+	dialConnectTimeoutSecs := readEnvVarToInt("STEAMPIPE_AWS_DIAL_CONNECT_TIMEOUT_SECS", 10)
+
 	// The AWS SDK has a special "buildable" HTTP client so it can be combined
 	// with specific options such as custom certificate bundles. It matches the
 	// interface of a HTTPClient, but has specific approaches for setting
@@ -2170,6 +2217,15 @@ func initializeHTTPClient() aws.HTTPClient {
 	// timeouts, etc) as much as possible and just override the specific
 	// behavior of parallelism for DNS lookups and HTTP requests.
 	client := awshttp.NewBuildableClient()
+
+	// Limit the time allowed to establish a TCP connection. This must be set
+	// before the DNS cache captures its dialer below, so that path inherits
+	// the same timeout.
+	if dialConnectTimeoutSecs > 0 {
+		client = client.WithDialerOptions(func(d *net.Dialer) {
+			d.Timeout = time.Duration(dialConnectTimeoutSecs) * time.Second
+		})
+	}
 
 	// Limit the max connections per host, but only if set. The AWS SDK default
 	// is no limit.
