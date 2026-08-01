@@ -48,6 +48,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/databasemigrationservice v1.38.4
 	github.com/aws/aws-sdk-go-v2/service/datasync v1.50.1
 	github.com/aws/aws-sdk-go-v2/service/dax v1.19.4
+	github.com/aws/aws-sdk-go-v2/service/directconnect v1.40.0
 	github.com/aws/aws-sdk-go-v2/service/directoryservice v1.24.4
 	github.com/aws/aws-sdk-go-v2/service/dlm v1.24.4
 	github.com/aws/aws-sdk-go-v2/service/docdb v1.34.0
@@ -168,7 +169,6 @@ require (
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/metric v0.55.0 // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/internal/resourcemapping v0.55.0 // indirect
 	github.com/aws/aws-sdk-go-v2/credentials v1.19.12 // indirect
-	github.com/aws/aws-sdk-go-v2/service/directconnect v1.40.0 // indirect
 	github.com/aws/aws-sdk-go-v2/service/signin v1.0.8 // indirect
 	github.com/cncf/xds/go v0.0.0-20251210132809-ee656c7534f5 // indirect
 	github.com/envoyproxy/go-control-plane/envoy v1.36.0 // indirect
