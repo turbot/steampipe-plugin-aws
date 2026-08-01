@@ -115,12 +115,12 @@ func tableAwsDirectConnectConnection(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_TIMESTAMP,
 			},
 			{
-				Name:        "mac_sec_capable",
+				Name:        "macsec_capable",
 				Description: "Indicates whether the connection supports MAC Security (MACsec).",
 				Type:        proto.ColumnType_BOOL,
 			},
 			{
-				Name:        "mac_sec_keys",
+				Name:        "macsec_keys",
 				Description: "The MAC Security (MACsec) security keys associated with the connection.",
 				Type:        proto.ColumnType_JSON,
 			},
