@@ -70,7 +70,7 @@ output "account_id" {
 }
 
 output "aws_region" {
-  value = data.aws_region.primary.region
+  value = data.aws_region.primary.name
 }
 
 output "aws_partition" {
