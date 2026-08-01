@@ -266,15 +266,14 @@ func getDirectConnectConnectionARN(ctx context.Context, d *plugin.QueryData, h *
 func directConnectConnectionTagsToTurbotTags(ctx context.Context, d *transform.TransformData) (interface{}, error) {
 	tags := d.Value.([]types.Tag)
 
-	if tags == nil {
-		return nil, nil
-	}
-
-	turbotTags := make(map[string]string)
-	for _, tag := range tags {
-		if tag.Key != nil && tag.Value != nil {
-			turbotTags[*tag.Key] = *tag.Value
+	var turbotTagsMap map[string]string
+	if len(tags) > 0 {
+		turbotTagsMap = map[string]string{}
+		for _, tag := range tags {
+			if tag.Key != nil && tag.Value != nil {
+				turbotTagsMap[*tag.Key] = *tag.Value
+			}
 		}
 	}
-	return turbotTags, nil
+	return turbotTagsMap, nil
 }
