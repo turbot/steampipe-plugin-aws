@@ -1,7 +1,7 @@
 ---
 title: "Steampipe Table: aws_directconnect_connection - Query AWS Direct Connect Connections using SQL"
 description: "Allows users to query AWS Direct Connect Connection resources for detailed information."
-folder: "DX"
+folder: "Direct Connect"
 ---
 
 # Table: aws_directconnect_connection - Query AWS Direct Connect Connections using SQL
@@ -16,8 +16,8 @@ The `aws_directconnect_connection` table in Steampipe provides you with informat
 
 ## Examples
 
-### Basic Connection info
-Gain insights into the locations, port speed, and status:
+### Basic info
+Gain insights into the locations, port speed, and status.
 
 ```sql+postgres
 select
