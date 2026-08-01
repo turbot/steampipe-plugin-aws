@@ -83,7 +83,6 @@ func tableAwsDirectConnectConnection(_ context.Context) *plugin.Table {
 				Name:        "aws_device_v2",
 				Description: "The Direct Connect endpoint that terminates the physical connection.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromField("AwsDeviceV2"),
 			},
 			{
 				Name:        "aws_logical_device_id",
