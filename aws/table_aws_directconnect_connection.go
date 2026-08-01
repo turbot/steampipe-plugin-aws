@@ -180,6 +180,16 @@ func listDirectConnectConnections(ctx context.Context, d *plugin.QueryData, _ *p
 
 	input := &directconnect.DescribeConnectionsInput{}
 
+	// Limiting the results
+	maxLimit := int32(100)
+	if d.QueryContext.Limit != nil {
+		limit := int32(*d.QueryContext.Limit)
+		if limit < maxLimit {
+			maxLimit = limit
+		}
+	}
+	input.MaxResults = aws.Int32(maxLimit)
+
 	for {
 		// apply rate limiting
 		d.WaitForListRateLimit(ctx)
