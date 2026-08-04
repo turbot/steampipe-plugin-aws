@@ -138,7 +138,7 @@ func tableAwsEcsTaskDefinition(_ context.Context) *plugin.Table {
 				Description: "The Unix timestamp for the time when the task definition was deregistered.",
 				Type:        proto.ColumnType_TIMESTAMP,
 				Hydrate:     getEcsTaskDefinition,
-				Transform:   transform.FromField("TaskDefinition.DeregisteredAt").Transform(transform.UnixToTimestamp).Transform(transform.NullIfZeroValue),
+				Transform:   transform.FromField("TaskDefinition.DeregisteredAt"),
 			},
 			{
 				Name:        "ephemeral_storage_size_in_gib",
