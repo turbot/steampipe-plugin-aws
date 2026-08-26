@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/resourcegroupstaggingapi"
@@ -10,6 +11,7 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v6/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v6/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v6/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v6/query_cache"
 )
 
 func tableAwsTaggingResource(_ context.Context) *plugin.Table {
@@ -27,6 +29,9 @@ func tableAwsTaggingResource(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listTaggingResources,
 			Tags:    map[string]string{"service": "tag", "action": "GetResources"},
+			KeyColumns: plugin.KeyColumnSlice{
+				{Name: "tag_filter", Operators: []string{"="}, Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
+			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(AWS_TAGGING_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
@@ -60,12 +65,18 @@ func tableAwsTaggingResource(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("ComplianceDetails.NoncompliantKeys"),
 			},
-			{
-				Name:        "tags_src",
-				Description: "A list of tags assigned to the parameter.",
-				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromField("Tags"),
-			},
+		{
+			Name:        "tags_src",
+			Description: "A list of tags assigned to the parameter.",
+			Type:        proto.ColumnType_JSON,
+			Transform:   transform.FromField("Tags"),
+		},
+		{
+			Name:        "tag_filter",
+			Description: "A list of TagFilters used to filter resources by tags. Specify a JSON array of objects with 'key' and optional 'values' fields, e.g., [{'key':'Environment','values':['prod','dev']}].",
+			Type:        proto.ColumnType_JSON,
+			Transform:   transform.FromQual("tag_filter"),
+		},
 
 			/// Steampipe standard columns
 			{
@@ -102,6 +113,16 @@ func listTaggingResources(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 
 	input := &resourcegroupstaggingapi.GetResourcesInput{
 		ResourcesPerPage: aws.Int32(100),
+	}
+
+	// Build tag filters from quals
+	tagFilters, err := buildTagFilter(d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_tagging_resource.listTaggingResources", "build_tag_filter_error", err)
+		return nil, err
+	}
+	if len(tagFilters) > 0 {
+		input.TagFilters = tagFilters
 	}
 
 	// Reduce the basic request limit down if the user has only requested a small number of rows
@@ -171,6 +192,56 @@ func getTaggingResource(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 	}
 
 	return nil, nil
+}
+
+//// HELPER FUNCTIONS
+
+// buildTagFilter constructs TagFilter objects from the tag_filter qual
+func buildTagFilter(d *plugin.QueryData) ([]types.TagFilter, error) {
+	var tagFilters []types.TagFilter
+
+	if d.Quals["tag_filter"] != nil {
+		for _, q := range d.Quals["tag_filter"].Quals {
+			val := q.Value.GetJsonbValue()
+			if val != "" && q.Operator == "=" {
+				// Parse JSON: [{"key":"environment","values":["prod","dev"]},{"key":"team"}]
+				var filterInput []map[string]interface{}
+				if err := json.Unmarshal([]byte(val), &filterInput); err != nil {
+					return nil, err
+				}
+
+				for _, filter := range filterInput {
+					keyStr, keyOk := filter["key"].(string)
+					if !keyOk || keyStr == "" {
+						continue
+					}
+
+					tagFilter := types.TagFilter{
+						Key: aws.String(keyStr),
+					}
+
+					// Values are optional
+					if valuesRaw, exists := filter["values"]; exists {
+						if valuesArray, ok := valuesRaw.([]interface{}); ok {
+							var values []string
+							for _, v := range valuesArray {
+								if vStr, vOk := v.(string); vOk && vStr != "" {
+									values = append(values, vStr)
+								}
+							}
+							if len(values) > 0 {
+								tagFilter.Values = values
+							}
+						}
+					}
+
+					tagFilters = append(tagFilters, tagFilter)
+				}
+			}
+		}
+	}
+
+	return tagFilters, nil
 }
 
 //// TRANSFORM FUNCTIONS
