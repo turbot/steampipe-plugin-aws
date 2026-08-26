@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/resourcegroupstaggingapi"
@@ -220,20 +221,22 @@ func buildTagFilter(d *plugin.QueryData) ([]types.TagFilter, error) {
 						Key: aws.String(keyStr),
 					}
 
-					// Values are optional
-					if valuesRaw, exists := filter["values"]; exists {
-						if valuesArray, ok := valuesRaw.([]interface{}); ok {
-							var values []string
-							for _, v := range valuesArray {
-								if vStr, vOk := v.(string); vOk && vStr != "" {
-									values = append(values, vStr)
-								}
-							}
-							if len(values) > 0 {
-								tagFilter.Values = values
-							}
+				// Values are optional
+				if valuesRaw, exists := filter["values"]; exists {
+					valuesArray, ok := valuesRaw.([]interface{})
+					if !ok {
+						return nil, fmt.Errorf("tag_filter: 'values' must be an array of strings, got %T", valuesRaw)
+					}
+					var values []string
+					for _, v := range valuesArray {
+						if vStr, vOk := v.(string); vOk && vStr != "" {
+							values = append(values, vStr)
 						}
 					}
+					if len(values) > 0 {
+						tagFilter.Values = values
+					}
+				}
 
 					tagFilters = append(tagFilters, tagFilter)
 				}

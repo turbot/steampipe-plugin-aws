@@ -69,13 +69,23 @@ func TestBuildTagFilter(t *testing.T) {
 			},
 			expectError: false,
 		},
-		{
-			name:        "invalid JSON",
-			qualJSON:    `[{"key":"Environment"`,
-			expectError: true,
-		},
-		{
-			name:          "empty key (should skip)",
+	{
+		name:        "invalid JSON",
+		qualJSON:    `[{"key":"Environment"`,
+		expectError: true,
+	},
+	{
+		name:        "invalid values type - string instead of array",
+		qualJSON:    `[{"key":"Environment","values":"prod"}]`,
+		expectError: true,
+	},
+	{
+		name:        "invalid values type - number instead of array",
+		qualJSON:    `[{"key":"Environment","values":123}]`,
+		expectError: true,
+	},
+	{
+		name:          "empty key (should skip)",
 			qualJSON:      `[{"key":"","values":["prod"]}]`,
 			expectedCount: 0,
 			expectError:   false,
