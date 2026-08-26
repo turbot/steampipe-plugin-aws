@@ -65,18 +65,18 @@ func tableAwsTaggingResource(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 				Transform:   transform.FromField("ComplianceDetails.NoncompliantKeys"),
 			},
-		{
-			Name:        "tags_src",
-			Description: "A list of tags assigned to the parameter.",
-			Type:        proto.ColumnType_JSON,
-			Transform:   transform.FromField("Tags"),
-		},
-		{
-			Name:        "tag_filter",
-			Description: "A list of TagFilters used to filter resources by tags. Specify a JSON array of objects with 'key' and optional 'values' fields, e.g., [{'key':'Environment','values':['prod','dev']}].",
-			Type:        proto.ColumnType_JSON,
-			Transform:   transform.FromQual("tag_filter"),
-		},
+			{
+				Name:        "tags_src",
+				Description: "A list of tags assigned to the parameter.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromField("Tags"),
+			},
+			{
+				Name:        "tag_filter",
+				Description: "A list of TagFilters used to filter resources by tags. Specify a JSON array of objects with 'key' and optional 'values' fields, e.g., [{\"key\":\"Environment\",\"values\":[\"prod\",\"dev\"]}].",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromQual("tag_filter"),
+			},
 
 			/// Steampipe standard columns
 			{
