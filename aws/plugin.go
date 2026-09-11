@@ -358,6 +358,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_dax_parameter_group":                                      tableAwsDaxParameterGroup(ctx),
 			"aws_dax_parameter":                                            tableAwsDaxParameter(ctx),
 			"aws_dax_subnet_group":                                         tableAwsDaxSubnetGroup(ctx),
+			"aws_directconnect_connection":                                 tableAwsDirectConnectConnection(ctx),
 			"aws_directory_service_certificate":                            tableAwsDirectoryServiceCertificate(ctx),
 			"aws_directory_service_directory":                              tableAwsDirectoryServiceDirectory(ctx),
 			"aws_directory_service_log_subscription":                       tableAwsDirectoryServiceLogSubscription(ctx),

@@ -1,0 +1,16 @@
+[
+  {
+    "arn": "{{ output.resource_aka.value }}",
+    "bandwidth": "1Gbps",
+    "connection_id": "{{ output.connection_id.value }}",
+    "connection_name": "{{ resourceName }}",
+    "connection_state": "requested",
+    "location": "EqDC2",
+    "tags_src": [
+      {
+        "Key": "Name",
+        "Value": "{{ resourceName }}"
+      }
+    ]
+  }
+]
