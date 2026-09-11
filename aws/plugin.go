@@ -744,6 +744,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"aws_ssoadmin_permission_set":                                  tableAwsSsoAdminPermissionSet(ctx),
 			"aws_sts_caller_identity":                                      tableAwsSTSCallerIdentity(ctx),
 			"aws_synthetics_canary":                                        tableAwsSyntheticsCanary(ctx),
+			"aws_synthetics_canary_run":                                    tableAwsSyntheticsCanaryRun(ctx),
 			"aws_tagging_resource":                                         tableAwsTaggingResource(ctx),
 			"aws_timestreamwrite_database":                                 tableAwsTimestreamwriteDatabase(ctx),
 			"aws_timestreamwrite_table":                                    tableAwsTimestreamwriteTable(ctx),
