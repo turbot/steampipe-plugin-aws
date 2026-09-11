@@ -17,6 +17,7 @@ The `aws_directconnect_connection` table in Steampipe provides you with informat
 ## Examples
 
 ### Basic info
+
 Gain insights into the locations, port speed, and status.
 
 ```sql+postgres
@@ -41,10 +42,9 @@ from
   aws_directconnect_connection;
 ```
 
-
 ### List all connections that are down
-Determine which connections are down:
 
+Determine which connections are down.
 
 ```sql+postgres
 select
@@ -72,11 +72,9 @@ where
   connection_state = 'down';
 ```
 
+### List the number of connections per location
 
-
-
-### Understand the number of connections per location
-Determine how many connections you have in which DX location:
+Determine how many connections you have in each DX location.
 
 ```sql+postgres
 select
