@@ -92,7 +92,7 @@ func tableAwsSyntheticsCanaryRun(_ context.Context) *plugin.Table {
 				Name:        "dry_run_id",
 				Description: "The ID of the canary dry run.",
 				Type:        proto.ColumnType_STRING,
-				Transform:   transform.FromQual("DryRunConfig.DryRunId"),
+				Transform:   transform.FromField("DryRunConfig.DryRunId"),
 			},
 			{
 				Name:        "run_type",
