@@ -31,7 +31,7 @@ func tableAwsTaggingResource(_ context.Context) *plugin.Table {
 			Hydrate: listTaggingResources,
 			Tags:    map[string]string{"service": "tag", "action": "GetResources"},
 			KeyColumns: plugin.KeyColumnSlice{
-				{Name: "tag_filter", Operators: []string{"="}, Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
+				{Name: "tag_filters", Operators: []string{"="}, Require: plugin.Optional, CacheMatch: query_cache.CacheMatchExact},
 			},
 		},
 		GetMatrixItemFunc: SupportedRegionMatrix(AWS_TAGGING_SERVICE_ID),
@@ -73,10 +73,10 @@ func tableAwsTaggingResource(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Tags"),
 			},
 			{
-				Name:        "tag_filter",
+				Name:        "tag_filters",
 				Description: "A list of TagFilters used to filter resources by tags. Specify a JSON array of objects with 'key' and optional 'values' fields, e.g., [{\"key\":\"Environment\",\"values\":[\"prod\",\"dev\"]}].",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromQual("tag_filter"),
+				Transform:   transform.FromQual("tag_filters"),
 			},
 
 			/// Steampipe standard columns
@@ -197,51 +197,37 @@ func getTaggingResource(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 
 //// HELPER FUNCTIONS
 
-// buildTagFilter constructs TagFilter objects from the tag_filter qual
+// buildTagFilter constructs TagFilter objects from the tag_filters qual
 func buildTagFilter(d *plugin.QueryData) ([]types.TagFilter, error) {
+	if d.Quals["tag_filters"] == nil {
+		return nil, nil
+	}
+
 	var tagFilters []types.TagFilter
+	for _, q := range d.Quals["tag_filters"].Quals {
+		val := q.Value.GetJsonbValue()
+		if val == "" || q.Operator != "=" {
+			continue
+		}
 
-	if d.Quals["tag_filter"] != nil {
-		for _, q := range d.Quals["tag_filter"].Quals {
-			val := q.Value.GetJsonbValue()
-			if val != "" && q.Operator == "=" {
-				// Parse JSON: [{"key":"environment","values":["prod","dev"]},{"key":"team"}]
-				var filterInput []map[string]interface{}
-				if err := json.Unmarshal([]byte(val), &filterInput); err != nil {
-					return nil, err
-				}
-
-				for _, filter := range filterInput {
-					keyStr, keyOk := filter["key"].(string)
-					if !keyOk || keyStr == "" {
-						continue
-					}
-
-					tagFilter := types.TagFilter{
-						Key: aws.String(keyStr),
-					}
-
-				// Values are optional
-				if valuesRaw, exists := filter["values"]; exists {
-					valuesArray, ok := valuesRaw.([]interface{})
-					if !ok {
-						return nil, fmt.Errorf("tag_filter: 'values' must be an array of strings, got %T", valuesRaw)
-					}
-					var values []string
-					for _, v := range valuesArray {
-						if vStr, vOk := v.(string); vOk && vStr != "" {
-							values = append(values, vStr)
-						}
-					}
-					if len(values) > 0 {
-						tagFilter.Values = values
-					}
-				}
-
-					tagFilters = append(tagFilters, tagFilter)
-				}
+		// Decode straight into the SDK type, e.g. [{"key":"environment","values":["prod","dev"]},{"key":"team"}]
+		var filters []types.TagFilter
+		if err := json.Unmarshal([]byte(val), &filters); err != nil {
+			return nil, fmt.Errorf("tag_filters: %w", err)
+		}
+		if len(filters) == 0 {
+			return nil, fmt.Errorf("tag_filters: expected a non-empty array of {\"key\", \"values\"} objects")
+		}
+		for i, f := range filters {
+			if f.Key == nil || *f.Key == "" {
+				return nil, fmt.Errorf("tag_filters: entry %d is missing \"key\"", i)
+			}
+			if len(f.Values) == 0 {
+				filters[i].Values = nil
 			}
 		}
+
+		tagFilters = append(tagFilters, filters...)
 	}
 
 	return tagFilters, nil

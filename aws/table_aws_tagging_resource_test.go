@@ -69,32 +69,40 @@ func TestBuildTagFilter(t *testing.T) {
 			},
 			expectError: false,
 		},
-	{
-		name:        "invalid JSON",
-		qualJSON:    `[{"key":"Environment"`,
-		expectError: true,
-	},
-	{
-		name:        "invalid values type - string instead of array",
-		qualJSON:    `[{"key":"Environment","values":"prod"}]`,
-		expectError: true,
-	},
-	{
-		name:        "invalid values type - number instead of array",
-		qualJSON:    `[{"key":"Environment","values":123}]`,
-		expectError: true,
-	},
-	{
-		name:          "empty key (should skip)",
-			qualJSON:      `[{"key":"","values":["prod"]}]`,
-			expectedCount: 0,
-			expectError:   false,
+		{
+			name:        "invalid JSON",
+			qualJSON:    `[{"key":"Environment"`,
+			expectError: true,
 		},
 		{
-			name:          "missing key field (should skip)",
-			qualJSON:      `[{"values":["prod"]}]`,
-			expectedCount: 0,
-			expectError:   false,
+			name:        "invalid values type - string instead of array",
+			qualJSON:    `[{"key":"Environment","values":"prod"}]`,
+			expectError: true,
+		},
+		{
+			name:        "invalid values type - number instead of array",
+			qualJSON:    `[{"key":"Environment","values":123}]`,
+			expectError: true,
+		},
+		{
+			name:        "invalid values type - mixed types in array",
+			qualJSON:    `[{"key":"Environment","values":["prod",1]}]`,
+			expectError: true,
+		},
+		{
+			name:        "empty array (should error)",
+			qualJSON:    `[]`,
+			expectError: true,
+		},
+		{
+			name:        "empty key (should error)",
+			qualJSON:    `[{"key":"","values":["prod"]}]`,
+			expectError: true,
+		},
+		{
+			name:        "missing key field (should error)",
+			qualJSON:    `[{"values":["prod"]}]`,
+			expectError: true,
 		},
 		{
 			name:           "empty values array (should not set Values)",
@@ -105,11 +113,11 @@ func TestBuildTagFilter(t *testing.T) {
 			expectError:    false,
 		},
 		{
-			name:           "values with empty strings (should skip empty strings)",
+			name:           "values with empty strings (should be kept, matches API behavior)",
 			qualJSON:       `[{"key":"Environment","values":["prod","","dev"]}]`,
 			expectedCount:  1,
 			expectedKeys:   []string{"Environment"},
-			expectedValues: map[string][]string{"Environment": {"prod", "dev"}},
+			expectedValues: map[string][]string{"Environment": {"prod", "", "dev"}},
 			expectError:    false,
 		},
 	}
@@ -121,11 +129,11 @@ func TestBuildTagFilter(t *testing.T) {
 			}
 
 			if tc.qualJSON != "" {
-				d.Quals["tag_filter"] = &plugin.KeyColumnQuals{
-					Name: "tag_filter",
+				d.Quals["tag_filters"] = &plugin.KeyColumnQuals{
+					Name: "tag_filters",
 					Quals: quals.QualSlice{
 						&quals.Qual{
-							Column:   "tag_filter",
+							Column:   "tag_filters",
 							Operator: "=",
 							Value: &proto.QualValue{
 								Value: &proto.QualValue_JsonbValue{
