@@ -47,6 +47,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/codeartifact"
 	"github.com/aws/aws-sdk-go-v2/service/codebuild"
 	"github.com/aws/aws-sdk-go-v2/service/codecommit"
+	"github.com/aws/aws-sdk-go-v2/service/codeconnections"
 	"github.com/aws/aws-sdk-go-v2/service/codedeploy"
 	"github.com/aws/aws-sdk-go-v2/service/codepipeline"
 	"github.com/aws/aws-sdk-go-v2/service/codestarnotifications"
@@ -491,6 +492,18 @@ func CodeBuildClient(ctx context.Context, d *plugin.QueryData) (*codebuild.Clien
 		return nil, nil
 	}
 	return codebuild.NewFromConfig(*cfg), nil
+}
+
+// CodeConnectionsClient returns the service client for AWS CodeConnections.
+func CodeConnectionsClient(ctx context.Context, d *plugin.QueryData) (*codeconnections.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, AWS_CODESTAR_CONNECTIONS_SERVICE_ID)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return codeconnections.NewFromConfig(*cfg), nil
 }
 
 func CodeDeployClient(ctx context.Context, d *plugin.QueryData) (*codedeploy.Client, error) {
