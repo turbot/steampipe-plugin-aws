@@ -1,0 +1,9 @@
+[
+  {
+    "arn": "{{ output.resource_aka.value }}",
+    "name": "{{ output.resource_title.value }}",
+    "tags": {
+      "Name": "{{ output.resource_name.value }}"
+    }
+  }
+]
