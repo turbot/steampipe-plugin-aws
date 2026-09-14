@@ -3,12 +3,15 @@ connection "aws" {
 
   # `regions` defines the list of regions that Steampipe should target for
   # each query. API calls are made to multiple regions in parallel. The regions
-  # list may include wildcards (e.g. *, us-*, us-??st-1).
+  # list may include wildcards (e.g. *, us-*, us-??st-1). Patterns prefixed
+  # with ! exclude their matches instead; exclusions always win, regardless of
+  # their position in the list.
   # If `regions` is not specified, Steampipe will target the `default_region`
   # only.
   #regions = ["*"] # All regions
   #regions = ["eu-*"] # All EU regions
   #regions = ["us-east-1", "eu-west-2"] # Specific regions
+  #regions = ["*", "!me-south-1"] # All regions except me-south-1
 
   # Some AWS APIs (e.g. describe EC2 regions, S3 get bucket location) have
   # global results, so can be run against any region. For faster results, you
