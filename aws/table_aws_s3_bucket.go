@@ -293,11 +293,27 @@ func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 func listS3Buckets(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
 	// Unlike most services, S3 buckets are a global list. They can be retrieved
-	// from any single region.  We must list buckets from the default region to
-	// get the actual creation_time of the bucket, in all other regions the list
-	// returns the time when the bucket was last modified. See
+	// from any single region.  By default we list buckets from the last resort
+	// (us-east-1 for the commercial partition) region to get the actual
+	// creation_time of the bucket, since in all other regions the list returns
+	// the time when the bucket was last modified. See
 	// https://www.marksayson.com/blog/s3-bucket-creation-dates-s3-master-regions/
-	defaultRegion, err := getLastResortRegion(ctx, d, h)
+	//
+	// Some networks (e.g. accounts restricted to a single region's VPC
+	// endpoint) cannot reach us-east-1 at all, so ListBuckets always fails
+	// there with a region-signature mismatch. Setting
+	// `s3_use_default_region_for_bucket_list = true` in the connection config
+	// opts out of the us-east-1 requirement and signs ListBuckets for the
+	// connection's own default_region/regions instead, trading accurate
+	// `creation_date` for the ability to reach the API at all.
+	awsConfig := GetConfig(d.Connection)
+	var defaultRegion string
+	var err error
+	if awsConfig.S3UseDefaultRegionForBucketList != nil && *awsConfig.S3UseDefaultRegionForBucketList {
+		defaultRegion, err = getDefaultRegion(ctx, d, h)
+	} else {
+		defaultRegion, err = getLastResortRegion(ctx, d, h)
+	}
 	if err != nil {
 		return nil, err
 	}

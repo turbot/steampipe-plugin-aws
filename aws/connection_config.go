@@ -20,6 +20,16 @@ type awsConfig struct {
 	IgnoreErrorCodes      []string `hcl:"ignore_error_codes,optional"`
 	EndpointUrl           *string  `hcl:"endpoint_url"`
 	S3ForcePathStyle      *bool    `hcl:"s3_force_path_style"`
+	// S3UseDefaultRegionForBucketList opts out of always signing/routing the
+	// aws_s3_bucket table's ListBuckets call through us-east-1 (the standard
+	// behavior, kept for accurate `creation_date` -- see
+	// https://www.marksayson.com/blog/s3-bucket-creation-dates-s3-master-regions/).
+	// Set to true in networks that cannot reach us-east-1 (e.g. a single
+	// region's VPC endpoint only) so ListBuckets is instead signed for the
+	// connection's own default_region/regions. When enabled, `creation_date`
+	// reflects the bucket's last-modified time rather than its true creation
+	// time, matching ListBuckets' documented behavior for non-us-east-1 calls.
+	S3UseDefaultRegionForBucketList *bool `hcl:"s3_use_default_region_for_bucket_list"`
 }
 
 func ConfigInstance() interface{} {
