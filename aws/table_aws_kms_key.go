@@ -57,6 +57,10 @@ func tableAwsKmsKey(ctx context.Context) *plugin.Table {
 				Func: getAwsKmsKeyTagging,
 				Tags: map[string]string{"service": "kms", "action": "ListResourceTags"},
 			},
+			{
+				Func: getAwsKmsKeyLastUsage,
+				Tags: map[string]string{"service": "kms", "action": "GetKeyLastUsage"},
+			},
 		},
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
@@ -147,6 +151,13 @@ func tableAwsKmsKey(ctx context.Context) *plugin.Table {
 				Type:        proto.ColumnType_TIMESTAMP,
 				Hydrate:     getAwsKmsKeyData,
 				Transform:   transform.FromField("KeyMetadata.ValidTo"),
+			},
+			{
+				Name:        "last_key_usage_timestamp",
+				Description: "The date and time that the KMS key was last used.",
+				Type:        proto.ColumnType_TIMESTAMP,
+				Hydrate:     getAwsKmsKeyLastUsage,
+				Transform:   transform.FromField("KeyLastUsage.Timestamp"),
 			},
 			{
 				Name:        "aliases",
@@ -429,6 +440,34 @@ func getAwsKmsKeyTagging(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	}
 
 	return tagsData, nil
+}
+
+func getAwsKmsKeyLastUsage(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	key := h.Item.(types.KeyListEntry)
+
+	// Create Session
+	svc, err := KMSClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_kms_key.getAwsKmsKeyLastUsage", "connection_error", err)
+		return nil, err
+	}
+
+	if svc == nil {
+		// Unsupported region, return no data
+		return nil, nil
+	}
+
+	params := &kms.GetKeyLastUsageInput{
+		KeyId: key.KeyId,
+	}
+
+	keyData, err := svc.GetKeyLastUsage(ctx, params)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_kms_key.getAwsKmsKeyLastUsage", "api_error", err)
+		return nil, err
+	}
+
+	return keyData, nil
 }
 
 func getAwsKmsKeyAliases(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {

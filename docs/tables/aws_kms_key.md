@@ -14,6 +14,35 @@ The `aws_kms_key` table in Steampipe provides you with information about Key Man
 
 ## Examples
 
+### List KMS keys by last usage
+Identify when AWS KMS keys were last used to review key activity and support key lifecycle management.
+
+```sql+postgres
+select
+  id,
+  title,
+  last_key_usage_timestamp
+from
+  aws_kms_key
+where
+  last_key_usage_timestamp is not null
+order by
+  last_key_usage_timestamp desc;
+```
+
+```sql+sqlite
+select
+  id,
+  title,
+  last_key_usage_timestamp
+from
+  aws_kms_key
+where
+  last_key_usage_timestamp is not null
+order by
+  last_key_usage_timestamp desc;
+```
+
 ### Basic info
 Explore which AWS Key Management Service (KMS) keys have been created and who manages them. This is useful for auditing security practices and understanding the distribution of access control within your AWS environment.
 
