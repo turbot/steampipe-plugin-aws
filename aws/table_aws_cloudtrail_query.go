@@ -259,8 +259,7 @@ func getCloudTrailQuery(ctx context.Context, d *plugin.QueryData, h *plugin.Hydr
 	}
 
 	params := &cloudtrail.DescribeQueryInput{
-		EventDataStore: aws.String(eventDataSourceArn),
-		QueryId:        aws.String(queryId),
+		QueryId: aws.String(queryId),
 	}
 
 	// execute list call

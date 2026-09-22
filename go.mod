@@ -48,6 +48,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/databasemigrationservice v1.38.4
 	github.com/aws/aws-sdk-go-v2/service/datasync v1.50.1
 	github.com/aws/aws-sdk-go-v2/service/dax v1.19.4
+	github.com/aws/aws-sdk-go-v2/service/directconnect v1.40.0
 	github.com/aws/aws-sdk-go-v2/service/directoryservice v1.24.4
 	github.com/aws/aws-sdk-go-v2/service/dlm v1.24.4
 	github.com/aws/aws-sdk-go-v2/service/docdb v1.34.0

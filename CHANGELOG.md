@@ -1,3 +1,21 @@
+## v1.33.0 [2026-09-11]
+
+_What's new?_
+
+- New tables added
+  - [aws_directconnect_connection](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_directconnect_connection) ([#2775](https://github.com/turbot/steampipe-plugin-aws/pull/2775)) (Thanks [@StephenKing](https://github.com/StephenKing) for the contribution!)
+  - [aws_synthetics_canary_run](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_synthetics_canary_run) ([#2768](https://github.com/turbot/steampipe-plugin-aws/pull/2768)) (Thanks [@leongzhiyong](https://github.com/leongzhiyong) for the contribution!)
+
+_Bug fixes_
+
+- Fixed the `deregistered_at` column in `aws_ecs_task_definition` table to no longer fail with a `time.Time` type mismatch error when any task definition in the account has been deregistered. ([#2785](https://github.com/turbot/steampipe-plugin-aws/pull/2785)) (Thanks [@pmarques](https://github.com/pmarques) for the contribution!)
+- Fixed the `aws_cloudtrail_query` table to no longer pass the deprecated `EventDataStore` parameter to the `DescribeQuery` API. ([#2788](https://github.com/turbot/steampipe-plugin-aws/pull/2788)) (Thanks [@clanky1024](https://github.com/clanky1024) for the contribution!)
+
+_Dependencies_
+
+- Recompiled plugin with [github.com/aws/aws-sdk-go-v2 v1.42.0](https://github.com/aws/aws-sdk-go-v2/blob/main/CHANGELOG.md).
+- Recompiled plugin with [github.com/aws/smithy-go v1.27.1](https://github.com/aws/smithy-go/blob/main/CHANGELOG.md).
+
 ## v1.32.0 [2026-07-28]
 
 _Enhancements_

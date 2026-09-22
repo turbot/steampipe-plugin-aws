@@ -59,6 +59,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/databasemigrationservice"
 	"github.com/aws/aws-sdk-go-v2/service/datasync"
 	"github.com/aws/aws-sdk-go-v2/service/dax"
+	"github.com/aws/aws-sdk-go-v2/service/directconnect"
 	"github.com/aws/aws-sdk-go-v2/service/directoryservice"
 	"github.com/aws/aws-sdk-go-v2/service/dlm"
 	"github.com/aws/aws-sdk-go-v2/service/docdb"
@@ -608,6 +609,17 @@ func DAXClient(ctx context.Context, d *plugin.QueryData) (*dax.Client, error) {
 		return nil, nil
 	}
 	return dax.NewFromConfig(*cfg), nil
+}
+
+func DirectConnectClient(ctx context.Context, d *plugin.QueryData) (*directconnect.Client, error) {
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, AWS_DIRECTCONNECT_SERVICE_ID)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return directconnect.NewFromConfig(*cfg), nil
 }
 
 func DirectoryServiceClient(ctx context.Context, d *plugin.QueryData) (*directoryservice.Client, error) {

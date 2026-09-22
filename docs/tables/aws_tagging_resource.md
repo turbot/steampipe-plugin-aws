@@ -65,3 +65,109 @@ from
 where
   compliance_status is not null;
 ```
+
+### Filter resources by a single tag key
+Find resources that have the `Environment` tag set, regardless of its value.
+
+```sql+postgres
+select
+  name,
+  arn,
+  tags
+from
+  aws_tagging_resource
+where
+  tag_filters = '[{"key": "Environment"}]';
+```
+
+```sql+sqlite
+select
+  name,
+  arn,
+  tags
+from
+  aws_tagging_resource
+where
+  tag_filters = '[{"key": "Environment"}]';
+```
+
+### Filter resources by one of several tag values
+Find resources where the `Environment` tag is set to either `prod` or `staging`.
+
+```sql+postgres
+select
+  name,
+  arn,
+  tags
+from
+  aws_tagging_resource
+where
+  tag_filters = '[{"key": "Environment", "values": ["prod", "staging"]}]';
+```
+
+```sql+sqlite
+select
+  name,
+  arn,
+  tags
+from
+  aws_tagging_resource
+where
+  tag_filters = '[{"key": "Environment", "values": ["prod", "staging"]}]';
+```
+
+### Filter resources that match multiple tags
+Find resources that have the `Environment` tag set to `prod`, and also have an `Owner` tag set (regardless of value). Multiple entries in the array are ANDed together.
+
+```sql+postgres
+select
+  name,
+  arn,
+  tags
+from
+  aws_tagging_resource
+where
+  tag_filters = '[{"key": "Environment", "values": ["prod"]}, {"key": "Owner"}]';
+```
+
+```sql+sqlite
+select
+  name,
+  arn,
+  tags
+from
+  aws_tagging_resource
+where
+  tag_filters = '[{"key": "Environment", "values": ["prod"]}, {"key": "Owner"}]';
+```
+
+### Filter resources using alternative tag filters (unioned)
+Find resources matching either of two independent `tag_filters`, using an `in` list to union the results.
+
+```sql+postgres
+select
+  name,
+  arn,
+  tags
+from
+  aws_tagging_resource
+where
+  tag_filters in (
+    '[{"key": "Team", "values": ["platform"]}]',
+    '[{"key": "Team", "values": ["data"]}]'
+  );
+```
+
+```sql+sqlite
+select
+  name,
+  arn,
+  tags
+from
+  aws_tagging_resource
+where
+  tag_filters in (
+    '[{"key": "Team", "values": ["platform"]}]',
+    '[{"key": "Team", "values": ["data"]}]'
+  );
+```

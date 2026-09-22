@@ -180,6 +180,8 @@ github.com/aws/aws-sdk-go-v2/service/datasync v1.50.1 h1:fECKYyWQ7RzM2xD9307zY4A
 github.com/aws/aws-sdk-go-v2/service/datasync v1.50.1/go.mod h1:dJRLZd4GxQvdLMNCdxMxJby9CEWCDTVVVEFRwBb8whQ=
 github.com/aws/aws-sdk-go-v2/service/dax v1.19.4 h1:S3mvtYjRVVsg1R4EuV1LWZUiD72t+pfnBbK8TL7zEmo=
 github.com/aws/aws-sdk-go-v2/service/dax v1.19.4/go.mod h1:ZfNHbSICNHSqX4l5pJ6APeyWdgXgQg3PbuSFS2e5mCo=
+github.com/aws/aws-sdk-go-v2/service/directconnect v1.40.0 h1:80SZbsSqpFybapKcpLK7lqAbLqFZpWm6daTGP3k6HDk=
+github.com/aws/aws-sdk-go-v2/service/directconnect v1.40.0/go.mod h1:iU8VT4ZfqCrIlNGQp8gg6E5bIzEAjoVRTifJYASYjus=
 github.com/aws/aws-sdk-go-v2/service/directoryservice v1.24.4 h1:XBgx3sdaA0SoPXsZSNSUL14H0UnYnTSVArieaYNv0EI=
 github.com/aws/aws-sdk-go-v2/service/directoryservice v1.24.4/go.mod h1:Lm/qj7nCC0zEFoAdjbun8xLkflPFNbbspQVZgQQiOz8=
 github.com/aws/aws-sdk-go-v2/service/dlm v1.24.4 h1:udq27IzakAHiOQ2l4dH2ilAC3G05ZwOxgL/P/2kCYxI=
