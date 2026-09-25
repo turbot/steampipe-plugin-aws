@@ -86,6 +86,8 @@ const AWS_BATCH_SERVICE_ID = "batch"
 
 const AWS_BEDROCK_SERVICE_ID = "bedrock"
 
+const AWS_BEDROCK_AGENTCORE_SERVICE_ID = "bedrock-agentcore"
+
 const AWS_BILLINGCONDUCTOR_SERVICE_ID = "billingconductor"
 
 const AWS_BRAKET_SERVICE_ID = "braket"
@@ -244,6 +246,8 @@ const AWS_ES_SERVICE_ID = "es"
 
 const AWS_EVENTS_SERVICE_ID = "events"
 
+const AWS_EVENTSV2_SERVICE_ID = "eventsv2"
+
 const AWS_FINSPACE_SERVICE_ID = "finspace"
 
 const AWS_FINSPACE_API_SERVICE_ID = "finspace-api"
@@ -301,10 +305,6 @@ const AWS_INSPECTOR2_SERVICE_ID = "inspector2"
 const AWS_INTERNETMONITOR_SERVICE_ID = "internetmonitor"
 
 const AWS_IOT_SERVICE_ID = "iot"
-
-const AWS_IOTEVENTS_SERVICE_ID = "iotevents"
-
-const AWS_IOTEVENTSDATA_SERVICE_ID = "ioteventsdata"
 
 const AWS_IOTFLEETWISE_SERVICE_ID = "iotfleetwise"
 
