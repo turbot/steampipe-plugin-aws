@@ -19,7 +19,7 @@ func tableAwsBedrockAgentCoreAgentRuntime(_ context.Context) *plugin.Table {
 		Get: &plugin.GetConfig{
 			KeyColumns: plugin.SingleColumn("agent_runtime_id"),
 			IgnoreConfig: &plugin.IgnoreConfig{
-				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException", "ValidationException"}),
+				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"ResourceNotFoundException"}),
 			},
 			Hydrate: getBedrockAgentCoreAgentRuntime,
 			Tags:    map[string]string{"service": "bedrock-agentcore", "action": "GetAgentRuntime"},
