@@ -42,7 +42,7 @@ func flattenReflectValue(rv reflect.Value) interface{} {
 	}
 
 	switch rv.Kind() {
-	case reflect.Interface, reflect.Ptr:
+	case reflect.Interface, reflect.Pointer:
 		if rv.IsNil() {
 			return nil
 		}
