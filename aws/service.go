@@ -143,7 +143,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/sesv2"
 	"github.com/aws/aws-sdk-go-v2/service/sfn"
 	"github.com/aws/aws-sdk-go-v2/service/shield"
-	"github.com/aws/aws-sdk-go-v2/service/simspaceweaver"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
@@ -1661,17 +1660,6 @@ func ServiceQuotasClient(ctx context.Context, d *plugin.QueryData) (*servicequot
 		return nil, nil
 	}
 	return servicequotas.NewFromConfig(*cfg), nil
-}
-
-func SimSpaceWeaverClient(ctx context.Context, d *plugin.QueryData) (*simspaceweaver.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, AWS_SIMSPACEWEAVER_SERVICE_ID)
-	if err != nil {
-		return nil, err
-	}
-	if cfg == nil {
-		return nil, nil
-	}
-	return simspaceweaver.NewFromConfig(*cfg), nil
 }
 
 func StepFunctionsClient(ctx context.Context, d *plugin.QueryData) (*sfn.Client, error) {

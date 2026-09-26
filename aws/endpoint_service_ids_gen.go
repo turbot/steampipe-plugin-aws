@@ -540,8 +540,6 @@ const AWS_SHIELD_SERVICE_ID = "shield"
 
 const AWS_SIGNER_SERVICE_ID = "signer"
 
-const AWS_SIMSPACEWEAVER_SERVICE_ID = "simspaceweaver"
-
 const AWS_SMS_VOICE_SERVICE_ID = "sms-voice"
 
 const AWS_SNOWBALL_SERVICE_ID = "snowball"

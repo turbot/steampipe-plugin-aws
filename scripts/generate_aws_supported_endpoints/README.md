@@ -89,7 +89,7 @@ To add a service, get its region list from SSM and add an entry:
 aws ssm get-parameters-by-path --path /aws/service/global-infrastructure/services/<service-id>/regions --query 'Parameters[].Value' --output text
 ```
 
-Also add a service here if upstream removes it while the plugin still has a table for it (for example `simspaceweaver`), otherwise its `AWS_<SERVICE>_SERVICE_ID` constant disappears and the build breaks.
+Also add a service here if upstream removes it while the plugin still has a table for it, otherwise its `AWS_<SERVICE>_SERVICE_ID` constant disappears and the build breaks. If the service itself has been retired by AWS, remove its table instead.
 
 ---
 
