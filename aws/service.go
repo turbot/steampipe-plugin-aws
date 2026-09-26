@@ -36,6 +36,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/batch"
 	"github.com/aws/aws-sdk-go-v2/service/bedrock"
 	"github.com/aws/aws-sdk-go-v2/service/bedrockagent"
+	"github.com/aws/aws-sdk-go-v2/service/bedrockagentcorecontrol"
 	"github.com/aws/aws-sdk-go-v2/service/budgets"
 	"github.com/aws/aws-sdk-go-v2/service/cloudcontrol"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
@@ -375,6 +376,19 @@ func BedrockAgentClient(ctx context.Context, d *plugin.QueryData) (*bedrockagent
 		return nil, nil
 	}
 	return bedrockagent.NewFromConfig(*cfg), nil
+}
+
+// BedrockAgentCoreControlClient returns the service client for Amazon Bedrock AgentCore control plane
+func BedrockAgentCoreControlClient(ctx context.Context, d *plugin.QueryData) (*bedrockagentcorecontrol.Client, error) {
+	// Get client config
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, AWS_BEDROCK_AGENTCORE_SERVICE_ID)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return bedrockagentcorecontrol.NewFromConfig(*cfg), nil
 }
 
 func CloudControlClient(ctx context.Context, d *plugin.QueryData) (*cloudcontrol.Client, error) {

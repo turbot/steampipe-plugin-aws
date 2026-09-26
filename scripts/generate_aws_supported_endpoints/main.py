@@ -78,15 +78,19 @@ def merge_custom_endpoints(endpoint_file_path, custom_endpoint_file_path):
                     print(f"Invalid region `{region}` for partition `{partition}`")
                     exit(1)
 
-                if region not in aws_service_metadata["endpoints"]:
-                    aws_service_metadata["endpoints"][region] = {"variants": []}
+                region_metadata = aws_service_metadata["endpoints"].setdefault(region, {})
+                variants = region_metadata.setdefault("variants", [])
 
-                aws_service_metadata["endpoints"][region]["variants"].extend([
+                # Skip hostnames that are already present so that re-running the merge
+                # against an already merged file does not duplicate variants.
+                existing_hostnames = {variant.get("hostname") for variant in variants}
+                variants.extend([
                     {
                         "hostname": region_endpoint,
                         "tags": ["custom"]
                     }
                     for region_endpoint in region_endpoints
+                    if region_endpoint not in existing_hostnames
                 ])
 
             partition["services"][service] = aws_service_metadata

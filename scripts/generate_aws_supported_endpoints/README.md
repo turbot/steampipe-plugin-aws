@@ -71,6 +71,28 @@ deactivate
 
 ---
 
+## **Custom Endpoints**
+AWS SDK for Go v2 no longer adds newer services to its `endpoints.json` (the SDK team treats that file as internal), so some services the plugin supports have no upstream entry. Those are maintained by hand in `custom_endpoints.json`, keyed by service ID, partition, and region:
+
+```json
+"bedrock-agentcore": {
+  "aws": {
+    "us-east-1": ["bedrock-agentcore-control.us-east-1.amazonaws.com"]
+  }
+}
+```
+
+The generator merges this file into the downloaded `endpoints.json` (each merged hostname is tagged `custom`) before generating the Go constants. The merge skips hostnames that are already present, so re-running it is safe.
+
+To add a service, get its region list from SSM and add an entry:
+```sh
+aws ssm get-parameters-by-path --path /aws/service/global-infrastructure/services/<service-id>/regions --query 'Parameters[].Value' --output text
+```
+
+Also add a service here if upstream removes it while the plugin still has a table for it (for example `simspaceweaver`), otherwise its `AWS_<SERVICE>_SERVICE_ID` constant disappears and the build breaks.
+
+---
+
 ## **Generated Files**
 The tool generates the following files:
 
