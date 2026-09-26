@@ -132,7 +132,6 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sesv2 v1.54.0
 	github.com/aws/aws-sdk-go-v2/service/sfn v1.26.4
 	github.com/aws/aws-sdk-go-v2/service/shield v1.25.7
-	github.com/aws/aws-sdk-go-v2/service/simspaceweaver v1.10.4
 	github.com/aws/aws-sdk-go-v2/service/sns v1.39.13
 	github.com/aws/aws-sdk-go-v2/service/sqs v1.42.24
 	github.com/aws/aws-sdk-go-v2/service/ssm v1.68.0

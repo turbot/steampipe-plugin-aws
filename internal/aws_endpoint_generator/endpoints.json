@@ -29384,58 +29384,6 @@
             } ]
           }
         }
-      },
-      "simspaceweaver" : {
-        "endpoints" : {
-          "ap-southeast-1" : {
-            "variants" : [ {
-              "hostname" : "simspaceweaver.ap-southeast-1.amazonaws.com",
-              "tags" : [ "custom" ]
-            } ]
-          },
-          "ap-southeast-2" : {
-            "variants" : [ {
-              "hostname" : "simspaceweaver.ap-southeast-2.amazonaws.com",
-              "tags" : [ "custom" ]
-            } ]
-          },
-          "eu-central-1" : {
-            "variants" : [ {
-              "hostname" : "simspaceweaver.eu-central-1.amazonaws.com",
-              "tags" : [ "custom" ]
-            } ]
-          },
-          "eu-north-1" : {
-            "variants" : [ {
-              "hostname" : "simspaceweaver.eu-north-1.amazonaws.com",
-              "tags" : [ "custom" ]
-            } ]
-          },
-          "eu-west-1" : {
-            "variants" : [ {
-              "hostname" : "simspaceweaver.eu-west-1.amazonaws.com",
-              "tags" : [ "custom" ]
-            } ]
-          },
-          "us-east-1" : {
-            "variants" : [ {
-              "hostname" : "simspaceweaver.us-east-1.amazonaws.com",
-              "tags" : [ "custom" ]
-            } ]
-          },
-          "us-east-2" : {
-            "variants" : [ {
-              "hostname" : "simspaceweaver.us-east-2.amazonaws.com",
-              "tags" : [ "custom" ]
-            } ]
-          },
-          "us-west-2" : {
-            "variants" : [ {
-              "hostname" : "simspaceweaver.us-west-2.amazonaws.com",
-              "tags" : [ "custom" ]
-            } ]
-          }
-        }
       }
     }
   }, {
@@ -36834,22 +36782,6 @@
               "tags" : [ "custom" ]
             }, {
               "hostname" : "application-signals-fips.us-gov-west-1.api.aws",
-              "tags" : [ "custom" ]
-            } ]
-          }
-        }
-      },
-      "simspaceweaver" : {
-        "endpoints" : {
-          "us-gov-east-1" : {
-            "variants" : [ {
-              "hostname" : "simspaceweaver.us-gov-east-1.amazonaws.com",
-              "tags" : [ "custom" ]
-            } ]
-          },
-          "us-gov-west-1" : {
-            "variants" : [ {
-              "hostname" : "simspaceweaver.us-gov-west-1.amazonaws.com",
               "tags" : [ "custom" ]
             } ]
           }

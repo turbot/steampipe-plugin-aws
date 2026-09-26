@@ -187,41 +187,5 @@
         "bedrock-agentcore-control.us-west-2.amazonaws.com"
       ]
     }
-  },
-  "simspaceweaver": {
-    "aws": {
-      "ap-southeast-1": [
-        "simspaceweaver.ap-southeast-1.amazonaws.com"
-      ],
-      "ap-southeast-2": [
-        "simspaceweaver.ap-southeast-2.amazonaws.com"
-      ],
-      "eu-central-1": [
-        "simspaceweaver.eu-central-1.amazonaws.com"
-      ],
-      "eu-north-1": [
-        "simspaceweaver.eu-north-1.amazonaws.com"
-      ],
-      "eu-west-1": [
-        "simspaceweaver.eu-west-1.amazonaws.com"
-      ],
-      "us-east-1": [
-        "simspaceweaver.us-east-1.amazonaws.com"
-      ],
-      "us-east-2": [
-        "simspaceweaver.us-east-2.amazonaws.com"
-      ],
-      "us-west-2": [
-        "simspaceweaver.us-west-2.amazonaws.com"
-      ]
-    },
-    "aws-us-gov": {
-      "us-gov-east-1": [
-        "simspaceweaver.us-gov-east-1.amazonaws.com"
-      ],
-      "us-gov-west-1": [
-        "simspaceweaver.us-gov-west-1.amazonaws.com"
-      ]
-    }
   }
 }
