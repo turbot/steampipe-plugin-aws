@@ -128,15 +128,6 @@ connection "aws" {
   # i.e., `http://s3.amazonaws.com/BUCKET/KEY`. By default, the S3 client
   # will use virtual hosted bucket addressing when possible (`http://BUCKET.s3.amazonaws.com/KEY`).
   #s3_force_path_style = false
-
-  # By default, the aws_s3_bucket table's ListBuckets call is always signed
-  # for us-east-1 (regardless of default_region/regions) so that the
-  # creation_date column reflects the bucket's true creation time rather than
-  # its last-modified time. Set to `true` if your network cannot reach
-  # us-east-1 (e.g. an account restricted to a single region's VPC endpoint)
-  # so ListBuckets is signed for default_region/regions instead. When
-  # enabled, creation_date reflects the bucket's last-modified time.
-  #s3_use_default_region_for_bucket_list = false
 }
 ```
 
