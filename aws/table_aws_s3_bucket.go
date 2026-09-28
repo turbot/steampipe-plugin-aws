@@ -332,7 +332,9 @@ func listS3Buckets(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 		}
 		listRegion = defaultRegion
 	}
-	d.ConnectionCache.Set(ctx, cacheKey, listRegion)
+	if err := d.ConnectionCache.Set(ctx, cacheKey, listRegion); err != nil {
+		plugin.Logger(ctx).Warn("aws_s3_bucket.listS3Buckets", "cache_key", cacheKey, "api_error", err, "msg", "failed to cache the list region for this connection")
+	}
 
 	for _, bucket := range bucketsResult.Buckets {
 		d.StreamListItem(ctx, bucket)
