@@ -293,26 +293,47 @@ func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 func listS3Buckets(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 
 	// Unlike most services, S3 buckets are a global list. They can be retrieved
-	// from any single region.  We must list buckets from the default region to
-	// get the actual creation_time of the bucket, in all other regions the list
-	// returns the time when the bucket was last modified. See
+	// from any single region. We must list buckets from the last resort region
+	// (us-east-1 in the commercial partition) to get the actual creation_time of
+	// the bucket, in all other regions the list returns the time when the bucket
+	// was last modified. See
 	// https://www.marksayson.com/blog/s3-bucket-creation-dates-s3-master-regions/
-	defaultRegion, err := getLastResortRegion(ctx, d, h)
-	if err != nil {
-		return nil, err
-	}
-	svc, err := S3Client(ctx, d, defaultRegion)
-	if err != nil {
-		plugin.Logger(ctx).Error("aws_s3_bucket.listS3Buckets", "get_client_error", err, "defaultRegion", defaultRegion)
-		return nil, err
+	//
+	// Some networks cannot reach the last resort region, e.g. a single region's
+	// S3 VPC endpoint, and ListBuckets fails there with a region mismatch error.
+	// In that case we fall back to the connection's default region and remember
+	// it for the connection, so creation_date reflects the last modified time
+	// instead of failing the query.
+	cacheKey := "listS3Buckets/region"
+	var listRegion string
+	if cachedData, ok := d.ConnectionCache.Get(ctx, cacheKey); ok {
+		listRegion = cachedData.(string)
+	} else {
+		lastResortRegion, err := getLastResortRegion(ctx, d, h)
+		if err != nil {
+			return nil, err
+		}
+		listRegion = lastResortRegion
 	}
 
-	// execute list call
-	input := &s3.ListBucketsInput{}
-	bucketsResult, err := svc.ListBuckets(ctx, input)
+	bucketsResult, err := listS3BucketsInRegion(ctx, d, listRegion)
 	if err != nil {
-		plugin.Logger(ctx).Error("aws_s3_bucket.listS3Buckets", "api_error", err, "defaultRegion", defaultRegion)
-		return nil, err
+		defaultRegion, regionErr := getDefaultRegion(ctx, d, h)
+		if regionErr != nil || defaultRegion == listRegion || !isS3RegionMismatchError(err) {
+			plugin.Logger(ctx).Error("aws_s3_bucket.listS3Buckets", "api_error", err, "region", listRegion)
+			return nil, err
+		}
+
+		plugin.Logger(ctx).Warn("aws_s3_bucket.listS3Buckets", "region", listRegion, "fallback_region", defaultRegion, "api_error", err, "msg", "ListBuckets failed with a region mismatch, retrying with the default region; creation_date will reflect the last modified time for this connection")
+		bucketsResult, err = listS3BucketsInRegion(ctx, d, defaultRegion)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_s3_bucket.listS3Buckets", "api_error", err, "region", defaultRegion)
+			return nil, err
+		}
+		listRegion = defaultRegion
+	}
+	if err := d.ConnectionCache.Set(ctx, cacheKey, listRegion); err != nil {
+		plugin.Logger(ctx).Warn("aws_s3_bucket.listS3Buckets", "cache_key", cacheKey, "api_error", err, "msg", "failed to cache the list region for this connection")
 	}
 
 	for _, bucket := range bucketsResult.Buckets {
@@ -324,6 +345,24 @@ func listS3Buckets(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 	}
 
 	return nil, nil
+}
+
+func listS3BucketsInRegion(ctx context.Context, d *plugin.QueryData, region string) (*s3.ListBucketsOutput, error) {
+	svc, err := S3Client(ctx, d, region)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_s3_bucket.listS3BucketsInRegion", "get_client_error", err, "region", region)
+		return nil, err
+	}
+
+	return svc.ListBuckets(ctx, &s3.ListBucketsInput{})
+}
+
+// S3 returns AuthorizationHeaderMalformed when a request is signed for a region
+// other than the one the endpoint serves, e.g. "the region 'us-east-1' is wrong;
+// expecting another region".
+func isS3RegionMismatchError(err error) bool {
+	var ae smithy.APIError
+	return errors.As(err, &ae) && ae.ErrorCode() == "AuthorizationHeaderMalformed"
 }
 
 func doGetBucketRegion(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData, bucket string) (string, error) {
