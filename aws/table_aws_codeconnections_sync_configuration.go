@@ -55,10 +55,6 @@ func tableAwsCodeConnectionsSyncConfiguration(_ context.Context) *plugin.Table {
 
 func listCodeConnectionsSyncConfigurations(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	link := h.Item.(types.RepositoryLinkInfo)
-	wantedID := d.EqualsQualString("repository_link_id")
-	if wantedID != "" && aws.ToString(link.RepositoryLinkId) != wantedID {
-		return nil, nil
-	}
 
 	syncTypes := types.SyncConfigurationType("").Values()
 	if wantedType := d.EqualsQualString("sync_type"); wantedType != "" {

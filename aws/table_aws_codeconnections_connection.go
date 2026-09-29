@@ -129,3 +129,35 @@ func listCodeConnectionsConnectionTags(ctx context.Context, d *plugin.QueryData,
 	}
 	return listCodeConnectionsTags(ctx, d, arn)
 }
+
+func listCodeConnectionsTags(ctx context.Context, d *plugin.QueryData, arn *string) (interface{}, error) {
+	if arn == nil || *arn == "" {
+		return nil, nil
+	}
+	svc, err := CodeConnectionsClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_codeconnections.listCodeConnectionsTags", "connection_error", err)
+		return nil, err
+	}
+	if svc == nil {
+		return nil, nil
+	}
+	output, err := svc.ListTagsForResource(ctx, &codeconnections.ListTagsForResourceInput{ResourceArn: arn})
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_codeconnections.listCodeConnectionsTags", "api_error", err)
+		return nil, err
+	}
+	return output, nil
+}
+
+func codeConnectionsTurbotTags(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	output := d.HydrateItem.(*codeconnections.ListTagsForResourceOutput)
+	if len(output.Tags) == 0 {
+		return nil, nil
+	}
+	tags := make(map[string]string, len(output.Tags))
+	for _, tag := range output.Tags {
+		tags[aws.ToString(tag.Key)] = aws.ToString(tag.Value)
+	}
+	return tags, nil
+}
