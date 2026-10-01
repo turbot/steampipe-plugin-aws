@@ -22,6 +22,18 @@ func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listS3Buckets,
 			Tags:    map[string]string{"service": "s3", "action": "ListBucket"},
+			// Optional, since `ListBuckets` itself is account-wide (not region-scoped) and
+			// always returns every bucket regardless of this qual. When a `region` qual is
+			// provided, listS3Buckets resolves each bucket's region (a cheap, cached
+			// HeadBucket-based call) up front and skips streaming buckets that don't match,
+			// so none of the ~12 downstream hydrate calls (GetBucketPolicyStatus,
+			// GetBucketVersioning, etc.) run for out-of-region buckets. This avoids
+			// IllegalLocationConstraintException/AuthorizationHeaderMalformed noise and wasted
+			// calls when querying from a single-region network (e.g. a region-restricted VPC
+			// endpoint) where cross-region bucket hydrate calls would otherwise fail.
+			KeyColumns: plugin.KeyColumnSlice{
+				{Name: "region", Require: plugin.Optional},
+			},
 		},
 
 		// Note: No Get for S3 buckets, since it must list all the buckets
@@ -315,7 +327,30 @@ func listS3Buckets(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 		return nil, err
 	}
 
+	// Optional `region` qual: ListBuckets is account-wide and always returns buckets from
+	// every region, so if the caller restricted the query to a specific region, resolve each
+	// bucket's actual region up front (cheap, cached HeadBucket-based call via
+	// doGetBucketRegion) and skip streaming non-matching buckets. This prevents the ~12
+	// downstream hydrate calls from ever running against out-of-region buckets, which would
+	// otherwise fail with IllegalLocationConstraintException/AuthorizationHeaderMalformed
+	// whenever the caller's network can't reach that bucket's region (e.g. a single-region VPC
+	// endpoint).
+	targetRegion := d.EqualsQualString("region")
+
 	for _, bucket := range bucketsResult.Buckets {
+		if targetRegion != "" {
+			bucketRegion, err := doGetBucketRegion(ctx, d, h, *bucket.Name)
+			if err != nil {
+				// Can't determine the bucket's region - log and skip rather than letting the
+				// row (and its hydrates) fail downstream.
+				plugin.Logger(ctx).Error("aws_s3_bucket.listS3Buckets", "get_bucket_region_error", err, "bucket", *bucket.Name)
+				continue
+			}
+			if bucketRegion != targetRegion {
+				continue
+			}
+		}
+
 		d.StreamListItem(ctx, bucket)
 		// Context may get cancelled due to manual cancellation or if the limit has been reached
 		if d.RowsRemaining(ctx) == 0 {
