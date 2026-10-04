@@ -368,6 +368,14 @@ func listS3BucketsInRegion(ctx context.Context, d *plugin.QueryData, region stri
 	return svc.ListBuckets(ctx, &s3.ListBucketsInput{BucketRegion: bucketRegion})
 }
 
+// S3 returns AuthorizationHeaderMalformed when a request is signed for a region
+// other than the one the endpoint serves, e.g. "the region 'us-east-1' is wrong;
+// expecting another region".
+func isS3RegionMismatchError(err error) bool {
+	var ae smithy.APIError
+	return errors.As(err, &ae) && ae.ErrorCode() == "AuthorizationHeaderMalformed"
+}
+
 func doGetBucketRegion(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData, bucket string) (string, error) {
 	// Have we already resolved and cached the bucket name?
 	c, err := getCommonColumns(ctx, d, h)
