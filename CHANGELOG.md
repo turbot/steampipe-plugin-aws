@@ -1,3 +1,24 @@
+## v1.34.0 [2026-09-26]
+
+_Breaking changes_
+
+- Removed the `aws_simspaceweaver_simulation` table, as AWS ended support for the SimSpace Weaver service on May 20, 2026 and the API is no longer available. ([#2793](https://github.com/turbot/steampipe-plugin-aws/pull/2793))
+
+_What's new?_
+
+- New tables added
+  - [aws_bedrock_agentcore_agent_runtime](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_bedrock_agentcore_agent_runtime) ([#2792](https://github.com/turbot/steampipe-plugin-aws/pull/2792))
+
+_Enhancements_
+
+- Added column `tag_filters` to `aws_tagging_resource` table, which can be used as a query filter to list only resources matching the specified tag keys and values. ([#2786](https://github.com/turbot/steampipe-plugin-aws/pull/2786)) (Thanks [@asreenath](https://github.com/asreenath) for the contribution!)
+- Refreshed the AWS service endpoint data used to determine supported regions, adding new regions for 35 existing services. ([#2792](https://github.com/turbot/steampipe-plugin-aws/pull/2792))
+
+_Dependencies_
+
+- Recompiled plugin with [github.com/aws/aws-sdk-go-v2 v1.47.1](https://github.com/aws/aws-sdk-go-v2/blob/main/CHANGELOG.md).
+- Recompiled plugin with [github.com/aws/smithy-go v1.28.1](https://github.com/aws/smithy-go/blob/main/CHANGELOG.md).
+
 ## v1.33.0 [2026-09-11]
 
 _What's new?_

@@ -36,6 +36,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/batch"
 	"github.com/aws/aws-sdk-go-v2/service/bedrock"
 	"github.com/aws/aws-sdk-go-v2/service/bedrockagent"
+	"github.com/aws/aws-sdk-go-v2/service/bedrockagentcorecontrol"
 	"github.com/aws/aws-sdk-go-v2/service/budgets"
 	"github.com/aws/aws-sdk-go-v2/service/cloudcontrol"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
@@ -142,7 +143,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/sesv2"
 	"github.com/aws/aws-sdk-go-v2/service/sfn"
 	"github.com/aws/aws-sdk-go-v2/service/shield"
-	"github.com/aws/aws-sdk-go-v2/service/simspaceweaver"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
@@ -375,6 +375,19 @@ func BedrockAgentClient(ctx context.Context, d *plugin.QueryData) (*bedrockagent
 		return nil, nil
 	}
 	return bedrockagent.NewFromConfig(*cfg), nil
+}
+
+// BedrockAgentCoreControlClient returns the service client for Amazon Bedrock AgentCore control plane
+func BedrockAgentCoreControlClient(ctx context.Context, d *plugin.QueryData) (*bedrockagentcorecontrol.Client, error) {
+	// Get client config
+	cfg, err := getClientForQuerySupportedRegion(ctx, d, AWS_BEDROCK_AGENTCORE_SERVICE_ID)
+	if err != nil {
+		return nil, err
+	}
+	if cfg == nil {
+		return nil, nil
+	}
+	return bedrockagentcorecontrol.NewFromConfig(*cfg), nil
 }
 
 func CloudControlClient(ctx context.Context, d *plugin.QueryData) (*cloudcontrol.Client, error) {
@@ -1647,17 +1660,6 @@ func ServiceQuotasClient(ctx context.Context, d *plugin.QueryData) (*servicequot
 		return nil, nil
 	}
 	return servicequotas.NewFromConfig(*cfg), nil
-}
-
-func SimSpaceWeaverClient(ctx context.Context, d *plugin.QueryData) (*simspaceweaver.Client, error) {
-	cfg, err := getClientForQuerySupportedRegion(ctx, d, AWS_SIMSPACEWEAVER_SERVICE_ID)
-	if err != nil {
-		return nil, err
-	}
-	if cfg == nil {
-		return nil, nil
-	}
-	return simspaceweaver.NewFromConfig(*cfg), nil
 }
 
 func StepFunctionsClient(ctx context.Context, d *plugin.QueryData) (*sfn.Client, error) {
