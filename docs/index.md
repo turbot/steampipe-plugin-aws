@@ -73,12 +73,15 @@ connection "aws" {
 
   # `regions` defines the list of regions that Steampipe should target for
   # each query. API calls are made to multiple regions in parallel. The regions
-  # list may include wildcards (e.g. *, us-*, us-??st-1).
+  # list may include wildcards (e.g. *, us-*, us-??st-1). Patterns prefixed
+  # with ! exclude their matches instead; exclusions always win, regardless of
+  # their position in the list.
   # If `regions` is not specified, Steampipe will target the `default_region`
   # only.
   #regions = ["*"] # All regions
   #regions = ["eu-*"] # All EU regions
   #regions = ["us-east-1", "eu-west-2"] # Specific regions
+  #regions = ["*", "!me-south-1"] # All regions except me-south-1
 
   # Some AWS APIs (e.g. describe EC2 regions, S3 get bucket location) have
   # global results, so can be run against any region. For faster results, you
@@ -188,6 +191,27 @@ The `regions` argument supports wildcards:
     regions = ["us-isob-*"]
   }
   ```
+
+Patterns prefixed with `!` exclude their matches instead. This is useful to keep a wildcard while skipping specific regions, e.g., an opted-in region that is unreachable from your network:
+
+- All standard regions except Middle East (Bahrain)
+  ```hcl
+  connection "aws" {
+    plugin  = "aws"
+    regions = ["*", "!me-south-1"]
+  }
+  ```
+- All standard regions except Asia Pacific
+  ```hcl
+  connection "aws" {
+    plugin  = "aws"
+    regions = ["*", "!ap-*"]
+  }
+  ```
+
+Exclusions always win, regardless of their position in the list, and only subtract from what the positive patterns matched - a `regions` list containing only exclusion patterns matches no regions.
+
+Note that `!` is only special as the first character of a pattern. Within a character class, negation uses Go match syntax (`me-[^s]*`), not shell syntax (`me-[!s]*` treats the `!` as a literal character).
 
 AWS multi-region connections are common, but be aware that performance may be impacted by the number of regions and the latency to them.
 
