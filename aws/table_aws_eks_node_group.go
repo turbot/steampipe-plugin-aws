@@ -2,10 +2,13 @@ package aws
 
 import (
 	"context"
+	"errors"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/eks"
 	"github.com/aws/aws-sdk-go-v2/service/eks/types"
+	"github.com/aws/smithy-go"
 
 	"github.com/turbot/steampipe-plugin-sdk/v6/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v6/plugin"
@@ -251,6 +254,11 @@ func listEKSNodeGroups(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
+			// Local EKS clusters on AWS Outposts do not support node groups
+			if isLocalEKSClusterUnsupportedError(err) {
+				plugin.Logger(ctx).Debug("aws_eks_node_group.listEKSNodeGroups", "skipping local cluster", clusterName)
+				return nil, nil
+			}
 			plugin.Logger(ctx).Error("aws_eks_node_group.listEKSNodeGroups", "api_error", err)
 			return nil, err
 		}
@@ -269,6 +277,15 @@ func listEKSNodeGroups(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	}
 
 	return nil, nil
+}
+
+// isLocalEKSClusterUnsupportedError reports whether err is the ClientException
+// EKS returns when an operation, such as ListNodegroups, is called on a local
+// cluster on AWS Outposts.
+func isLocalEKSClusterUnsupportedError(err error) bool {
+	var ae smithy.APIError
+	return errors.As(err, &ae) && ae.ErrorCode() == "ClientException" &&
+		strings.Contains(ae.ErrorMessage(), "not supported for local EKS clusters")
 }
 
 //// HYDRATE FUNCTIONS
