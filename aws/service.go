@@ -2053,38 +2053,6 @@ func getClientWithMaxRetries(ctx context.Context, d *plugin.QueryData, region st
 		return retry.AddWithErrorCodes(retryer, additionalErrors...)
 	}
 
-	// Plugin level config
-	awsSpcConfig := GetConfig(d.Connection)
-
-	// If there is a custom endpoint, use it
-	var awsEndpointUrl string
-	awsEndpointUrl = os.Getenv("AWS_ENDPOINT_URL")
-	if awsSpcConfig.EndpointUrl != nil {
-		awsEndpointUrl = *awsSpcConfig.EndpointUrl
-
-		// The aws.EndpointResolverWithOptionsFunc() is deprecated in AWS SDK v2 (version >= v1.27.0).
-		// However, we are intentionally keeping it for now to maintain backward compatibility, and plan to remove it in the future.
-		// Since its usage currently causes a lint failure, we have added a nolint directive here to suppress the warning temporarily.
-		//nolint:staticcheck // using custom endpoint resolver intentionally for legacy compatibility
-		if awsEndpointUrl != "" {
-			customResolver := aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) {
-				return aws.Endpoint{
-					PartitionID:   "aws",
-					URL:           awsEndpointUrl,
-					SigningRegion: region,
-				}, nil
-			})
-			newCfg, err := config.LoadDefaultConfig(ctx, config.WithEndpointResolverWithOptions(customResolver))
-			if err != nil {
-				plugin.Logger(ctx).Error("service.getClientWithMaxRetries", "connection_error", err)
-				return nil, err
-			}
-			newCfg.Retryer = cfg.Retryer
-			newCfg.Region = cfg.Region
-			cfg = newCfg
-		}
-	}
-
 	plugin.Logger(ctx).Debug("getClientWithMaxRetries", "connection_name", d.Connection.Name, "region", region, "status", "done")
 
 	return &cfg, err
@@ -2294,6 +2262,30 @@ func getBaseClientForAccountUncached(ctx context.Context, d *plugin.QueryData, h
 		// See aws/credentials_provider.go.
 		provider := &connectionConfigCredentialsProvider{connection: d.Connection}
 		configOptions = append(configOptions, config.WithCredentialsProvider(provider))
+	}
+
+	// A custom endpoint belongs to the connection, so it is set here with the
+	// connection's credentials and profile. It is used for all AWS API
+	// requests of the connection, including the SDK's own credential requests
+	// (e.g. sts:AssumeRole), and AWS_ENDPOINT_URL* variables do not override it.
+	//
+	// aws.EndpointResolverWithOptionsFunc is deprecated in AWS SDK v2, but
+	// BaseEndpoint, its replacement, lets AWS_ENDPOINT_URL_<SERVICE>
+	// override the connection's endpoint.
+	//
+	// PartitionID is not set: the partition of a custom endpoint is not known,
+	// and an empty value makes the SDK skip its cross-partition check of S3
+	// ARNs, which would reject e.g. aws-us-gov ARNs with "aws".
+	//nolint:staticcheck // deprecated resolver used on purpose, see above
+	if awsSpcConfig.EndpointUrl != nil && *awsSpcConfig.EndpointUrl != "" {
+		endpointUrl := *awsSpcConfig.EndpointUrl
+		resolver := aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) {
+			return aws.Endpoint{
+				URL:           endpointUrl,
+				SigningRegion: region,
+			}, nil
+		})
+		configOptions = append(configOptions, config.WithEndpointResolverWithOptions(resolver))
 	}
 
 	plugin.Logger(ctx).Debug("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "loading_config")
