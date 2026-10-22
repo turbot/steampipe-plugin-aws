@@ -74,7 +74,7 @@ func listConnectInstanceAttributes(ctx context.Context, d *plugin.QueryData, h *
 	instance := h.Item.(types.InstanceSummary)
 	instanceId := *instance.Id
 
-	if d.EqualsQualString("instance_id") != "" && d.EqualsQualString("attribute_type") != instanceId {
+	if d.EqualsQualString("instance_id") != "" && d.EqualsQualString("instance_id") != instanceId {
 		return nil, nil
 	}
 
