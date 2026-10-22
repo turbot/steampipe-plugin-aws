@@ -2272,12 +2272,15 @@ func getBaseClientForAccountUncached(ctx context.Context, d *plugin.QueryData, h
 	// aws.EndpointResolverWithOptionsFunc is deprecated in AWS SDK v2, but
 	// BaseEndpoint, its replacement, lets AWS_ENDPOINT_URL_<SERVICE>
 	// override the connection's endpoint.
+	//
+	// PartitionID is not set: the partition of a custom endpoint is not known,
+	// and an empty value makes the SDK skip its cross-partition check of S3
+	// ARNs, which would reject e.g. aws-us-gov ARNs with "aws".
 	//nolint:staticcheck // deprecated resolver used on purpose, see above
 	if awsSpcConfig.EndpointUrl != nil && *awsSpcConfig.EndpointUrl != "" {
 		endpointUrl := *awsSpcConfig.EndpointUrl
 		resolver := aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) {
 			return aws.Endpoint{
-				PartitionID:   "aws",
 				URL:           endpointUrl,
 				SigningRegion: region,
 			}, nil
