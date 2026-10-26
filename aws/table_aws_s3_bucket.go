@@ -22,6 +22,9 @@ func tableAwsS3Bucket(_ context.Context) *plugin.Table {
 		List: &plugin.ListConfig{
 			Hydrate: listS3Buckets,
 			Tags:    map[string]string{"service": "s3", "action": "ListBucket"},
+			KeyColumns: plugin.KeyColumnSlice{
+				{Name: "region", Require: plugin.Optional},
+			},
 		},
 
 		// Note: No Get for S3 buckets, since it must list all the buckets
@@ -306,6 +309,8 @@ func listS3Buckets(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 	// instead of failing the query.
 	cacheKey := "listS3Buckets/region"
 	var listRegion string
+	filterByRegion := d.EqualsQuals["region"] != nil
+
 	if cachedData, ok := d.ConnectionCache.Get(ctx, cacheKey); ok {
 		listRegion = cachedData.(string)
 	} else {
@@ -316,7 +321,13 @@ func listS3Buckets(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 		listRegion = lastResortRegion
 	}
 
-	bucketsResult, err := listS3BucketsInRegion(ctx, d, listRegion)
+	var bucketRegionFilter *string
+	if filterByRegion {
+		bucketRegion := d.EqualsQualString("region")
+		bucketRegionFilter = &bucketRegion
+	}
+
+	bucketsResult, err := listS3BucketsInRegion(ctx, d, listRegion, bucketRegionFilter)
 	if err != nil {
 		defaultRegion, regionErr := getDefaultRegion(ctx, d, h)
 		if regionErr != nil || defaultRegion == listRegion || !isS3RegionMismatchError(err) {
@@ -325,7 +336,7 @@ func listS3Buckets(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 		}
 
 		plugin.Logger(ctx).Warn("aws_s3_bucket.listS3Buckets", "region", listRegion, "fallback_region", defaultRegion, "api_error", err, "msg", "ListBuckets failed with a region mismatch, retrying with the default region; creation_date will reflect the last modified time for this connection")
-		bucketsResult, err = listS3BucketsInRegion(ctx, d, defaultRegion)
+		bucketsResult, err = listS3BucketsInRegion(ctx, d, defaultRegion, bucketRegionFilter)
 		if err != nil {
 			plugin.Logger(ctx).Error("aws_s3_bucket.listS3Buckets", "api_error", err, "region", defaultRegion)
 			return nil, err
@@ -347,14 +358,14 @@ func listS3Buckets(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 	return nil, nil
 }
 
-func listS3BucketsInRegion(ctx context.Context, d *plugin.QueryData, region string) (*s3.ListBucketsOutput, error) {
+func listS3BucketsInRegion(ctx context.Context, d *plugin.QueryData, region string, bucketRegion *string) (*s3.ListBucketsOutput, error) {
 	svc, err := S3Client(ctx, d, region)
 	if err != nil {
 		plugin.Logger(ctx).Error("aws_s3_bucket.listS3BucketsInRegion", "get_client_error", err, "region", region)
 		return nil, err
 	}
 
-	return svc.ListBuckets(ctx, &s3.ListBucketsInput{})
+	return svc.ListBuckets(ctx, &s3.ListBucketsInput{BucketRegion: bucketRegion})
 }
 
 // S3 returns AuthorizationHeaderMalformed when a request is signed for a region
