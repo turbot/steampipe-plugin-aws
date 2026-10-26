@@ -758,25 +758,34 @@ func buildResourceTagFilter(d *plugin.QueryData, filter *types.FilterCriteria) {
 	for _, info := range findingResourceTagFilters {
 		if d.Quals[info.columnName] != nil {
 			field := info.filterField(filter)
-			tagValue := make([]map[string]string, 0)
 			for _, q := range d.Quals[info.columnName].Quals {
 				val := q.Value.GetJsonbValue()
 				if val != "" && q.Operator == "=" {
-					_ = json.Unmarshal([]byte(val), &tagValue)
-					for _, v := range tagValue {
-						if v["key"] == "" || v["value"] == "" {
-							tagfilter := types.MapFilter{
-								Comparison: types.MapComparisonEquals,
-								Key:        aws.String(v["key"]),
-								Value:      aws.String(v["value"]),
-							}
-							*field = append(*field, tagfilter)
-						}
-					}
+					*field = append(*field, resourceTagMapFilters(val)...)
 				}
 			}
 		}
 	}
+}
+
+// resourceTagMapFilters converts a resource_tags qual value such as
+// [{"key": "Name", "value": "Dev"}] into Inspector map filters. Entries
+// that do not have both a key and a value are skipped.
+func resourceTagMapFilters(val string) []types.MapFilter {
+	tagValue := make([]map[string]string, 0)
+	_ = json.Unmarshal([]byte(val), &tagValue)
+
+	var filters []types.MapFilter
+	for _, v := range tagValue {
+		if v["key"] != "" && v["value"] != "" {
+			filters = append(filters, types.MapFilter{
+				Comparison: types.MapComparisonEquals,
+				Key:        aws.String(v["key"]),
+				Value:      aws.String(v["value"]),
+			})
+		}
+	}
+	return filters
 }
 
 func buildVulnerablePackageFilter(d *plugin.QueryData, filter *types.FilterCriteria) {
