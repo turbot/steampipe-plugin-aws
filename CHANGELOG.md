@@ -1,3 +1,16 @@
+## v1.34.1 [2026-10-26]
+
+_Bug fixes_
+
+- Fixed the `endpoint_url` config argument to keep the connection's `access_key`, `secret_key`, `session_token`, and `profile`. Previously, connections that set `endpoint_url` ignored these and used the default AWS credential chain instead, which either silently used the wrong identity or failed with a `no EC2 IMDS role found` error. ([#2807](https://github.com/turbot/steampipe-plugin-aws/pull/2807))
+- Fixed the `aws_s3_bucket` table to fall back to the connection's default region when `ListBuckets` fails with a region mismatch error, e.g., in networks that can only reach a single region's S3 VPC endpoint. In this case, the `creation_date` column returns the bucket's last modified time instead of its creation time. ([#2791](https://github.com/turbot/steampipe-plugin-aws/pull/2791)) (Thanks [@sol791](https://github.com/sol791) for the contribution!)
+- Fixed the `aws_connect_instance_attribute` table to return rows when filtered by `instance_id`. ([#2800](https://github.com/turbot/steampipe-plugin-aws/pull/2800)) (Thanks [@RaphaelFakhri](https://github.com/RaphaelFakhri) for the contribution!)
+
+_Dependencies_
+
+- Recompiled plugin with [google.golang.org/grpc v1.82.1](https://github.com/grpc/grpc-go/releases/tag/v1.82.1). ([#2784](https://github.com/turbot/steampipe-plugin-aws/pull/2784))
+- Updated `soupsieve` to v2.8.4 in the `generate_parliament_iam_permissions` script. ([#2779](https://github.com/turbot/steampipe-plugin-aws/pull/2779))
+
 ## v1.34.0 [2026-09-26]
 
 _Breaking changes_
