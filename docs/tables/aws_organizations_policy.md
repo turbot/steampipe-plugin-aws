@@ -132,3 +132,60 @@ from
 where
   type = 'SERVICE_CONTROL_POLICY';
 ```
+### List the targets each service control policy is attached to
+Find where each service control policy is attached in your organization. Each policy's targets are listed with one call per policy, so this is quicker than looking up the policies of every root, organizational unit and account.
+
+```sql+postgres
+select
+  p.name,
+  t ->> 'Name' as target_name,
+  t ->> 'Type' as target_type,
+  t ->> 'TargetId' as target_id
+from
+  aws_organizations_policy as p,
+  jsonb_array_elements(p.targets) as t
+where
+  p.type = 'SERVICE_CONTROL_POLICY';
+```
+
+```sql+sqlite
+select
+  p.name,
+  json_extract(t.value, '$.Name') as target_name,
+  json_extract(t.value, '$.Type') as target_type,
+  json_extract(t.value, '$.TargetId') as target_id
+from
+  aws_organizations_policy as p,
+  json_each(p.targets) as t
+where
+  p.type = 'SERVICE_CONTROL_POLICY';
+```
+
+### List service control policies that are not attached to any target
+Identify customer managed service control policies that aren't attached to a root, organizational unit or account, and so have no effect.
+
+```sql+postgres
+select
+  name,
+  id,
+  arn
+from
+  aws_organizations_policy
+where
+  type = 'SERVICE_CONTROL_POLICY'
+  and not aws_managed
+  and jsonb_array_length(targets) = 0;
+```
+
+```sql+sqlite
+select
+  name,
+  id,
+  arn
+from
+  aws_organizations_policy
+where
+  type = 'SERVICE_CONTROL_POLICY'
+  and aws_managed = 0
+  and json_array_length(targets) = 0;
+```

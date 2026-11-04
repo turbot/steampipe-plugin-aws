@@ -37,6 +37,10 @@ func tableAwsOrganizationsPolicy(_ context.Context) *plugin.Table {
 				Func: getOrganizationsPolicy,
 				Tags: map[string]string{"service": "organizations", "action": "DescribePolicy"},
 			},
+			{
+				Func: listOrganizationsPolicyAttachedTargets,
+				Tags: map[string]string{"service": "organizations", "action": "ListTargetsForPolicy"},
+			},
 		},
 		Columns: awsGlobalRegionColumns([]*plugin.Column{
 			{
@@ -81,6 +85,13 @@ func tableAwsOrganizationsPolicy(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_JSON,
 				Hydrate:     getOrganizationsPolicy,
 				Transform:   transform.FromField("Content"),
+			},
+			{
+				Name:        "targets",
+				Description: "The roots, organizational units, and accounts that the policy is attached to.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     listOrganizationsPolicyAttachedTargets,
+				Transform:   transform.FromValue(),
 			},
 
 			// Steampipe standard columns
@@ -199,4 +210,46 @@ func getOrganizationsPolicy(ctx context.Context, d *plugin.QueryData, h *plugin.
 	}
 
 	return *op.Policy, nil
+}
+
+func listOrganizationsPolicyAttachedTargets(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	var policyId string
+
+	if h.Item != nil {
+		policyId = *h.Item.(types.Policy).PolicySummary.Id
+	} else {
+		policyId = d.EqualsQuals["id"].GetStringValue()
+	}
+
+	// Get Client
+	svc, err := OrganizationClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_organizations_policy.listOrganizationsPolicyAttachedTargets", "client_error", err)
+		return nil, err
+	}
+
+	params := &organizations.ListTargetsForPolicyInput{
+		PolicyId:   aws.String(policyId),
+		MaxResults: aws.Int32(20),
+	}
+
+	paginator := organizations.NewListTargetsForPolicyPaginator(svc, params, func(o *organizations.ListTargetsForPolicyPaginatorOptions) {
+		o.Limit = 20
+		o.StopOnDuplicateToken = true
+	})
+
+	targets := []types.PolicyTargetSummary{}
+	for paginator.HasMorePages() {
+		// apply rate limiting
+		d.WaitForListRateLimit(ctx)
+
+		output, err := paginator.NextPage(ctx)
+		if err != nil {
+			plugin.Logger(ctx).Error("aws_organizations_policy.listOrganizationsPolicyAttachedTargets", "api_error", err)
+			return nil, err
+		}
+		targets = append(targets, output.Targets...)
+	}
+
+	return targets, nil
 }
