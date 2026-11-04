@@ -58,7 +58,7 @@ select
 from
   aws_application_signals_service_level_objective
 where
-  id = 'my-slo';
+  id = 'arn:aws:application-signals:us-east-1:123456789012:slo/my-slo';
 ```
 
 ```sql+sqlite
@@ -69,7 +69,7 @@ select
 from
   aws_application_signals_service_level_objective
 where
-  id = 'my-slo';
+  id = 'arn:aws:application-signals:us-east-1:123456789012:slo/my-slo';
 ```
 
 ### List service level objectives based on CloudWatch metrics
