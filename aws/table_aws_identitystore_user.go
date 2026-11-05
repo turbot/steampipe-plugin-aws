@@ -88,6 +88,12 @@ func tableAwsIdentityStoreUser(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("User.UserType"),
 			},
 			{
+				Name:        "user_status",
+				Description: "The current status of the user account. Possible values are ENABLED and DISABLED.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("User.UserStatus"),
+			},
+			{
 				Name:        "id",
 				Description: "The identifier for a user in the identity store.",
 				Type:        proto.ColumnType_STRING,
@@ -223,8 +229,9 @@ func getIdentityStoreUser(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 	item := &IdentityStoreUser{
 		IdentityStoreId: &identityStoreId,
 		User: types.User{
-			UserName: op.UserName,
-			UserId:   op.UserId,
+			UserName:   op.UserName,
+			UserId:     op.UserId,
+			UserStatus: op.UserStatus,
 		},
 	}
 

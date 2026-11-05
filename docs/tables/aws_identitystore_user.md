@@ -55,3 +55,27 @@ from
   aws_identitystore_user
 where identity_store_id = 'd-1234567890' and name = 'test';
 ```
+### List disabled users
+Identify users that are disabled in the identity store, for example users deprovisioned through SCIM from an external identity provider. This is useful for access reviews and compliance audits, because disabled users keep their records and account assignments.
+
+```sql+postgres
+select
+  id,
+  name,
+  display_name,
+  user_status
+from
+  aws_identitystore_user
+where identity_store_id = 'd-1234567890' and user_status = 'DISABLED';
+```
+
+```sql+sqlite
+select
+  id,
+  name,
+  display_name,
+  user_status
+from
+  aws_identitystore_user
+where identity_store_id = 'd-1234567890' and user_status = 'DISABLED';
+```
