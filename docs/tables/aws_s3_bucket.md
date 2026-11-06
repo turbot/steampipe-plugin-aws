@@ -37,6 +37,20 @@ from
   aws_s3_bucket;
 ```
 
+### List buckets in a specific region
+Filter the bucket listing to a single AWS Region. This region constraint is also sent to the S3 `ListBuckets` API.
+
+```sql
+select
+  name,
+  region,
+  creation_date
+from
+  aws_s3_bucket
+where
+  region = 'us-west-2';
+```
+
 ### List buckets with versioning disabled
 Discover the segments that have versioning disabled in your Amazon S3 buckets. This could be useful in identifying potential risks or compliance issues related to data version control.
 
