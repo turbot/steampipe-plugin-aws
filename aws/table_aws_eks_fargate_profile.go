@@ -167,6 +167,11 @@ func listEKSFargateProfiles(ctx context.Context, d *plugin.QueryData, h *plugin.
 
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
+			// Local EKS clusters on AWS Outposts do not support this operation
+			if isLocalEKSClusterUnsupportedError(err) {
+				plugin.Logger(ctx).Debug("aws_eks_fargate_profile.listEKSFargateProfiles", "skipping local cluster", aws.ToString(clusterName))
+				return nil, nil
+			}
 			plugin.Logger(ctx).Error("aws_eks_fargate_profile.listEKSFargateProfiles", "api_error", err)
 			return nil, err
 		}
