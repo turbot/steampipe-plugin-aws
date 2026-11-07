@@ -9,20 +9,25 @@ import (
 
 func TestResourceTagMapFilters(t *testing.T) {
 	tests := []struct {
-		name string
-		val  string
-		want [][2]string
+		name    string
+		val     string
+		want    [][2]string
+		wantErr bool
 	}{
-		{"single tag", `[{"key": "Name", "value": "Dev"}]`, [][2]string{{"Name", "Dev"}}},
-		{"multiple tags", `[{"key": "Name", "value": "Dev"}, {"key": "Team", "value": "Ops"}]`, [][2]string{{"Name", "Dev"}, {"Team", "Ops"}}},
-		{"missing value is skipped", `[{"key": "Name"}, {"key": "Team", "value": "Ops"}]`, [][2]string{{"Team", "Ops"}}},
-		{"missing key is skipped", `[{"value": "Dev"}]`, nil},
-		{"invalid JSON", `not json`, nil},
+		{"single tag", `[{"key": "Name", "value": "Dev"}]`, [][2]string{{"Name", "Dev"}}, false},
+		{"multiple tags", `[{"key": "Name", "value": "Dev"}, {"key": "Team", "value": "Ops"}]`, [][2]string{{"Name", "Dev"}, {"Team", "Ops"}}, false},
+		{"missing value", `[{"key": "Name"}, {"key": "Team", "value": "Ops"}]`, nil, true},
+		{"missing key", `[{"value": "Dev"}]`, nil, true},
+		{"invalid JSON", `not json`, nil, true},
+		{"object instead of array", `{"key": "Name", "value": "Dev"}`, nil, true},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := resourceTagMapFilters(tt.val)
+			got, err := resourceTagMapFilters(tt.val)
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("resourceTagMapFilters(%q) error = %v, wantErr %v", tt.val, err, tt.wantErr)
+			}
 			if len(got) != len(tt.want) {
 				t.Fatalf("resourceTagMapFilters(%q) returned %d filters, want %d", tt.val, len(got), len(tt.want))
 			}
