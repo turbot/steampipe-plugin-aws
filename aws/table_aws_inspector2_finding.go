@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"strconv"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -419,7 +420,10 @@ func listInspector2Finding(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 	buildStringFilters(d, filter)
 	buildNumberFilters(d, filter)
 	buildDateFilters(d, filter)
-	buildResourceTagFilter(d, filter)
+	if err := buildResourceTagFilter(d, filter); err != nil {
+		plugin.Logger(ctx).Error("aws_inspector2_finding.listInspector2Finding", "filter_error", err)
+		return nil, err
+	}
 	buildVulnerablePackageFilter(d, filter)
 
 	input.FilterCriteria = filter
@@ -754,29 +758,45 @@ func buildStringFilters(d *plugin.QueryData, filter *types.FilterCriteria) {
 	}
 }
 
-func buildResourceTagFilter(d *plugin.QueryData, filter *types.FilterCriteria) {
+func buildResourceTagFilter(d *plugin.QueryData, filter *types.FilterCriteria) error {
 	for _, info := range findingResourceTagFilters {
 		if d.Quals[info.columnName] != nil {
 			field := info.filterField(filter)
-			tagValue := make([]map[string]string, 0)
 			for _, q := range d.Quals[info.columnName].Quals {
 				val := q.Value.GetJsonbValue()
 				if val != "" && q.Operator == "=" {
-					_ = json.Unmarshal([]byte(val), &tagValue)
-					for _, v := range tagValue {
-						if v["key"] == "" || v["value"] == "" {
-							tagfilter := types.MapFilter{
-								Comparison: types.MapComparisonEquals,
-								Key:        aws.String(v["key"]),
-								Value:      aws.String(v["value"]),
-							}
-							*field = append(*field, tagfilter)
-						}
+					filters, err := resourceTagMapFilters(val)
+					if err != nil {
+						return err
 					}
+					*field = append(*field, filters...)
 				}
 			}
 		}
 	}
+	return nil
+}
+
+// resourceTagMapFilters converts a resource_tags qual value such as
+// [{"key": "Name", "value": "Dev"}] into Inspector map filters.
+func resourceTagMapFilters(val string) ([]types.MapFilter, error) {
+	var tagValue []map[string]string
+	if err := json.Unmarshal([]byte(val), &tagValue); err != nil {
+		return nil, fmt.Errorf("resource_tags: expected an array of {\"key\", \"value\"} objects: %w", err)
+	}
+
+	var filters []types.MapFilter
+	for i, v := range tagValue {
+		if v["key"] == "" || v["value"] == "" {
+			return nil, fmt.Errorf("resource_tags: entry %d must have both \"key\" and \"value\"", i)
+		}
+		filters = append(filters, types.MapFilter{
+			Comparison: types.MapComparisonEquals,
+			Key:        aws.String(v["key"]),
+			Value:      aws.String(v["value"]),
+		})
+	}
+	return filters, nil
 }
 
 func buildVulnerablePackageFilter(d *plugin.QueryData, filter *types.FilterCriteria) {
