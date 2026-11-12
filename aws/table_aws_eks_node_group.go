@@ -251,6 +251,11 @@ func listEKSNodeGroups(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
+			// Local EKS clusters on AWS Outposts do not support node groups
+			if isLocalEKSClusterUnsupportedError(err) {
+				plugin.Logger(ctx).Debug("aws_eks_node_group.listEKSNodeGroups", "skipping local cluster", clusterName)
+				return nil, nil
+			}
 			plugin.Logger(ctx).Error("aws_eks_node_group.listEKSNodeGroups", "api_error", err)
 			return nil, err
 		}
