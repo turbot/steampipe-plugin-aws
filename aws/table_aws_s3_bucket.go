@@ -374,7 +374,7 @@ func doGetBucketRegion(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	}
 	commonColumnData := c.(*awsCommonColumnData)
 	cacheKey := "getBucketRegion/" + commonColumnData.Partition + "/" + bucket
-	if cachedData, ok := d.ConnectionManager.Cache.Get(cacheKey); ok {
+	if cachedData, ok := d.ConnectionCache.Get(ctx, cacheKey); ok {
 		return cachedData.(string), nil
 	}
 
@@ -400,7 +400,9 @@ func doGetBucketRegion(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	}
 	plugin.Logger(ctx).Debug("aws_s3_bucket.doGetBucketRegion", "bucket", bucket, "region", bucketRegion)
 
-	d.ConnectionManager.Cache.Set(cacheKey, bucketRegion)
+	if err := d.ConnectionCache.Set(ctx, cacheKey, bucketRegion); err != nil {
+		plugin.Logger(ctx).Warn("aws_s3_bucket.doGetBucketRegion", "cache_key", cacheKey, "api_error", err, "msg", "failed to cache the bucket region for this connection")
+	}
 	return bucketRegion, nil
 }
 

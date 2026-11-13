@@ -1,3 +1,19 @@
+## v1.35.0 [2026-11-13]
+
+_What's new?_
+
+- New tables added
+  - [aws_application_signals_service_level_objective](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_application_signals_service_level_objective) ([#2770](https://github.com/turbot/steampipe-plugin-aws/pull/2770))
+
+_Dependencies_
+
+- Recompiled plugin with [steampipe-plugin-sdk v6.2.1](https://github.com/turbot/steampipe-plugin-sdk/blob/develop/CHANGELOG.md#v621-2026-11-12), which lowers plugin memory use, with the query cache fixes for missing or duplicate rows from [v6.2.0](https://github.com/turbot/steampipe-plugin-sdk/blob/develop/CHANGELOG.md#v620-2026-11-11). ([#2814](https://github.com/turbot/steampipe-plugin-aws/pull/2814))
+- Recompiled plugin with [github.com/aws/aws-sdk-go-v2 v1.48.0](https://github.com/aws/aws-sdk-go-v2/blob/main/CHANGELOG.md).
+- Recompiled plugin with [github.com/aws/smithy-go v1.28.9](https://github.com/aws/smithy-go/blob/main/CHANGELOG.md).
+- Recompiled plugin with [github.com/turbot/go-kit v1.3.1](https://github.com/turbot/go-kit/blob/main/CHANGELOG.md), which lowers plugin memory use. ([#2813](https://github.com/turbot/steampipe-plugin-aws/pull/2813))
+- Recompiled plugin with [google.golang.org/grpc v1.83.2](https://github.com/grpc/grpc-go/releases/tag/v1.83.2). ([#2809](https://github.com/turbot/steampipe-plugin-aws/pull/2809))
+- Updated `urllib3` to v2.8.0, `certifi` to 2026.10.18 and `soupsieve` to v2.9 in the `generate_aws_supported_endpoints` and `generate_parliament_iam_permissions` scripts. ([#2808](https://github.com/turbot/steampipe-plugin-aws/pull/2808))
+
 ## v1.34.1 [2026-10-26]
 
 _Bug fixes_
