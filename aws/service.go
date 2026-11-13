@@ -2104,6 +2104,9 @@ func getBaseClientForAccount(ctx context.Context, d *plugin.QueryData) (*aws.Con
 // 3. DNS caching - Golang does not cache DNS lookups by default. We end up
 // looking up the same host thousands of times both within a query and across
 // queries.
+// 4. Connection churn - the AWS SDK keeps only 10 idle connections per host,
+// so a burst of requests to one host closes most of its connections and the
+// next burst opens new ones. See httpTransportMaxIdleConns.
 func initializeHTTPClient() aws.HTTPClient {
 
 	// DNS lookup floods are a real problem with highly parallel AWS SDK calls. Every
@@ -2142,6 +2145,22 @@ func initializeHTTPClient() aws.HTTPClient {
 	// Set to 0 to remove the limit (which is the AWS SDK default).
 	httpTransportMaxConnsPerHost := readEnvVarToInt("STEAMPIPE_AWS_HTTP_TRANSPORT_MAX_CONNS_PER_HOST", 5000)
 
+	// This is the maximum number of idle HTTPS connections kept for reuse, in
+	// total and for each host. When a request ends and its connection cannot
+	// be kept, the connection is closed, and the next request opens a new one.
+	// The AWS SDK keeps 10 per host and 100 in total. A table like
+	// aws_sns_topic sends hundreds of requests to one host at once, so with
+	// those defaults most connections were used once and closed. Each closed
+	// connection holds a local or NAT port in TIME_WAIT for 30-120 seconds, so
+	// a busy table opened hundreds of new connections a second and could run
+	// out of ports (#2816).
+	// The per-host limit is the same as the total, so only the total applies.
+	// The total must stay capped: aws_s3_bucket uses two new hosts for each
+	// bucket and never uses them again, so without a cap the connections of
+	// every bucket would stay open until the idle timeout (90 seconds).
+	// Set to 0 to keep the AWS SDK defaults.
+	httpTransportMaxIdleConns := readEnvVarToInt("STEAMPIPE_AWS_HTTP_TRANSPORT_MAX_IDLE_CONNS", 1000)
+
 	// Our DNS resolver should automatically refresh itself on this schedule.
 	var resolver = &dnscache.Resolver{}
 	if dnsCacheRefreshIntervalSecs > 0 {
@@ -2167,6 +2186,15 @@ func initializeHTTPClient() aws.HTTPClient {
 	if httpTransportMaxConnsPerHost > 0 {
 		client = client.WithTransportOptions(func(tr *http.Transport) {
 			tr.MaxConnsPerHost = httpTransportMaxConnsPerHost
+		})
+	}
+
+	// Keep idle connections for reuse, but only if set. The AWS SDK default
+	// is 10 per host and 100 in total.
+	if httpTransportMaxIdleConns > 0 {
+		client = client.WithTransportOptions(func(tr *http.Transport) {
+			tr.MaxIdleConns = httpTransportMaxIdleConns
+			tr.MaxIdleConnsPerHost = httpTransportMaxIdleConns
 		})
 	}
 
