@@ -1,3 +1,14 @@
+## v1.35.0 [2026-11-13]
+
+_What's new?_
+
+- New tables added
+  - [aws_application_signals_service_level_objective](https://hub.steampipe.io/plugins/turbot/aws/tables/aws_application_signals_service_level_objective) ([#2770](https://github.com/turbot/steampipe-plugin-aws/pull/2770))
+
+_Dependencies_
+
+- Recompiled plugin with [steampipe-plugin-sdk v6.2.1](https://github.com/turbot/steampipe-plugin-sdk/blob/develop/CHANGELOG.md#v621-2026-11-12), which lowers plugin memory use, with the query cache fixes for missing or duplicate rows from [v6.2.0](https://github.com/turbot/steampipe-plugin-sdk/blob/develop/CHANGELOG.md#v620-2026-11-11). ([#2814](https://github.com/turbot/steampipe-plugin-aws/pull/2814))
+
 ## v1.34.1 [2026-10-26]
 
 _Bug fixes_
