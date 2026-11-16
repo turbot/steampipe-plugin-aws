@@ -51,6 +51,12 @@ func tableAwsEc2Ami(_ context.Context) *plugin.Table {
 				{Name: "virtualization_type", Require: plugin.Optional},
 			},
 		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getAwsEc2AmiLaunchPermissionData,
+				Tags: map[string]string{"service": "ec2", "action": "DescribeImageAttribute"},
+			},
+		},
 		GetMatrixItemFunc: SupportedRegionMatrix(AWS_EC2_SERVICE_ID),
 		Columns: awsRegionalColumns([]*plugin.Column{
 			{
