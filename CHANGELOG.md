@@ -1,3 +1,18 @@
+## v1.36.0 [2026-11-16]
+
+_Enhancements_
+
+- Increased the number of idle HTTP connections the plugin keeps for reuse from 10 per host and 100 in total to 1,000, which reduces connection churn on tables that make many API calls to the same host, e.g., `aws_sns_topic`. Previously, these tables opened hundreds of new connections a second, which could run out of local or NAT ports and fail with `can't assign requested address` errors. The limit can be changed with the `STEAMPIPE_AWS_HTTP_TRANSPORT_MAX_IDLE_CONNS` environment variable, and setting it to `0` keeps the AWS SDK defaults. ([#2817](https://github.com/turbot/steampipe-plugin-aws/pull/2817))
+
+_Bug fixes_
+
+- Fixed the `aws_eks_access_entry`, `aws_eks_access_policy_association`, `aws_eks_addon`, `aws_eks_fargate_profile`, `aws_eks_identity_provider_config`, `aws_eks_node_group`, and `aws_eks_pod_identity_association` tables to skip local EKS clusters on AWS Outposts instead of failing with a `This operation is not supported for local EKS clusters` error. ([#2797](https://github.com/turbot/steampipe-plugin-aws/pull/2797)) (Thanks [@cristianchiriac](https://github.com/cristianchiriac) for the contribution!)
+- Fixed the `resource_tags` column filter in the `aws_inspector2_finding` table to return only findings with matching tags. Previously, it returned all findings. Filter values with malformed JSON or entries missing a `key` or `value` now return an error. ([#2798](https://github.com/turbot/steampipe-plugin-aws/pull/2798)) (Thanks [@cristianchiriac](https://github.com/cristianchiriac) for the contribution!)
+
+_Dependencies_
+
+- Updated `soupsieve` to v4.0 in the `generate_parliament_iam_permissions` script. ([#2815](https://github.com/turbot/steampipe-plugin-aws/pull/2815))
+
 ## v1.35.0 [2026-11-13]
 
 _What's new?_
