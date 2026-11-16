@@ -186,6 +186,11 @@ func listEKSAddons(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
+			// Local EKS clusters on AWS Outposts do not support this operation
+			if isLocalEKSClusterUnsupportedError(err) {
+				plugin.Logger(ctx).Debug("aws_eks_addon.listEKSAddons", "skipping local cluster", clusterName)
+				return nil, nil
+			}
 			plugin.Logger(ctx).Error("aws_eks_addon.listEKSAddons", "api_error", err)
 			return nil, err
 		}

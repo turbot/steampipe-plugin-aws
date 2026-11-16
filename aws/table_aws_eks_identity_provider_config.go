@@ -180,6 +180,11 @@ func listEKSIdentityProviderConfigs(ctx context.Context, d *plugin.QueryData, h 
 
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
+			// Local EKS clusters on AWS Outposts do not support this operation
+			if isLocalEKSClusterUnsupportedError(err) {
+				plugin.Logger(ctx).Debug("aws_eks_identity_provider_config.listEKSIdentityProviderConfigs", "skipping local cluster", aws.ToString(cluster.Name))
+				return nil, nil
+			}
 			plugin.Logger(ctx).Error("aws_eks_identity_provider_config.listEKSIdentityProviderConfigs", "api_error", err)
 			return nil, err
 		}

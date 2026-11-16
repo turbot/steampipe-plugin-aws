@@ -112,6 +112,11 @@ func listEKSAccessPolicyAssociations(ctx context.Context, d *plugin.QueryData, h
 
 	accessEntries, err := listAccessEntriesByClusterName(ctx, svc, clusterName)
 	if err != nil {
+		// Local EKS clusters on AWS Outposts do not support access entries
+		if isLocalEKSClusterUnsupportedError(err) {
+			plugin.Logger(ctx).Debug("aws_eks_access_policy_association.listEKSAccessPolicyAssociations", "skipping local cluster", clusterName)
+			return nil, nil
+		}
 		plugin.Logger(ctx).Error("aws_eks_access_policy_association.listAccessEntriesByClusterName", "api_error", err)
 		return nil, err
 	}
