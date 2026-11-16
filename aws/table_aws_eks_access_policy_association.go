@@ -198,7 +198,6 @@ func listAccessEntriesByClusterName(ctx context.Context, svc *eks.Client, cluste
 	for paginator.HasMorePages() {
 		output, err := paginator.NextPage(ctx)
 		if err != nil {
-			plugin.Logger(ctx).Error("aws_eks_access_policy_association.listAccessEntriesByClusterName", "api_error", err)
 			return nil, err
 		}
 
