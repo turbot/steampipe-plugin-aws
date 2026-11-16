@@ -35,7 +35,7 @@ func matchingLimiters(t *testing.T, p *plugin.Plugin, scopeValues map[string]str
 // tags, in a scan of one region: the scan's values, then the table's tags,
 // then the call's tags, each taking precedence over the one before.
 func callScope(tbl *plugin.Table, tags map[string]string, region string) map[string]string {
-	values := map[string]string{"connection": "aws", "table": tbl.Name, "region": region}
+	values := map[string]string{"connection": "aws", "region": region}
 	for k, v := range tbl.Tags {
 		values[k] = v
 	}
