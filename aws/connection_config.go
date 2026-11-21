@@ -44,9 +44,13 @@ func GetConfig(connection *plugin.Connection) awsConfig {
 			panic(errorMessage)
 		}
 
+		// Build a new slice. The connection config is shared by concurrent
+		// hydrate calls, so writing to config.Regions in place is a data race.
+		regions := make([]string, len(config.Regions))
 		for i, r := range config.Regions {
-			config.Regions[i] = NormalizeRegion(r)
+			regions[i] = NormalizeRegion(r)
 		}
+		config.Regions = regions
 	}
 
 	return config
