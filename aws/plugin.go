@@ -219,6 +219,17 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 				Scope:      []string{"connection", "region", "service", "action"},
 				Where:      "service = 'lambda' and action in ('ListFunctions', 'GetFunctionUrlConfig')",
 			},
+			{
+				// EC2 throttles each API action on its own, per account and Region. These
+				// per-row calls are "Non-mutating actions": a bucket of 100, refilled at 20 a second.
+				// "action" is in the scope, so each action gets its own bucket, as in EC2.
+				// https://docs.aws.amazon.com/ec2/latest/devguide/ec2-api-throttling.html
+				Name:       "aws_ec2_describe_attribute",
+				FillRate:   20,
+				BucketSize: 100,
+				Scope:      []string{"connection", "region", "service", "action"},
+				Where:      "service = 'ec2' and action in ('DescribeImageAttribute', 'DescribeInstanceAttribute', 'DescribeSnapshotAttribute', 'DescribeVolumeAttribute')",
+			},
 		},
 		TableMap: map[string]*plugin.Table{
 			"aws_accessanalyzer_analyzer":                                  tableAwsAccessAnalyzer(ctx),
