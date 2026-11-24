@@ -100,3 +100,33 @@ from
   json_each(vgw_telemetry) as t
 where  json_extract(t.value, '$.Status') = 'UP';
 ```
+
+
+### List VPN tunnels with BGP logging disabled
+Identify VPN tunnels that do not send BGP logs to CloudWatch Logs. BGP logs record session state changes and route updates, so tunnels without them are harder to troubleshoot when routing breaks.
+
+```sql+postgres
+select
+  vpn_connection_id,
+  t ->> 'OutsideIpAddress' as outside_ip_address,
+  t -> 'LogOptions' -> 'CloudWatchLogOptions' ->> 'BgpLogEnabled' as bgp_log_enabled,
+  region
+from
+  aws_vpc_vpn_connection,
+  jsonb_array_elements(options -> 'TunnelOptions') as t
+where
+  t -> 'LogOptions' -> 'CloudWatchLogOptions' ->> 'BgpLogEnabled' = 'false';
+```
+
+```sql+sqlite
+select
+  vpn_connection_id,
+  json_extract(t.value, '$.OutsideIpAddress') as outside_ip_address,
+  json_extract(t.value, '$.LogOptions.CloudWatchLogOptions.BgpLogEnabled') as bgp_log_enabled,
+  region
+from
+  aws_vpc_vpn_connection,
+  json_each(json_extract(options, '$.TunnelOptions')) as t
+where
+  json_extract(t.value, '$.LogOptions.CloudWatchLogOptions.BgpLogEnabled') = 0;
+```

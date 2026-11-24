@@ -298,28 +298,7 @@ func getSecurityGroupRuleTurbotData(ctx context.Context, d *plugin.QueryData, h 
 
 	commonColumnData := commonData.(*awsCommonColumnData)
 
-	// Create a unique AKA
-
-	hashCode := "_" + *sgRule.IpProtocol
-	if *sgRule.IsEgress {
-		hashCode = "egress" + hashCode
-	} else {
-		hashCode = "ingress" + hashCode
-	}
-
-	if sgRule.FromPort != nil {
-		hashCode = fmt.Sprintf("%s_%d_%d", hashCode, sgRule.FromPort, sgRule.ToPort)
-	}
-
-	if sgRule.CidrIpv4 != nil {
-		hashCode = hashCode + "_" + *sgRule.CidrIpv4
-	} else if sgRule.CidrIpv6 != nil {
-		hashCode = hashCode + "_" + *sgRule.CidrIpv6
-	} else if sgRule.ReferencedGroupInfo != nil && sgRule.ReferencedGroupInfo.GroupId != nil && *sgRule.ReferencedGroupInfo.GroupId == *sgRule.GroupId {
-		hashCode = hashCode + "_" + *sgRule.ReferencedGroupInfo.GroupId
-	} else if sgRule.PrefixListId != nil {
-		hashCode = hashCode + "_" + *sgRule.PrefixListId
-	}
+	hashCode := securityGroupRuleHashCode(sgRule)
 
 	// generate aka for the rule
 	akas := []string{"arn:" + commonColumnData.Partition + ":ec2:" + region + ":" + *sgRule.GroupOwnerId + ":security-group-rule/" + *sgRule.SecurityGroupRuleId + ":" + hashCode}
@@ -332,6 +311,33 @@ func getSecurityGroupRuleTurbotData(ctx context.Context, d *plugin.QueryData, h 
 	}
 
 	return turbotData, nil
+}
+
+// securityGroupRuleHashCode builds the rule suffix used in title and akas,
+// e.g. "ingress_tcp_22_22_10.0.0.0/16".
+func securityGroupRuleHashCode(sgRule types.SecurityGroupRule) string {
+	hashCode := "_" + *sgRule.IpProtocol
+	if *sgRule.IsEgress {
+		hashCode = "egress" + hashCode
+	} else {
+		hashCode = "ingress" + hashCode
+	}
+
+	if sgRule.FromPort != nil {
+		hashCode = fmt.Sprintf("%s_%d_%d", hashCode, aws.ToInt32(sgRule.FromPort), aws.ToInt32(sgRule.ToPort))
+	}
+
+	if sgRule.CidrIpv4 != nil {
+		hashCode = hashCode + "_" + *sgRule.CidrIpv4
+	} else if sgRule.CidrIpv6 != nil {
+		hashCode = hashCode + "_" + *sgRule.CidrIpv6
+	} else if sgRule.ReferencedGroupInfo != nil && sgRule.ReferencedGroupInfo.GroupId != nil && *sgRule.ReferencedGroupInfo.GroupId == *sgRule.GroupId {
+		hashCode = hashCode + "_" + *sgRule.ReferencedGroupInfo.GroupId
+	} else if sgRule.PrefixListId != nil {
+		hashCode = hashCode + "_" + *sgRule.PrefixListId
+	}
+
+	return hashCode
 }
 
 func setRuleType(_ context.Context, d *transform.TransformData) (interface{}, error) {
