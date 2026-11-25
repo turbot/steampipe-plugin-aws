@@ -298,6 +298,10 @@ func getAwsEBSSnapshotCreateVolumePermissions(ctx context.Context, d *plugin.Que
 	// Describe create volume permission
 	resp, err := svc.DescribeSnapshotAttribute(ctx, params)
 	if err != nil {
+		// The snapshot was deleted after it was listed. Skip the column for this row instead of failing the query.
+		if hasAPIErrorCode(err, "InvalidSnapshot.NotFound") {
+			return nil, nil
+		}
 		plugin.Logger(ctx).Error("aws_ebs_snapshot.getAwsEBSSnapshotCreateVolumePermissions", "api_error", err)
 		return nil, err
 	}

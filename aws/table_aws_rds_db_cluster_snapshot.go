@@ -320,6 +320,10 @@ func getAwsRDSDBClusterSnapshotAttributes(ctx context.Context, d *plugin.QueryDa
 
 	dbClusterSnapshotData, err := svc.DescribeDBClusterSnapshotAttributes(ctx, params)
 	if err != nil {
+		// The snapshot was deleted after it was listed. Skip the column for this row instead of failing the query.
+		if hasAPIErrorCode(err, "DBClusterSnapshotNotFoundFault", "DBSnapshotNotFound") {
+			return nil, nil
+		}
 		plugin.Logger(ctx).Error("aws_rds_db_cluster_snapshot.getAwsRDSDBClusterSnapshotAttributes", "api_error", err)
 		return nil, err
 	}
