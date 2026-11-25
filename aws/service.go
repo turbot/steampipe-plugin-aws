@@ -2392,6 +2392,10 @@ func getBaseClientForAccountUncached(ctx context.Context, d *plugin.QueryData, h
 		}
 	}
 
+	// Every client the plugin builds starts from this config, so they all
+	// wait for their hydrate call's rate limiters before each request.
+	addHydrateRateLimitMiddleware(&cfg)
+
 	plugin.Logger(ctx).Debug("getBaseClientForAccountUncached", "connection_name", d.Connection.Name, "status", "done")
 
 	return &cfg, err

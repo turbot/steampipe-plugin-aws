@@ -20,6 +20,10 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 	p := &plugin.Plugin{
 		Name:             pluginName,
 		DefaultTransform: transform.FromCamel(),
+		// The AWS clients wait for a hydrate call's rate limiters before each
+		// request (addHydrateRateLimitMiddleware), so a hydrate call that sends
+		// no request takes no token and does not wait.
+		ClientWaitsForHydrateRateLimit: true,
 		DefaultGetConfig: &plugin.GetConfig{
 			IgnoreConfig: &plugin.IgnoreConfig{
 				ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{
