@@ -1,3 +1,31 @@
+## v1.37.0 [2026-11-25]
+
+_Enhancements_
+
+- Added column `user_status` to `aws_identitystore_user` table. ([#2812](https://github.com/turbot/steampipe-plugin-aws/pull/2812)) (Thanks [@PiyushSingh-ZS](https://github.com/PiyushSingh-ZS) for the contribution!)
+- Added `BgpLogEnabled`, `BgpLogGroupArn`, and `BgpLogOutputFormat` to the tunnel log options in the `options` column of the `aws_vpc_vpn_connection` table. ([#2826](https://github.com/turbot/steampipe-plugin-aws/pull/2826))
+- Added a default `aws_ec2_describe_attribute` rate limiter for the per-row `DescribeImageAttribute`, `DescribeInstanceAttribute`, `DescribeSnapshotAttribute`, and `DescribeVolumeAttribute` calls in the `aws_ebs_snapshot`, `aws_ebs_volume`, `aws_ec2_ami`, and `aws_ec2_instance` tables. Previously, these tables could fail with a `RequestLimitExceeded` error in accounts with thousands of resources, as EC2 throttles each of these actions at 20 calls a second per account and region. The limiter only applies to calls the plugin sends, so `aws_ebs_snapshot` queries for snapshots the account does not own, e.g., public snapshots, are not slowed down. The limiter can be replaced with a `limiter "aws_ec2_describe_attribute"` block in the `plugin "aws"` block, which must also set `scope` and `where`. ([#2820](https://github.com/turbot/steampipe-plugin-aws/pull/2820), [#2827](https://github.com/turbot/steampipe-plugin-aws/pull/2827))
+- Rate limited columns no longer wait for a rate limiter when they don't need to call AWS, e.g., `dnssec_key_signing_keys` and `dnssec_status` in the `aws_route53_zone` table for private hosted zones, and `url_config` in the `aws_lambda_function` table in AWS GovCloud. ([#2827](https://github.com/turbot/steampipe-plugin-aws/pull/2827))
+
+_Bug fixes_
+
+- Fixed the `aws_identitystore_user` table to return all columns when filtered by `id`. Previously, columns other than `id`, `identity_store_id`, `name`, and `title` returned `null`. ([#2812](https://github.com/turbot/steampipe-plugin-aws/pull/2812)) (Thanks [@PiyushSingh-ZS](https://github.com/PiyushSingh-ZS) for the contribution!)
+- Fixed the `title` and `akas` columns in the `aws_vpc_security_group_rule` table to include the rule's port numbers, e.g., `sgr-0123456789abcdef0_ingress_tcp_22_22_10.0.0.0/16`. Previously, they contained memory addresses that changed every time the plugin restarted. ([#2826](https://github.com/turbot/steampipe-plugin-aws/pull/2826))
+- Fixed a data race on the `regions` config argument, which the plugin lowercased in place while other API calls for the same connection read it. ([#2824](https://github.com/turbot/steampipe-plugin-aws/pull/2824)) (Thanks [@theluckystrike](https://github.com/theluckystrike) for the contribution!)
+
+_Dependencies_
+
+- Recompiled plugin with [github.com/aws/aws-sdk-go-v2/config v1.33.6](https://github.com/aws/aws-sdk-go-v2/blob/main/CHANGELOG.md). ([#2827](https://github.com/turbot/steampipe-plugin-aws/pull/2827))
+- Recompiled plugin with [github.com/aws/aws-sdk-go-v2/service/dynamodb v1.62.1](https://github.com/aws/aws-sdk-go-v2/blob/main/CHANGELOG.md). ([#2827](https://github.com/turbot/steampipe-plugin-aws/pull/2827))
+- Recompiled plugin with [github.com/aws/aws-sdk-go-v2/service/ec2 v1.350.0](https://github.com/aws/aws-sdk-go-v2/blob/main/CHANGELOG.md). ([#2826](https://github.com/turbot/steampipe-plugin-aws/pull/2826))
+- Recompiled plugin with [github.com/aws/aws-sdk-go-v2/service/iam v1.56.1](https://github.com/aws/aws-sdk-go-v2/blob/main/CHANGELOG.md). ([#2827](https://github.com/turbot/steampipe-plugin-aws/pull/2827))
+- Recompiled plugin with [github.com/aws/aws-sdk-go-v2/service/identitystore v1.48.0](https://github.com/aws/aws-sdk-go-v2/blob/main/CHANGELOG.md). ([#2812](https://github.com/turbot/steampipe-plugin-aws/pull/2812))
+- Recompiled plugin with [github.com/aws/aws-sdk-go-v2/service/sns v1.39.17](https://github.com/aws/aws-sdk-go-v2/blob/main/CHANGELOG.md). ([#2827](https://github.com/turbot/steampipe-plugin-aws/pull/2827))
+- Recompiled plugin with [github.com/aws/aws-sdk-go-v2/service/sqs v1.46.1](https://github.com/aws/aws-sdk-go-v2/blob/main/CHANGELOG.md). ([#2827](https://github.com/turbot/steampipe-plugin-aws/pull/2827))
+- Recompiled plugin with [github.com/aws/aws-sdk-go-v2/service/sts v1.51.1](https://github.com/aws/aws-sdk-go-v2/blob/main/CHANGELOG.md). ([#2827](https://github.com/turbot/steampipe-plugin-aws/pull/2827))
+- Recompiled plugin with [google.golang.org/grpc v1.84.0](https://github.com/grpc/grpc-go/releases/tag/v1.84.0). ([#2827](https://github.com/turbot/steampipe-plugin-aws/pull/2827))
+- Recompiled plugin with [steampipe-plugin-sdk v6.3.0](https://github.com/turbot/steampipe-plugin-sdk/blob/develop/CHANGELOG.md#630---2026-11-24), with the fixes from [v6.2.2](https://github.com/turbot/steampipe-plugin-sdk/blob/develop/CHANGELOG.md#v622-2026-11-23) for failed API calls that could return rows with missing column values, or no rows and no error. ([#2827](https://github.com/turbot/steampipe-plugin-aws/pull/2827))
+
 ## v1.36.0 [2026-11-16]
 
 _Enhancements_
