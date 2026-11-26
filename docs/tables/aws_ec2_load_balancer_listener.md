@@ -95,3 +95,29 @@ from
 where
   protocol = 'HTTP';
 ```
+### Get the idle timeout of TCP listeners on Network Load Balancers
+Read a listener attribute from the `attributes` column. `tcp.idle_timeout.seconds` is returned for TCP listeners of a Network Load Balancer.
+
+```sql+postgres
+select
+  arn,
+  port,
+  protocol,
+  attributes ->> 'tcp.idle_timeout.seconds' as tcp_idle_timeout_seconds
+from
+  aws_ec2_load_balancer_listener
+where
+  protocol = 'TCP';
+```
+
+```sql+sqlite
+select
+  arn,
+  port,
+  protocol,
+  json_extract(attributes, '$."tcp.idle_timeout.seconds"') as tcp_idle_timeout_seconds
+from
+  aws_ec2_load_balancer_listener
+where
+  protocol = 'TCP';
+```

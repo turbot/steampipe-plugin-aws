@@ -2,11 +2,13 @@ package aws
 
 import (
 	"context"
+	"errors"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
 	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2/types"
+	"github.com/aws/smithy-go"
 
 	"github.com/turbot/steampipe-plugin-sdk/v6/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v6/plugin"
@@ -26,6 +28,12 @@ func tableAwsEc2ApplicationLoadBalancerListener(_ context.Context) *plugin.Table
 			},
 			Hydrate: getEc2LoadBalancerListener,
 			Tags:    map[string]string{"service": "elasticloadbalancing", "action": "DescribeLoadBalancers"},
+		},
+		HydrateConfig: []plugin.HydrateConfig{
+			{
+				Func: getEc2LoadBalancerListenerAttributes,
+				Tags: map[string]string{"service": "elasticloadbalancing", "action": "DescribeListenerAttributes"},
+			},
 		},
 		List: &plugin.ListConfig{
 			ParentHydrate: listEc2LoadBalancers,
@@ -82,6 +90,13 @@ func tableAwsEc2ApplicationLoadBalancerListener(_ context.Context) *plugin.Table
 				Name:        "mutual_authentication",
 				Description: "The mutual authentication configuration information.",
 				Type:        proto.ColumnType_JSON,
+			},
+			{
+				Name:        "attributes",
+				Description: "The listener attributes as a map of key to value, for example tcp.idle_timeout.seconds for TCP listeners of a Network Load Balancer.",
+				Type:        proto.ColumnType_JSON,
+				Hydrate:     getEc2LoadBalancerListenerAttributes,
+				Transform:   transform.FromValue(),
 			},
 
 			// Standard columns
@@ -243,6 +258,48 @@ func getEc2LoadBalancerListener(ctx context.Context, d *plugin.QueryData, _ *plu
 		return op.Listeners[0], nil
 	}
 	return nil, nil
+}
+
+func getEc2LoadBalancerListenerAttributes(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	listener := h.Item.(types.Listener)
+
+	// Create service
+	svc, err := ELBV2Client(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("aws_ec2_load_balancer_listener.getEc2LoadBalancerListenerAttributes", "connection_error", err)
+		return nil, err
+	}
+
+	op, err := svc.DescribeListenerAttributes(ctx, &elasticloadbalancingv2.DescribeListenerAttributesInput{
+		ListenerArn: listener.ListenerArn,
+	})
+	if err != nil {
+		// The listener was deleted after it was listed. Skip the column for this row instead of failing the query.
+		var ae smithy.APIError
+		if errors.As(err, &ae) && ae.ErrorCode() == "ListenerNotFound" {
+			return nil, nil
+		}
+		plugin.Logger(ctx).Error("aws_ec2_load_balancer_listener.getEc2LoadBalancerListenerAttributes", "api_error", err)
+		return nil, err
+	}
+
+	return listenerAttributesMap(op.Attributes), nil
+}
+
+// listenerAttributesMap turns the attribute list into a key to value map. Attributes without a key are skipped.
+func listenerAttributesMap(attrs []types.ListenerAttribute) map[string]string {
+	out := make(map[string]string, len(attrs))
+	for _, a := range attrs {
+		if a.Key == nil {
+			continue
+		}
+		v := ""
+		if a.Value != nil {
+			v = *a.Value
+		}
+		out[*a.Key] = v
+	}
+	return out
 }
 
 //// TRANSFORM FUNCTIONS ////
