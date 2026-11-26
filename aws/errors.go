@@ -75,3 +75,20 @@ func hasIgnoredErrorCodesOrMessages(connection *plugin.Connection) bool {
 	awsConfig := GetConfig(connection)
 	return len(awsConfig.IgnoreErrorCodes) > 0 || len(awsConfig.IgnoreErrorMessages) > 0
 }
+
+// hasAPIErrorCode reports whether err is an AWS API error with one of the given codes.
+// Hydrate functions use it to skip a single row's extra call when the resource was deleted
+// between the list call and the hydrate call, without adding an IgnoreConfig to the hydrate
+// (see the note in table_aws_s3_bucket.go about IgnoreConfig cost in hydrate calls).
+func hasAPIErrorCode(err error, codes ...string) bool {
+	var ae smithy.APIError
+	if !errors.As(err, &ae) {
+		return false
+	}
+	for _, c := range codes {
+		if ae.ErrorCode() == c {
+			return true
+		}
+	}
+	return false
+}

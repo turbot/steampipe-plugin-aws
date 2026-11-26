@@ -366,6 +366,10 @@ func getAwsRDSDBSnapshotAttributes(ctx context.Context, d *plugin.QueryData, h *
 
 	op, err := svc.DescribeDBSnapshotAttributes(ctx, params)
 	if err != nil {
+		// The snapshot was deleted after it was listed. Skip the column for this row instead of failing the query.
+		if hasAPIErrorCode(err, "DBSnapshotNotFound") {
+			return nil, nil
+		}
 		plugin.Logger(ctx).Error("aws_rds_db_snapshot.getAwsRDSDBSnapshotAttributes", "api_error", err)
 		return nil, err
 	}
